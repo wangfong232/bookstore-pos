@@ -31,6 +31,11 @@ public class GoodsReceipt {
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
 
+    //display fields 
+    private String poNumber;
+    private String supplierName;
+    private String receivedByName;
+
     private List<GoodsReceiptDetail> details;
 
     public GoodsReceipt() {
@@ -146,6 +151,30 @@ public class GoodsReceipt {
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public String getPoNumber() {
+        return poNumber;
+    }
+
+    public void setPoNumber(String poNumber) {
+        this.poNumber = poNumber;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getReceivedByName() {
+        return receivedByName;
+    }
+
+    public void setReceivedByName(String receivedByName) {
+        this.receivedByName = receivedByName;
     }
 
     public List<GoodsReceiptDetail> getDetails() {
