@@ -10,7 +10,7 @@
     <!-- Brand Logo -->
     <a href="${pageContext.request.contextPath}/dashboard" class="brand-link">
         <img src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/img/AdminLTELogo.png" 
-             alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+             alt="Logo" class="brand-image img-dot-circle elevation-3" style="opacity: .8">
         <span class="brand-text font-weight-light">Bookstore POS</span>
     </a>
 
@@ -20,7 +20,7 @@
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
                 <img src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/img/user2-160x160.jpg" 
-                     class="img-circle elevation-2" alt="User Image">
+                     class="img-dot-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
                 <a href="#" class="d-block">Admin User</a>
@@ -77,13 +77,13 @@
                         </li>
                         <li class="nav-item">
                             <a href="categories" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh mục</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="brands" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Thương hiệu</p>
                             </a>
                         </li>
@@ -108,19 +108,19 @@
                         </li>
                         <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/purchaseorder" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Nhập hàng</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Kiểm kho</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Xuất hủy</p>
                             </a>
                         </li>
@@ -139,13 +139,13 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh sách đơn hàng</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/supplier" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Nhà cung cấp</p>
                             </a>
                         </li>
@@ -164,13 +164,13 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh sách hóa đơn</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Thanh toán</p>
                             </a>
                         </li>
@@ -189,19 +189,19 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh sách khách hàng</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Điểm tích lũy</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="customer-tiers" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                            <a href="admin/customer-tiers" class="nav-link">
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Hạng thành viên</p>
                             </a>
                         </li>
@@ -220,13 +220,13 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="promotions" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh sách khuyến mãi</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Điều kiện áp dụng</p>
                             </a>
                         </li>
@@ -246,27 +246,34 @@
                         <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/admin/employees"
                                class="nav-link ${pageContext.request.requestURI.contains('/admin/employees') ? 'active' : ''}">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh sách nhân viên</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/admin/attendance?action=list"
                                class="nav-link ${pageContext.request.requestURI.contains('/admin/attendance') ? 'active' : ''}">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Chấm công</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/admin/shift-management" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Ca làm việc</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Phân quyền</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="${pageContext.request.contextPath}/staff/swap"
+                               class="nav-link ${pageContext.request.requestURI.contains('/staff/swap') ? 'active' : ''}">
+                                <i class="far fa-dot-circle nav-icon"></i>
+                                <p>Đơn đổi ca</p>
                             </a>
                         </li>
                     </ul>
@@ -284,19 +291,19 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Doanh thu</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Tồn kho</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
+                                <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Sản phẩm bán chạy</p>
                             </a>
                         </li>

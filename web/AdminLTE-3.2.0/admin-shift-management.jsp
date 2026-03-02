@@ -4,6 +4,48 @@
 <!DOCTYPE html>
 <html lang="vi">
     <head>
+        <style>
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                border-top: 1px solid #dee2e6;
+                border-left: 1px solid #dee2e6;
+            }
+
+            .calendar-header {
+                background: #f8f9fa;
+                text-align: center;
+                font-weight: bold;
+                padding: 10px;
+                border-right: 1px solid #dee2e6;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .calendar-cell {
+                min-height: 120px;
+                padding: 5px;
+                border-right: 1px solid #dee2e6;
+                border-bottom: 1px solid #dee2e6;
+                position: relative;
+            }
+
+            .calendar-date {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            .calendar-event {
+                background: #ffeeba;
+                padding: 4px 6px;
+                border-radius: 6px;
+                font-size: 16px;
+                margin-bottom: 4px;
+            }
+
+            .calendar-cell.empty {
+                background: #f8f9fa;
+            }
+        </style>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Quản lí ca làm việc</title>
@@ -54,9 +96,35 @@
                                 <div class="card-body row">
 
                                     <div class="form-group col-md-3">
-                                        <label>Ngày</label>
-                                        <input type="date" name="workDate"
-                                               class="form-control" required>
+                                        <div class="form-group row-md-3">
+                                            <label>Loại thời gian</label>
+                                            <select id="dateType" class="form-control">
+                                                <option value="day">Theo ngày</option>
+                                                <option value="week">Theo tuần</option>
+                                                <option value="month">Theo tháng</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group row-md-3">
+                                            <label>Chọn thời gian</label>
+
+                                            <!-- Theo ngày -->
+                                            <input type="date" name="workDate"
+                                                   id="dateInput"
+                                                   class="form-control">
+
+                                            <!-- Theo tuần -->
+                                            <input type="week"
+                                                   name="weekInput"
+                                                   id="weekInput"
+                                                   class="form-control d-none">
+
+                                            <!-- Theo tháng -->
+                                            <input type="month"
+                                                   name="monthInput"
+                                                   id="monthInput"
+                                                   class="form-control d-none">
+                                        </div>
                                     </div>
 
                                     <div class="form-group col-md-3">
@@ -73,16 +141,25 @@
 
                                     <div class="form-group col-md-4">
                                         <label>Nhân viên</label>
-                                        <select name="employeeID" class="form-control">
-                                            <c:forEach var="e" items="${employees}">
-                                                <option value="${e.employeeId}">
-                                                    ${e.fullName}
-                                                </option>
-                                            </c:forEach>
-                                        </select>
+
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-block"
+                                                data-toggle="modal"
+                                                data-target="#employeeModal">
+                                            Chọn nhân viên
+                                        </button>
+
+                                        <!-- Hidden input để submit -->
+                                        <input type="hidden" name="employeeIDs" id="selectedEmployeeIDs" required>
+
+                                        <!-- Hiển thị tên đã chọn -->
+                                        <div id="selectedEmployeeName"
+                                             class="mt-2 text-muted small">
+                                        </div>
                                     </div>
 
-                                    <div class="form-group col-md-2 align-self-end">
+                                    <div class="form-group col-md-2">
+                                        <label style="visibility:hidden;">Action</label>
                                         <button class="btn btn-primary btn-block">
                                             Phân công
                                         </button>
@@ -96,21 +173,86 @@
                         <div class="card card-info">
 
                             <!-- HEADER + DATE FILTER -->
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h3 class="card-title">
-                                    Tổng quan về ca làm việc hàng ngày
-                                </h3>
+                            <div class="card-header">
 
-                                <form method="get" action="shift-management" class="form-inline">
-                                    <input type="date" name="viewDate"
-                                           value="${viewDate}"
-                                           class="form-control mr-2"/>
+                                <div class="row align-items-center">
 
-                                    <button class="btn btn-sm btn-primary">
-                                        Xem
-                                    </button>
-                                </form>
-                            </div>
+                                    <!-- LEFT TITLE -->
+                                    <div class="col-md-5">
+                                        <h3 class="card-title mb-0">
+                                            Tổng quan về ca làm việc hàng ngày
+                                        </h3>
+                                    </div>
+
+                                    <!-- RIGHT ACTIONS (dịch vào giữa) -->
+                                    <div class="col-md-7">
+
+                                        <div class="d-flex align-items-center">
+
+                                            <!-- DATE FILTER -->
+                                            <form method="get"
+                                                  action="shift-management"
+                                                  class="form-inline mb-0">
+
+                                                <input type="date"
+                                                       style="font-size:16px; padding: 3px 10px"
+                                                       name="viewDate"
+                                                       value="${viewDate}"
+                                                       class="form-control form-control-sm mr-2"/>
+
+                                                <button class="btn btn-sm btn-primary mr-2" style="font-size:16px; padding: 3px 10px">
+                                                    Xem
+                                                </button>
+
+                                                <!-- TOGGLE CALENDAR -->
+                                                <c:choose>
+                                                    <c:when test="${viewMode == 'calendar'}">
+                                                        <a href="shift-management"
+                                                           style="font-size:16px; padding: 3px 10px"
+                                                           class="btn btn-sm btn-danger mr-2">
+                                                            <i class="fas fa-times"></i> Ẩn lịch
+                                                        </a>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <a href="shift-management?view=calendar"
+                                                           style="font-size:16px; padding: 3px 10px"
+                                                           class="btn btn-sm btn-success mr-2">
+                                                            <i class="fas fa-calendar-alt"></i> Xem lịch
+                                                        </a>
+                                                    </c:otherwise>
+                                                </c:choose>
+
+                                            </form>
+
+                                            <!-- DROPDOWN -->
+                                            <div class="btn-group ml-2">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-warning dropdown-toggle"
+                                                        data-toggle="dropdown"
+                                                        style="font-size:16px; padding: 3px 10px">
+                                                    <i class="fas fa-file-alt mr-1"></i>
+                                                    Xem đơn
+                                                </button>
+
+                                                <div class="dropdown-menu bg-white">
+                                                    <a class="dropdown-item" href="swap-approval">
+                                                        <i class="fas fa-exchange-alt mr-2 text-primary"></i>
+                                                        Xem đơn đổi ca
+                                                    </a>
+                                                    <a class="dropdown-item" href="ot-approval">
+                                                        <i class="fas fa-clock mr-2 text-success"></i>
+                                                        Xem đơn OT
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div><!-- HEADER + DATE FILTER -->
 
                             <div class="card-body">
                                 <div class="row">
@@ -193,71 +335,145 @@
 
                                 </div>
                             </div>
-                        </div>
+                        </div> <!-- DAILY SHIFT OVERVIEW -->
 
-                        <!-- Employee List -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Danh sách nhân viên</h3>
-                            </div>
 
-                            <div class="card-body table-responsive p-0">
-                                <table class="table table-hover text-nowrap">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Họ và tên</th>
-                                            <th>Email</th>
-                                            <th>Trạng thái</th>
-                                            <th>Lịch sử làm việc</th>
-                                            <th>Đổi ca</th>
-                                        </tr>
-                                    </thead>
+                        <!-- View calendar -->
+                        <c:if test="${viewMode == 'calendar'}">
 
-                                    <tbody>
-                                        <c:forEach var="e" items="${employees}">
-                                            <tr>
-                                                <td>${e.employeeId}</td>
-                                                <td>${e.fullName}</td>
-                                                <td>${e.email}</td>
-                                                <td>
-                                                    <span class="badge ${e.status == 'ACTIVE' ? 'badge-success' : 'badge-danger'}">
-                                                        ${e.status}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <a href="shift-history?employeeID=${e.employeeId}"
-                                                       class="btn btn-info btn-sm">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                </td>
-                                                <td>
-                                                    <a href="swap-approval?employeeID=${e.employeeId}"
-                                                       class="btn btn-warning btn-sm">
-                                                        <i class="fas fa-exchange-alt"></i>
-                                                    </a>
-                                                </td>
-                                            </tr>
+                            <div class="card">
+
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h3 class="card-title">
+                                        Tháng ${month}/${year}
+                                    </h3>
+
+                                    <form method="get" action="shift-management" class="form-inline">
+                                        <input type="hidden" name="view" value="calendar"/>
+
+                                        <input type="month"
+                                               name="monthPicker"
+                                               value="${year}-${month < 10 ? '0' : ''}${month}"
+                                               class="form-control mr-2"/>
+
+                                        <button class="btn btn-primary btn-sm">Xem</button>
+                                    </form>
+                                </div>
+
+                                <div class="card-body p-0">
+
+                                    <!-- Calendar Grid -->
+                                    <div class="calendar-grid">
+
+                                        <!-- HEADER -->
+                                        <div class="calendar-header">Mon</div>
+                                        <div class="calendar-header">Tue</div>
+                                        <div class="calendar-header">Wed</div>
+                                        <div class="calendar-header">Thu</div>
+                                        <div class="calendar-header">Fri</div>
+                                        <div class="calendar-header">Sat</div>
+                                        <div class="calendar-header">Sun</div>
+
+                                        <!-- EMPTY CELLS BEFORE FIRST DAY -->
+                                        <c:forEach begin="1" end="${firstDayOfWeek - 1}">
+                                            <div class="calendar-cell empty"></div>
                                         </c:forEach>
-                                    </tbody>
-                                </table>
+
+                                        <!-- DAYS -->
+                                        <c:forEach begin="1" end="${daysInMonth}" var="day">
+
+                                            <div class="calendar-cell">
+
+                                                <div class="calendar-date">
+                                                    ${day}
+                                                </div>
+
+                                                <!-- SHIFT INSIDE DAY -->
+                                                <c:forEach var="a" items="${calendarAssignments}">
+                                                    <c:if test="${a.workDate.toLocalDate().getDayOfMonth() == day}">
+                                                        <div class="calendar-event">
+                                                            ${a.shiftName} <br/>
+                                                            <small>${a.fullName}</small>
+                                                        </div>
+                                                    </c:if>
+                                                </c:forEach>
+
+                                            </div>
+
+                                        </c:forEach>
+
+                                    </div>
+                                </div>
+
                             </div>
 
-                            <div class="card-footer clearfix">
-                                <ul class="pagination pagination-sm m-0 float-right">
-                                    <c:forEach begin="1" end="${totalPages}" var="i">
-                                        <li class="page-item ${i == currentPage ? 'active' : ''}">
-                                            <a class="page-link"
-                                               href="shift-management?page=${i}&search=${param.search}&status=${param.status}">
-                                                ${i}
-                                            </a>
-                                        </li>
-                                    </c:forEach>
-                                </ul>
-                            </div>
+                        </c:if>
 
+
+
+                    </div> <!-- container-fluid -->
+                    <!-- EMPLOYEE SELECT MODAL -->
+                    <div class="modal fade" id="employeeModal">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">Chọn nhân viên</h5>
+                                    <button type="button" class="close text-white"
+                                            data-dismiss="modal">&times;</button>
+                                </div>
+
+                                <div class="modal-body">
+
+                                    <!-- Search box -->
+                                    <input type="text"
+                                           id="searchEmployee"
+                                           class="form-control mb-3"
+                                           placeholder="Tìm theo tên...">
+
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Họ tên</th>
+                                                <th>Vai trò</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="employeeTable">
+                                            <c:forEach var="e" items="${allEmployees}">
+                                                <tr>
+                                                    <td>
+                                                        <input type="checkbox"
+                                                               name="empCheckbox"
+                                                               value="${e.employeeId}"
+                                                               data-name="${e.fullName}">
+                                                    </td>
+                                                    <td>${e.fullName}</td>
+                                                    <td>${e.role.roleName}</td>
+                                                    <td>
+                                                        <span class="badge ${e.status == 'ACTIVE' ? 'badge-success' : 'badge-danger'}">
+                                                            ${e.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </tbody>
+                                    </table>
+
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button"
+                                            class="btn btn-primary"
+                                            onclick="selectEmployee()">
+                                        Xác nhận
+                                    </button>
+                                </div>
+
+                            </div>
                         </div>
-
                     </div>
                 </section>
             </div>
@@ -267,6 +483,54 @@
 
         </div>
 
-        
+
+        <script>
+            function selectEmployee() {
+
+                let checked = document.querySelectorAll('input[name="empCheckbox"]:checked');
+
+                if (checked.length === 0) {
+                    alert("Vui lòng chọn ít nhất 1 nhân viên");
+                    return;
+                }
+
+                let ids = [];
+                let names = [];
+
+                checked.forEach(function (cb) {
+                    ids.push(cb.value);
+                    names.push(cb.dataset.name);
+                });
+
+                // Gán vào hidden input (cách nhau bởi dấu phẩy)
+                document.getElementById("selectedEmployeeIDs").value = ids.join(",");
+
+                // Hiển thị tên
+                document.getElementById("selectedEmployeeName").innerHTML =
+                        "<b>Đã chọn:</b> " + names.join(", ");
+
+                $('#employeeModal').modal('hide');
+            }
+        </script>
+
+
+        <script>
+            //js cho phần chọn ngày cho nhân viên làm
+            document.getElementById("dateType").addEventListener("change", function () {
+
+                document.getElementById("dateInput").classList.add("d-none");
+                document.getElementById("weekInput").classList.add("d-none");
+                document.getElementById("monthInput").classList.add("d-none");
+
+                if (this.value === "day") {
+                    document.getElementById("dateInput").classList.remove("d-none");
+                } else if (this.value === "week") {
+                    document.getElementById("weekInput").classList.remove("d-none");
+                } else if (this.value === "month") {
+                    document.getElementById("monthInput").classList.remove("d-none");
+                }
+            }
+            );
+        </script>
     </body>
 </html>

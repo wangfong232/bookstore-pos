@@ -94,4 +94,159 @@ public class ShiftAssignmentDAO extends DBContext {
 
         return list;
     }
+
+    public EmployeeShiftAssignment getById(int assignmentID) {
+
+        String sql = "SELECT * FROM EmployeeShiftAssignments WHERE AssignmentID = ?";
+
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+            ps.setInt(1, assignmentID);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                EmployeeShiftAssignment a = new EmployeeShiftAssignment();
+                a.setAssignmentID(rs.getInt("AssignmentID"));
+                a.setEmployeeId(rs.getInt("EmployeeID"));
+                a.setShiftID(rs.getInt("ShiftID"));
+                a.setWorkDate(rs.getDate("WorkDate"));
+                return a;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public EmployeeShiftAssignment findAssignmentToSwap(int fromAssignmentID) {
+
+        String sql = "SELECT a2.* "
+                + "FROM EmployeeShiftAssignments a1 "
+                + "JOIN EmployeeShiftAssignments a2 "
+                + "ON a1.WorkDate = a2.WorkDate "
+                + "AND a1.EmployeeID <> a2.EmployeeID "
+                + "WHERE a1.AssignmentID = ?";
+
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+            ps.setInt(1, fromAssignmentID);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                EmployeeShiftAssignment a = new EmployeeShiftAssignment();
+                a.setAssignmentID(rs.getInt("AssignmentID"));
+                a.setEmployeeId(rs.getInt("EmployeeID"));
+                a.setShiftID(rs.getInt("ShiftID"));
+                a.setWorkDate(rs.getDate("WorkDate"));
+                return a;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void updateShift(int assignmentID, int newShiftID, Connection conn)
+            throws SQLException {
+
+        String sql = "UPDATE EmployeeShiftAssignments "
+                + "SET ShiftID = ? "
+                + "WHERE AssignmentID = ?";
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, newShiftID);
+        ps.setInt(2, assignmentID);
+        ps.executeUpdate();
+    }
+
+    public void assignShiftByWeek(int empID, int shiftID,
+            java.time.LocalDate startOfWeek,
+            int assignedBy) {
+
+        for (int i = 0; i < 7; i++) {
+
+            java.sql.Date date
+                    = java.sql.Date.valueOf(startOfWeek.plusDays(i));
+
+            assignShift(empID, shiftID, date, assignedBy);
+        }
+    }
+
+    public void assignShiftByMonth(int empID, int shiftID,
+            java.time.YearMonth ym,
+            int assignedBy) {
+
+        for (int i = 1; i <= ym.lengthOfMonth(); i++) {
+
+            java.sql.Date date
+                    = java.sql.Date.valueOf(ym.atDay(i));
+
+            assignShift(empID, shiftID, date, assignedBy);
+        }
+    }
+
+    //Xem ca làm việc với giao diện lịch
+    public List<EmployeeShiftAssignment> getAssignmentsByMonth(int month, int year) {
+
+        List<EmployeeShiftAssignment> list = new ArrayList<>();
+
+        String sql
+                = "SELECT a.AssignmentID, a.EmployeeID, a.ShiftID, a.WorkDate, a.Status, "
+                + "e.FullName, s.ShiftName, s.StartTime, s.EndTime "
+                + "FROM EmployeeShiftAssignments a "
+                + "JOIN Employees e ON a.EmployeeID = e.EmployeeID "
+                + "JOIN Shifts s ON a.ShiftID = s.ShiftID "
+                + "WHERE MONTH(a.WorkDate) = ? AND YEAR(a.WorkDate) = ?";
+
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+            ps.setInt(1, month);
+            ps.setInt(2, year);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                EmployeeShiftAssignment a = new EmployeeShiftAssignment();
+                a.setAssignmentID(rs.getInt("AssignmentID"));
+                a.setEmployeeId(rs.getInt("EmployeeID"));
+                a.setShiftID(rs.getInt("ShiftID"));
+                a.setWorkDate(rs.getDate("WorkDate"));
+                a.setStatus(rs.getString("Status"));
+                a.setFullName(rs.getString("FullName"));
+                a.setShiftName(rs.getString("ShiftName"));
+                a.setStartTime(rs.getString("StartTime"));
+                a.setEndTime(rs.getString("EndTime"));
+                list.add(a);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    
+    //Giới hạn 8 người 1 ca
+    public int countEmployeesInShift(int shiftID, Date workDate) {
+
+        String sql = "SELECT COUNT(*) FROM EmployeeShiftAssignments "
+                + "WHERE ShiftID = ? AND WorkDate = ?";
+
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+            ps.setInt(1, shiftID);
+            ps.setDate(2, workDate);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
 }
