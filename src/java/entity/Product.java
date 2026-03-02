@@ -1,40 +1,36 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ * Product entity for POS module
  */
 package entity;
-import java.util.Date;
-/**
- *
- * @author qp
- */
-public class Product {
-    private int id;                         
-    private String productName;              
-    private int categoryId;                 
-    private Integer brandId;                 
-    private Integer supplierId;              
-    private String sku;                     
-    
-   
-    private String description;              
-    private String specifications;           
-    private String imageURL;                 
-    
-    private Double costPrice;               
-    private double sellingPrice;            
-    private Double compareAtPrice;           
-    
-    private int stock;                       
-    private int reservedStock;               
-    private int reorderLevel;                
-    private Date lastLowStockAlertAt;        
-    
-    private boolean isActive;                
-    private Date createdDate;                
-    private Date updatedDate;                
 
-    
+import java.util.Date;
+
+public class Product {
+
+    private int id;
+    private String productName;
+    private int categoryId;
+    private Integer brandId;
+    private Integer supplierId;
+    private String sku;
+
+    private String description;
+    private String specifications;
+    private String imageURL;
+
+    private Double costPrice;
+    private double sellingPrice;
+    private Double compareAtPrice;
+
+    private int stock;
+    private int reservedStock;
+    private int reorderLevel;
+    private Date lastLowStockAlertAt;
+
+    private boolean isActive;
+    private Date createdDate;
+    private Date updatedDate;
+
     public Product() {
         this.stock = 0;
         this.reservedStock = 0;
@@ -49,7 +45,7 @@ public class Product {
         this.sellingPrice = sellingPrice;
     }
 
-    public Product(int id, String productName, int categoryId, String sku, 
+    public Product(int id, String productName, int categoryId, String sku,
                    double sellingPrice, int stock) {
         this();
         this.id = id;
@@ -66,6 +62,14 @@ public class Product {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getProductID() {
+        return id;
+    }
+
+    public void setProductID(int productID) {
+        this.id = productID;
     }
 
     public String getProductName() {
@@ -98,6 +102,31 @@ public class Product {
 
     public void setSupplierId(Integer supplierId) {
         this.supplierId = supplierId;
+    }
+
+    // Alias methods for POS module (ID-style names)
+    public int getCategoryID() {
+        return categoryId;
+    }
+
+    public void setCategoryID(int categoryID) {
+        this.categoryId = categoryID;
+    }
+
+    public int getBrandID() {
+        return brandId != null ? brandId : 0;
+    }
+
+    public void setBrandID(int brandID) {
+        this.brandId = brandID;
+    }
+
+    public int getSupplierID() {
+        return supplierId != null ? supplierId : 0;
+    }
+
+    public void setSupplierID(int supplierID) {
+        this.supplierId = supplierID;
     }
 
     public String getSku() {
@@ -155,7 +184,6 @@ public class Product {
     public void setCompareAtPrice(Double compareAtPrice) {
         this.compareAtPrice = compareAtPrice;
     }
-
     public int getStock() {
         return stock;
     }
@@ -171,7 +199,6 @@ public class Product {
     public void setReservedStock(int reservedStock) {
         this.reservedStock = reservedStock;
     }
-
     public int getReorderLevel() {
         return reorderLevel;
     }
@@ -291,4 +318,11 @@ public class Product {
                 '}';
     }
 
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
 }

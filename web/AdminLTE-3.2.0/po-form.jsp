@@ -208,7 +208,7 @@
 
                                                                                 <td>
                                                                                     <input type="number"  name="quantity" class="form-control form-control-sm qty-input" 
-                                                                                           value="${item.quantity}" min="1" onchange="calculateRowTotal(this)">
+                                                                                           value="${item.quantityOrdered}" min="1" onchange="calculateRowTotal(this)">
                                                                                 </td>
                                                                                 <td>
                                                                                     <input type="number" name="unitPrice" class="form-control form-control-sm price-input" 
@@ -225,7 +225,7 @@
                                                                                     </div>
                                                                                 </td>
                                                                                 <td class="text-right">
-                                                                                    <strong class="text-success">${item.totalPrice}đ</strong>
+                                                                                    <strong class="text-success">${item.lineTotal}đ</strong>
                                                                                 </td>
                                                                                 <td>
                                                                                     <input type="text" name="itemNote" class="form-control form-control-sm" value="${item.notes}" placeholder="Ghi chú...">

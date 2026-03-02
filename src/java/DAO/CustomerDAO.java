@@ -12,6 +12,31 @@ import java.io.*;
 */
 public class CustomerDAO extends DBContext {
 
+    /**
+     * Sinh mã khách hàng tiếp theo dạng KH001, KH002, ...
+     */
+    public String getNextCustomerId() {
+        String sql = "SELECT MAX(CustomerID) FROM Customers WHERE CustomerID LIKE 'KH%'";
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                String maxId = rs.getString(1);
+                if (maxId == null || maxId.isEmpty()) return "KH001";
+                String numPart = maxId.length() > 2 ? maxId.substring(2) : "0";
+                try {
+                    int n = Integer.parseInt(numPart);
+                    return String.format("KH%03d", n + 1);
+                } catch (NumberFormatException e) {
+                    return "KH001";
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "KH001";
+    }
+
     // CREATE
     public void insert(Customer c) {
         String sql = """
@@ -24,7 +49,11 @@ public class CustomerDAO extends DBContext {
             ps.setString(1, c.getCustomerID());
             ps.setString(2, c.getFullName());
             ps.setString(3, c.getEmail());
-            ps.setDate(4, Date.valueOf(c.getBirthday()));
+            if (c.getBirthday() != null) {
+                ps.setDate(4, Date.valueOf(c.getBirthday()));
+            } else {
+                ps.setNull(4, java.sql.Types.DATE);
+            }
             ps.setString(5, c.getStatus());
             ps.setString(6, c.getNote());
             ps.executeUpdate();
@@ -41,6 +70,23 @@ public class CustomerDAO extends DBContext {
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return map(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // READ by Email
+    public Customer getByEmail(String email) {
+        String sql = "SELECT * FROM Customers WHERE Email = ?";
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return map(rs);

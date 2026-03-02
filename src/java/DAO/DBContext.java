@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 public class DBContext {
     private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=BookstorePOSSystem;encrypt=true;trustServerCertificate=true";
-    private static final String USER = "sa";
+    private static final String USER = "bookstore_user";
     private static final String PASSWORD = "123";
     public Connection getConnection() {
         try {
