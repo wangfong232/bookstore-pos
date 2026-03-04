@@ -63,10 +63,10 @@ public class GoodsReceiptController extends HttpServlet {
 
         switch (action) {
             case "save":
-//                saveGR(request, response);
+                saveGR(request, response);
                 break;
             case "complete":
-//                completeGR(request, response);
+                completeGR(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
@@ -200,6 +200,111 @@ public class GoodsReceiptController extends HttpServlet {
         }
     }
 
+    
+    private void saveGR(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String poIdParam = request.getParameter("poId");
+        String receiptDateParam = request.getParameter("receiptDate");
+        String notesParam = request.getParameter("notes");
+        String receivedByParam = request.getParameter("receivedBy");
+        String[] poLineIds = request.getParameterValues("poLineItemId");
+        String[] productIds = request.getParameterValues("productId");
+        String[] quantitiesReceived = request.getParameterValues("quantityReceived");
+        String[] unitCosts = request.getParameterValues("unitCost");
+        String[] itemNotes = request.getParameterValues("itemNote");
+
+        Validation valid = new Validation();
+        valid.required("Đơn đặt hàng", poIdParam).required("Ngày nhập", receiptDateParam);
+
+        long poId = 0;
+
+        if (poIdParam != null && !poIdParam.trim().isEmpty()) {
+            try {
+                poId = Long.parseLong(poIdParam);
+            } catch (NumberFormatException e) {
+                valid.addError("Mã đơn đặt hàng không hợp lệ.");
+            }
+        }
+
+        if (poLineIds == null || poLineIds.length == 0) {
+            valid.addError("Không có sản phẩm nào để nhập kho.");
+        }
+
+        boolean hasPositiveQty = false;
+
+        if (poLineIds != null) {
+            for (int i = 0; i < poLineIds.length; i++) {
+                int qty = parseIntSafe(quantitiesReceived != null && i < quantitiesReceived.length ? quantitiesReceived[i] : "0");
+                if (qty < 0) {
+                    valid.addError("Số lượng nhận không được âm.");
+                    break;
+                }
+
+                if (qty > 0) {
+                    hasPositiveQty = true;
+                }
+            }
+        }
+
+        if (!hasPositiveQty && valid.isValid()) {
+           valid.addError("Phải nhập ít nhất 1 sản phẩm với số lượng > 0.");
+        }
+
+        if (!valid.isValid()) {
+            request.getSession().setAttribute("error", valid.getFirstError());
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
+            return;
+        }
+
+        //bulid gr
+        GoodsReceipt gr = new GoodsReceipt();
+        gr.setReceiptNumber(grDAO.generateNextGRNumber());
+        gr.setPoId(poId);
+        gr.setNotes(notesParam);
+        LocalDateTime receiptDate = parseLocalDateTime(receiptDateParam);
+        gr.setReceiptDate(receiptDate != null ? receiptDate : LocalDateTime.now());
+
+        // Fake current user id = 1
+        int receivedBy = 1;
+        if (receivedByParam != null && !receivedByParam.trim().isEmpty()) {
+            receivedBy = parseIntSafe(receivedByParam);
+        }
+        
+        gr.setReceivedBy(receivedBy);
+
+        for (int i = 0; i < poLineIds.length; i++) {
+            int qty = parseIntSafe(quantitiesReceived != null && i < quantitiesReceived.length
+                    ? quantitiesReceived[i] : "0");
+            if (qty <= 0) {
+                continue;
+            }
+
+            GoodsReceiptDetail d = new GoodsReceiptDetail();
+            d.setPoLineItemId(parseLongSafe(poLineIds[i]));
+            d.setProductId(parseIntSafe(productIds != null && i < productIds.length ? productIds[i] : "0"));
+            d.setQuantityReceived(qty);
+            BigDecimal cost = parseBigDecimalSafe(unitCosts != null && i < unitCosts.length ? unitCosts[i] : "0");
+            d.setUnitCost(cost);
+            
+            d.calculateLineTotal();
+            d.setNotes(itemNotes != null && i < itemNotes.length ? itemNotes[i] : null);
+            gr.addDetail(d);
+        }
+
+        gr.recalculateTotals();
+        boolean success = grDAO.createGR(gr);
+
+        if (success) {
+            request.getSession().setAttribute("msg", "success_create");
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=detail&receiptNumber=" + gr.getReceiptNumber());
+        } else {
+            request.getSession().setAttribute("error", "Lỗi khi tạo phiếu nhập kho. Vui lòng thử lại.");
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
+        }
+    }
+
+
+    
 //helper
     private LocalDate parseLocalDate(String value) {
         try {
