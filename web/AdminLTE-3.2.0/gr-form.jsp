@@ -160,76 +160,60 @@
                                         <h3 class="card-title"><i class="fas fa-list"></i> Chi tiết nhập kho</h3>
                                     </div>
                                     <div class="card-body">
-                                        <c:choose>
-                                            <c:when test="${not empty grItems}">
-                                                <table class="table table-bordered table-hover" id="itemsTable">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width:40px">#</th>
-                                                            <th>Sản phẩm</th>
-                                                            <th>SL đặt</th>
-                                                            <th>SL nhận</th>
-                                                            <th>Đơn giá</th>
-                                                            <th>Thành tiền</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="itemsBody">
-                                                    <c:forEach var="item" items="${grItems}" varStatus="var">
-                                                        <tr>
-                                                            <td>${var.index + 1}</td>
-                                                            <td>
-                                                                <input type="hidden" name="poLineItemId" value="${item.poLineItemId}"><!-- -->
-                                                                <input type="hidden" name="productId" value="${item.productId}">
-                                                                <input type="hidden" name="unitCost" value="${item.unitCost}">
-                                                                ${item.productName}
-                                                            </td>
-                                                            <td>${item.quantityOrdered}</td>
-                                                            <td>
-                                                                <input type="number" name="quantityReceived" class="form-control form-control-sm qty-input qty-received" 
-                                                                       value="${item.quantityReceived}"
-                                                                       min="0" max="${item.quantityOrdered}"
-                                                                       data-unit-cost="${item.unitCost}"
-                                                                       data-ordered="${item.quantityOrdered}">
-                                                            </td>
-                                                            <td>
-                                                        <fmt:formatNumber value="${item.unitCost}"  type="currency" currencySymbol="đ" />
-                                                        </td>
-                                                        <td>
-                                                            <span class="line-total">
-                                                                <fmt:formatNumber value="${item.lineTotal}"  type="currency" currencySymbol="đ" />
-                                                            </span>đ
-                                                        </td>
-                                                        </tr>
+                                        <div class="alert alert-info mb-2" id="noItemsAlert" style="${not empty grItems ? 'display:none':''}">
+                                            <i class="fas fa-arrow-up"></i>
+                                            Vui lòng chọn đơn đặt hàng để tải danh sách sản phẩm.
+                                        </div>
 
-                                                    </c:forEach>
-                                                    </tbody>
-                                                </table>
+                                        <!-- bảng tồn tại trong DOM, ẩn hiện bằng js -->
+                                        <table class="table table-hover table-bordered table-sm" id="itemsTable" 
+                                               style="${empty grItems ? 'display:none' : ''}">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:40px">#</th>
+                                                    <th>Sản phẩm</th>
+                                                    <th>SL đặt</th>
+                                                    <th>SL nhận</th>
+                                                    <th>Đơn giá <small class="text-muted">(từ ĐĐH)</small></th>
+                                                    <th>Thành tiền</th>
+                                                </tr>  
+                                            </thead>
+                                            <tbody id="itemsBody">
+                                            <c:forEach var="item" items="${grItems}" varStatus="var">
+                                                <tr>
+                                                    <td>${var.index + 1}</td>
+                                                    <td>
+                                                        <input type="hidden" name="poLineItemId" value="${item.poLineItemId}">
+                                                        <input type="hidden" name="productId" value="${item.productId}">
+                                                        <input type="hidden" name="maxQty" value="${item.quantityReceived}">
+                                                        ${item.productName}
+                                                    </td>
+                                                    <td>${item.quantityOrdered}</td>
+                                                    <td>
+                                                        <input type="number" name="quantityReceived"   class="form-control form-control-sm qty-received"
+                                                               value="${item.quantityReceived}"  min="0" max="${item.quantityReceived}"
+                                                               data-ordered="${item.quantityReceived}">
+                                                    </td>
+                                                    <td>
+                                                        <input type="hidden" name="unitCost" class="unit-cost-val" value="${item.unitCost}">
+                                                <fmt:formatNumber value="${item.unitCost}" type="currency" currencySymbol="đ"/>
+                                                </td>
+                                                <td class="line-total text-right">-</td>
+                                                </tr>
+                                            </c:forEach>
+                                            </tbody>
+                                        </table>
 
-                                                <div class="row mt-3">
-                                                    <div class="col-md-6">
-                                                        <small class="text-muted">Tổng SL đặt: <strong id="totalOrdered">
-                                                                <c:set var="tot" value="0"/>
-                                                                <c:forEach var="item" items="${grItems}">
-                                                                    <c:set var="tot" value="${tot + item.quantityOrdered}"/>
-                                                                </c:forEach>
-                                                                ${tot}
-                                                            </strong>
-                                                            | Tổng SL nhận: <strong id="totalReceived">-</strong>
-                                                        </small>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <h5>Tổng tiền: <strong id="grandTotal">-</strong>đ</h5>
-                                                    </div>
-                                                </div>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <div class="alert alert-info" id="noItemsAlert">
-                                                    <i class="fas fa-arrow-up"></i>
-                                                    Vui lòng chọn đơn đặt hàng để tải danh sách sản phẩm.
-                                                </div>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div><!-- ./cảrd-body -->
+                                        <div id="itemsSummary" class="row mt-2"
+                                             style="${empty grItems ? 'display:none' : ''}">
+                                            <div class="col-md-6">
+                                                <small class="text-muted">Tổng SL nhận: <strong id="totalReceived">-</strong></small>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                <h5 class="mb-0">Tổng tiền: <strong id="grandTotal">-</strong></h5>
+                                            </div>
+                                        </div>
+                                    </div><!-- ./card-body -->
 
                                     <div class="card-footer">
                                         <div class="form-group mb-0">
@@ -486,42 +470,96 @@
         <script>
                                                   $(document).ready(function () {
 
+                                                      // AJAX
                                                       $('#poSelect').on('change', function () {
                                                           var poId = $(this).val();
                                                           var supplierName = $(this).find(':selected').data('supplier') || '';
-
                                                           $('#supplierDisplay').val(supplierName);
 
-                                                          if (poId) {
-                                                              window.location.href = '${pageContext.request.contextPath}/goodsreceipt?action=create&poId=' + poId;
+                                                          if (!poId) {
+                                                              $('#itemsBody').empty();
+                                                              $('#itemsTable').hide();
+                                                              $('#itemsSummary').hide();
+                                                              $('#noItemsAlert').show();
+                                                              return;
                                                           }
+
+
+                                                          $.getJSON('${pageContext.request.contextPath}/goodsreceipt?action=getPoItems&poId=' + poId, function (items) {
+                                                              if (!items || items.length === 0) {
+                                                                  $('#itemsBody').empty();
+                                                                  $('#itemsTable').hide();
+                                                                  $('#itemsSummary').hide();
+                                                                  $('#noItemsAlert').show();
+                                                                  return;
+                                                              }
+
+                                                              var tbody = $('#itemsBody');
+                                                              tbody.empty();
+
+                                                              $.each(items, function (idx, item) {
+                                                                  var remaining = item.remaining; // ord- alreadyReceived
+
+                                                                  var row =
+                                                                          '<tr>' +
+                                                                          '<td>' + (idx + 1) + '</td>' +
+                                                                          '<td>' +
+                                                                          '<input type="hidden" name="poLineItemId" value="' + item.poLineItemId + '">' +
+                                                                          '<input type="hidden" name="productId" value="' + item.productId + '">' +
+                                                                          '<input type="hidden" name="maxQty" value="' + remaining + '">' +
+                                                                          item.productName +
+                                                                          '</td>' +
+                                                                          '<td>' + item.quantityOrdered + '</td>' +
+                                                                          '<td><input type="number" name="quantityReceived" ' +
+                                                                          'class="form-control form-control-sm qty-received" ' +
+                                                                          'value="' + remaining + '" min="0" max="' + remaining + '" ' +
+                                                                          'data-ordered="' + remaining + '"></td>' +
+                                                                          '<td>' +
+                                                                          '<input type="hidden" name="unitCost" class="unit-cost-val" value="' + item.unitCost + '">' +
+                                                                          Number(item.unitCost).toLocaleString('vi-VN') + 'đ' +
+                                                                          '</td>' +
+                                                                          '<td class="line-total text-right">-</td>' +
+                                                                          '</tr>';
+
+                                                                  tbody.append(row);
+                                                              });
+
+                                                              $('#noItemsAlert').hide();
+                                                              $('#itemsTable').show();
+                                                              $('#itemsSummary').show();
+                                                              recalcTotals();
+
+                                                          }).fail(function () {
+                                                              alert('Không thể tải danh sách sản phẩm. Vui lòng thử lại.');
+                                                          });
                                                       });
 
+                                                      //tính lại thành tiền và tổng 
                                                       function recalcTotals() {
                                                           var totalReceived = 0;
                                                           var grandTotal = 0;
 
                                                           $('.qty-received').each(function () {
                                                               var qty = parseInt($(this).val()) || 0;
-                                                              var unitCost = parseFloat($(this).data('unit-cost')) || 0;
+                                                              var unitCost = parseFloat($(this).closest('tr').find('.unit-cost-val').val()) || 0;
                                                               var lineTotal = qty * unitCost;
 
-                                                              $(this).closest('tr').find('.line-total').text(
-                                                                      lineTotal.toLocaleString('vi-VN')
-                                                                      );
+                                                              $(this).closest('tr').find('.line-total')
+                                                                      .text(lineTotal.toLocaleString('vi-VN') + 'đ');
 
                                                               totalReceived += qty;
                                                               grandTotal += lineTotal;
                                                           });
 
                                                           $('#totalReceived').text(totalReceived.toLocaleString('vi-VN'));
-                                                          $('#grandTotal').text(grandTotal.toLocaleString('vi-VN'));
+                                                          $('#grandTotal').text(grandTotal.toLocaleString('vi-VN') + 'đ');
                                                       }
 
                                                       recalcTotals();
 
+                                                      // Validate khi thay đổi SL nhận
                                                       $(document).on('input', '.qty-received', function () {
-                                                          var max = parseInt($(this).data('ordered')) || 0; // SL đặt tối đa
+                                                          var max = parseInt($(this).data('ordered')) || 0;
                                                           var val = parseInt($(this).val()) || 0;
 
                                                           if (val < 0) {
@@ -536,6 +574,7 @@
                                                           recalcTotals();
                                                       });
 
+                                                      // Validate trước khi submit form
                                                       $('#grForm').on('submit', function (e) {
                                                           if (!$('#poSelect').val()) {
                                                               alert('Vui lòng chọn đơn đặt hàng.');
@@ -545,9 +584,8 @@
 
                                                           var hasQty = false;
                                                           $('.qty-received').each(function () {
-                                                              if (parseInt($(this).val()) > 0) {
+                                                              if (parseInt($(this).val()) > 0)
                                                                   hasQty = true;
-                                                              }
                                                           });
 
                                                           if (!hasQty) {

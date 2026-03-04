@@ -45,7 +45,9 @@ public class GoodsReceiptController extends HttpServlet {
             case "create":
                 showCreateForm(request, response);
                 break;
-           
+            case "getPoItems":
+                loadPoItemsJson(request, response);
+                break;
             case "detail":
                 showDetail(request, response);
                 break;
@@ -224,6 +226,7 @@ public class GoodsReceiptController extends HttpServlet {
         String[] productIds = request.getParameterValues("productId");
         String[] quantitiesReceived = request.getParameterValues("quantityReceived");
         String[] unitCosts = request.getParameterValues("unitCost");
+        String[] maxQtys = request.getParameterValues("maxQty");
         String[] itemNotes = request.getParameterValues("itemNote");
 
         Validation valid = new Validation();
@@ -251,6 +254,14 @@ public class GoodsReceiptController extends HttpServlet {
                 if (qty < 0) {
                     valid.addError("Số lượng nhận không được âm.");
                     break;
+                }
+
+                if (maxQtys != null && i < maxQtys.length) {
+                    int maxAllowed = parseIntSafe(maxQtys[i]);
+                    if (qty > maxAllowed) {
+                        valid.addError("Số lượng nhận vượt quá số lượng còn lại cần nhập (còn: " + maxAllowed + ").");
+                        break;
+                    }
                 }
 
                 if (qty > 0) {
@@ -315,7 +326,7 @@ public class GoodsReceiptController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
         }
     }
-    
+
     private void cancelGR(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String receiptNumber = request.getParameter("receiptNumber");
@@ -332,9 +343,52 @@ public class GoodsReceiptController extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
     }
 
-    
-
 //helper
+    private void loadPoItemsJson(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        String poIdParam = request.getParameter("poId");
+        if (poIdParam == null || poIdParam.trim().isEmpty()) {
+            response.getWriter().write("[]");
+            return;
+        }
+        try {
+            long poId = Long.parseLong(poIdParam);
+            List<GoodsReceiptDetail> items = grDAO.getPoItemsForGR(poId);
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < items.size(); i++) {
+                GoodsReceiptDetail d = items.get(i);
+                if (i > 0) {
+                    json.append(",");
+                }
+                json.append("{");
+                json.append("\"poLineItemId\":").append(d.getPoLineItemId()).append(",");
+                json.append("\"productId\":").append(d.getProductId()).append(",");
+                json.append("\"productName\":\"").append(escapeJson(d.getProductName())).append("\",");
+                json.append("\"quantityOrdered\":").append(d.getQuantityOrdered()).append(",");
+                json.append("\"remaining\":").append(d.getQuantityReceived()).append(",");
+                json.append("\"unitCost\":").append(d.getUnitCost() != null ? d.getUnitCost().toPlainString() : "0").append(",");
+                json.append("\"lineTotal\":").append(d.getLineTotal() != null ? d.getLineTotal().toPlainString() : "0");
+                json.append("}");
+            }
+            json.append("]");
+            response.getWriter().write(json.toString());
+        } catch (Exception e) {
+            response.getWriter().write("[]");
+        }
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
+    }
+
     private LocalDate parseLocalDate(String value) {
         try {
             if (value != null && !value.trim().isEmpty()) {
