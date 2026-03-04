@@ -180,6 +180,25 @@ public class GoodsReceiptController extends HttpServlet {
 
         request.getRequestDispatcher("/AdminLTE-3.2.0/gr-form.jsp").forward(request, response);
     }
+    
+    private void completeGR(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String receiptNumber = request.getParameter("receiptNumber");
+        if (receiptNumber == null || receiptNumber.trim().isEmpty()) {
+            request.getSession().setAttribute("msg", "fail");
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+            return;
+        }
+
+        boolean success = grDAO.completeGR(receiptNumber);
+        if (success) {
+            request.getSession().setAttribute("msg", "success_complete");
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=detail&receiptNumber=" + receiptNumber);
+        } else {
+            request.getSession().setAttribute("error", "Không thể hoàn tất phiếu nhập. Phiếu có thể đã hoàn tất hoặc không tồn tại.");
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=detail&receiptNumber=" + receiptNumber);
+        }
+    }
 
 //helper
     private LocalDate parseLocalDate(String value) {
