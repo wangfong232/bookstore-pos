@@ -1,0 +1,553 @@
+<%-- 
+    Document   : gr-form
+    Created on : Mar 4, 2026, 6:23:43 PM
+    Author     : qp
+--%>
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>
+            <c:choose>
+                <c:when test="${mode == 'create'}">Tạo phiếu nhập kho</c:when>
+                <c:when test="${mode == 'view'}">Xem phiếu nhập kho</c:when>
+                <c:otherwise>Phiếu nhập kho đang xử lý</c:otherwise>
+            </c:choose>
+        </title>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/css/adminlte.min.css">
+
+    </head>
+    <body class="hold-transition sidebar-mini layout-fixed">
+        <div class="wrapper">
+
+            <jsp:include page="include/admin-header.jsp"/>
+            <jsp:include page="include/admin-sidebar.jsp"/>
+
+
+            <div class="content-wrapper">
+                <section class="content-header">
+                    <div class="container-fluid">
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <h1>
+                                    <c:choose>
+                                        <c:when test="${mode == 'create'}">
+                                            <i class="fas fa-plus-circle"></i> Tạo phiếu nhập kho / Xem phiếu nhập kho
+                                        </c:when>
+                                        <c:when test="${mode == 'view'}">
+                                            <i class="fas fa-eye"></i> Xem phiếu nhập kho
+                                        </c:when>
+                                        <c:otherwise>
+                                            <i class="fas fa-warehouse"></i> Phiếu nhập kho — Đang xử lý
+                                        </c:otherwise>
+                                    </c:choose>
+                                </h1>
+                            </div>
+                            <div class="col-sm-6">
+                                <ol class="breadcrumb float-sm-right">
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
+                                    <li class="breadcrumb-item">
+                                        <a href="${pageContext.request.contextPath}/goodsreceipt?action=list">Phiếu nhập kho</a>
+                                    </li>
+                                    <li class="breadcrumb-item active">
+                                    <c:choose>
+                                        <c:when test="${mode == 'create'}">Tạo mới</c:when>
+                                        <c:when test="${mode == 'view'}">Chi tiết</c:when>
+                                        <c:otherwise>Đang xử lý</c:otherwise>
+                                    </c:choose>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div><!-- ./row -->
+                    </div><!-- ./container-fluid -->
+                </section>
+
+                <section class="content">
+                    <div class="container-fluid">
+                        <c:if test="${not empty error}">
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                <i class="icon fas fa-ban"></i> ${error}
+                            </div>
+                        </c:if>
+                        <c:if test="${not empty msg && msg.contains('success')}">
+                            <div class="alert alert-success alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                <i class="icon fas fa-check"></i>
+                                <c:choose>
+                                    <c:when test="${msg == 'success_complete'}">Phiếu nhập kho đã được hoàn tất! Tồn kho đã được cập nhật.</c:when>
+                                    <c:when test="${msg == 'success_create'}">Tạo phiếu nhập kho thành công!</c:when>
+                                    <c:otherwise>Thao tác thành công!</c:otherwise>
+                                </c:choose>
+                            </div>
+                        </c:if>
+
+                        <!-- CREATE -->
+                        <c:if test="${mode=='create'}">
+                            <form method="post" action="${pageContext.request.contextPath}/goodsreceipt" id="grForm">
+                                <input type="hidden" name="action" value="save">
+
+
+                                <div class="card card-primary card-outline">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fas fa-info-circle"></i> Thông tin phiếu nhập
+                                        </h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4 form-group">
+                                                <label><strong>Mã phiếu nhập:</strong></label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" value="${grNumber}" readonly
+                                                           style="background-color:#f8f9fa;">
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text text-muted">(tự động)</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-5 form-group">
+                                                <label><strong>Chọn đơn đặt hàng: <span class="text-danger">*</span></strong></label>
+                                                <select name="poId" id="poSelect" class="form-control" required>
+                                                    <option value="">-- Chọn ĐĐH đã duyệt --</option>
+                                                    <c:forEach var="po" items="${poList}">
+                                                        <option value="${po.id}" data-supplier="${po.supplierName}" 
+                                                                ${selectedPoId == po.id ? 'selected': ''}>${po.poNumber} - ${po.supplierName}
+                                                        </option>
+                                                    </c:forEach>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-3 form-group">
+                                                <label><strong>Ngày nhập: <span class="text-danger">*</span></strong></label>
+                                                <input type="datetime-local" name="receiptDate" 
+                                                       class="form-control" required value="${empty receiptDate ? '' : receiptDate}">
+                                            </div>     
+                                        </div><!-- ./row -->
+
+                                        <div class="row">
+                                            <div class="col-md-4 form-group">
+                                                <label><strong>Nhà cung cấp:</strong></label>
+                                                <input type="text" class="form-control" id="supplierDisplay" readonly
+                                                       value="${selectedPo.supplierName}" placeholder="(tự động từ ĐĐH)">
+                                            </div>   
+                                            <div class="col-md-4 form-group">
+                                                <label><strong>Người nhận:</strong></label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" value="${currentUserName}" readonly>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text text-muted">(current user)</span>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="receivedBy" value="1"> <!-- HARD CODE -->
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div><!-- ./card -->
+
+                                <div class="card" id="itemsCard">
+                                    <div class="card-header">
+                                        <h3 class="card-title"><i class="fas fa-list"></i> Chi tiết nhập kho</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <c:choose>
+                                            <c:when test="${not empty grItems}">
+                                                <table class="table table-bordered table-hover" id="itemsTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:40px">#</th>
+                                                            <th>Sản phẩm</th>
+                                                            <th>SL đặt</th>
+                                                            <th>SL nhận</th>
+                                                            <th>Đơn giá</th>
+                                                            <th>Thành tiền</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="itemsBody">
+                                                    <c:forEach var="item" items="${grItems}" varStatus="var">
+                                                        <tr>
+                                                            <td>${var.index + 1}</td>
+                                                            <td>
+                                                                <input type="hidden" name="poLineItemId" value="${item.poLineItemId}"><!-- -->
+                                                                <input type="hidden" name="productId" value="${item.productId}">
+                                                                <input type="hidden" name="unitCost" value="${item.unitCost}">
+                                                                ${item.productName}
+                                                            </td>
+                                                            <td>${item.quantityOrdered}</td>
+                                                            <td>
+                                                                <input type="number" name="quantityReceived" class="form-control form-control-sm qty-input qty-received" 
+                                                                       value="${item.quantityReceived}"
+                                                                       min="0" max="${item.quantityOrdered}"
+                                                                       data-unit-cost="${item.unitCost}"
+                                                                       data-ordered="${item.quantityOrdered}">
+                                                            </td>
+                                                            <td>
+                                                        <fmt:formatNumber value="${item.unitCost}"  type="currency" currencySymbol="đ" />
+                                                        </td>
+                                                        <td>
+                                                            <span class="line-total">
+                                                                <fmt:formatNumber value="${item.lineTotal}"  type="currency" currencySymbol="đ" />
+                                                            </span>đ
+                                                        </td>
+                                                        </tr>
+
+                                                    </c:forEach>
+                                                    </tbody>
+                                                </table>
+
+                                                <div class="row mt-3">
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted">Tổng SL đặt: <strong id="totalOrdered">
+                                                                <c:set var="tot" value="0"/>
+                                                                <c:forEach var="item" items="${grItems}">
+                                                                    <c:set var="tot" value="${tot + item.quantityOrdered}"/>
+                                                                </c:forEach>
+                                                                ${tot}
+                                                            </strong>
+                                                            | Tổng SL nhận: <strong id="totalReceived">-</strong>
+                                                        </small>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h5>Tổng tiền: <strong id="grandTotal">-</strong>đ</h5>
+                                                    </div>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="alert alert-info" id="noItemsAlert">
+                                                    <i class="fas fa-arrow-up"></i>
+                                                    Vui lòng chọn đơn đặt hàng để tải danh sách sản phẩm.
+                                                </div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div><!-- ./cảrd-body -->
+
+                                    <div class="card-footer">
+                                        <div class="form-group mb-0">
+                                            <label><strong>Ghi chú:</strong></label>
+                                            <textarea name="notes" class="form-control" rows="2"
+                                                      placeholder="Ghi chú về tình trạng hàng, thiếu hàng...">${notes}</textarea>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- ACTION -->
+                                <div class="card">
+                                    <div class="card-body">
+                                        <a href="${pageContext.request.contextPath}/goodsreceipt?action=list"
+                                           class="btn btn-secondary mr-2">
+                                            <i class="fas fa-arrow-left"></i> Quay lại
+                                        </a>
+                                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                                            <i class="fas fa-save"></i> Lưu phiếu (Đang nhập)
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </c:if>
+
+
+                        <!-- PENDING/VIEW mode -->
+                        <c:if test="${mode=='pending'|| mode=='view'}">
+                            <div class="card card-primary card-outline">
+                                <div class="card-header">
+                                    <h3 class="card-title"><i class="fas fa-info-circle"></i>Thông tin phiếu nhập</h3>
+                                    <div class="card-tools">
+                                        <c:if test="${mode=='pending'}">
+                                            <span class="badge badge-warning p-2">
+                                                <i class="fas fa-circle"></i> Đang nhập
+                                            </span>
+                                        </c:if>
+                                        <c:if test="${mode == 'view'}">
+                                            <span class="badge badge-success p-2">
+                                                <i class="fas fa-check-square"></i> Hoàn tất
+                                            </span>
+                                        </c:if>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3 form-group">
+                                            <label class="text-muted">Mã phiếu nhập:</label>
+                                            <div class="readonly-field"><strong>${gr.receiptNumber}</strong></div>
+                                        </div>
+
+                                        <div class="col-md-4 form-group">
+                                            <label class="text-muted">Đơn đặt hàng:</label>
+                                            <div class="readonly-field">
+                                                <a href="${pageContext.request.contextPath}/purchaseorder?action=detail&poNumber=${gr.poNumber}">
+                                                    ${gr.poNumber}
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-3 form-group">
+                                            <label class="text-muted">Ngày nhập:</label>
+                                            <div class="readonly-field">
+                                                ${gr.receiptDate != null ? gr.receiptDate.toLocalDate() : '-'}
+                                            </div>
+                                        </div>        
+
+                                    </div><!-- ./row -->
+
+                                    <div class="row">
+                                        <div class="col-md-4 form-group">
+                                            <label class="text-muted">Nhà cung cấp:</label>
+                                            <div class="readonly-field">${gr.supplierName}</div>
+                                        </div>
+                                        <div class="col-md-4 form-group">
+                                            <label class="text-muted">Người nhận:</label>
+                                            <div class="readonly-field">${gr.receivedByName}</div>
+                                        </div>
+                                        <c:if test="${mode == 'view' && not empty gr.completedAt}">
+                                            <div class="col-md-4 form-group">
+                                                <label class="text-muted">Hoàn tất lúc:</label>
+                                                <div class="readonly-field">${gr.completedAt}</div>
+                                            </div>
+                                        </c:if>
+                                    </div>
+                                </div>
+                            </div><!-- ./card header -->
+
+                            <!-- item card-->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title"><i class="fas fa-list"></i>Chi tiết nhập kho</h3>
+                                </div>
+                                <div class="card-body p-0">
+                                    <c:choose>
+                                        <c:when test="${not empty items}">
+                                            <table class="table table-hover table-bordered mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Sản phẩm</th>
+                                                        <th>SL đặt</th>
+                                                        <th>SL nhận</th>
+                                                        <th>Đơn giá</th>
+                                                        <th >Thành tiền</th>
+                                                <c:if test="${mode == 'view'}">
+                                                    <th class="text-right">Giá vốn TB mới</th>
+                                                </c:if> 
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <c:forEach var="item" items="${items}" varStatus="var">
+                                                    <tr>
+                                                        <td>${var.index +1}</td>
+                                                        <td>${item.productName}</td>
+                                                        <td>${item.quantityOrdered}</td>
+                                                        <td>
+                                                    <c:choose>
+                                                        <c:when test="${item.quantityOrdered!=null && item.quantityReceived <item.quantityOrdered}">
+                                                            <span class="discrepancy">${item.quantityReceived}</span>
+                                                            <small class="text-danger ml-1">
+                                                                (thiếu ${item.quantityOrdered - item.quantityReceived})
+                                                            </small>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="text-success font-weight-bold">${item.quantityReceived}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                    </td>
+                                                    <td>
+                                                    <fmt:formatNumber value="${item.unitCost}" type="currency" currencySymbol="đ" />
+                                                    </td>
+                                                    <td>
+                                                    <fmt:formatNumber value="${item.lineTotal}" type="currency" currencySymbol="đ" />
+                                                    </td>
+                                                    <c:if test="${mode == 'view'}">
+                                                        <td class="text-right">
+                                                        <c:if test="${item.newAvgCost != null}">
+                                                            <fmt:formatNumber value="${item.newAvgCost}"  type="currency" currencySymbol="đ" />
+                                                        </c:if>
+                                                        </td>
+                                                    </c:if>
+                                                    </tr>
+                                                </c:forEach>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <td> <strong>${gr.totalQuantity}</strong></td>
+                                                        <td>
+                                                            <strong>
+                                                                <fmt:formatNumber value="${gr.totalAmount}"  type="currency" currencySymbol="đ" />
+                                                            </strong>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="alert alert-info m-3 text-center">Không có chi tiết nhập kho.</div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div><!-- ./card-body -->
+
+                                <div class="card-footer">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <label class="text-muted">Ghi chú:</label>
+                                            <div class="readonly-field"
+                                                 style="min-height:60px; align-items:flex-start; padding:8px 12px;">
+                                                <c:choose>
+                                                    <c:when test="${not empty gr.notes}">${gr.notes}</c:when>
+                                                    <c:otherwise><em class="text-muted">Không có ghi chú</em></c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-center justify-content-end">
+                                            <div>
+                                                <span class="text-muted">Trạng thái: </span>
+                                                <c:if test="${mode == 'pending'}">
+                                                    <span class="badge badge-warning p-2 ml-1">
+                                                        <i class="fas fa-circle"></i> Đang nhập
+                                                    </span>
+                                                </c:if>
+                                                <c:if test="${mode == 'view'}">
+                                                    <span class="badge badge-success p-2 ml-1">
+                                                        <i class="fas fa-check-square"></i> Hoàn tất
+                                                    </span>
+                                                </c:if>
+                                            </div>
+                                        </div>
+                                    </div><!-- ./row --> 
+                                </div><!-- ./car-footer -->
+                            </div><!-- item card-->
+
+                            <!-- action -->
+                            <div class="card">
+                                <div class="card-body d-flex flex-wrap gap-2">
+                                    <c:if test="${mode == 'pending'}">
+                                        <a href="${pageContext.request.contextPath}/goodsreceipt?action=list"
+                                           class="btn btn-secondary mr-2">
+                                            <i class="fas fa-arrow-left"></i> Quay lại
+                                        </a>
+                                        <!-- Complete button -->
+                                        <form method="post" action="${pageContext.request.contextPath}/goodsreceipt" style="display:inline"
+                                              onsubmit="return confirm('Xác nhận hoàn tất nhập kho? Tồn kho sẽ được cập nhật ngay lập tức và không thể hoàn tác.');">
+                                            <input type="hidden" name="action" value="complete">
+                                            <input type="hidden" name="receiptNumber" value="${gr.receiptNumber}">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-check"></i> Hoàn tất nhập kho
+                                            </button>                                                                        
+                                        </form>
+                                    </c:if>
+
+                                    <!-- VIEW (completed) actions -->   
+                                    <c:if test="${mode == 'view'}">
+                                        <a href="${pageContext.request.contextPath}/goodsreceipt?action=list"
+                                           class="btn btn-secondary">
+                                            <i class="fas fa-arrow-left"></i> Quay lại
+                                        </a>
+                                    </c:if>
+
+                                </div>
+                            </div>
+
+                        </c:if><!-- /pending -->
+
+                    </div><!-- ./fluid -->
+                </section><!-- ./content -->
+            </div><!-- ./content-wrapper -->
+
+            <footer class="main-footer">
+                <strong>Bookstore POS System</strong>
+            </footer>
+        </div><!-- ./wrapper -->
+
+        <!-- jQuery -->
+        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>
+        <!-- Bootstrap 4 -->
+        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <!-- AdminLTE -->
+        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>
+
+        <script>
+                                                  $(document).ready(function () {
+
+                                                      $('#poSelect').on('change', function () {
+                                                          var poId = $(this).val();
+                                                          var supplierName = $(this).find(':selected').data('supplier') || '';
+
+                                                          $('#supplierDisplay').val(supplierName);
+
+                                                          if (poId) {
+                                                              window.location.href = '${pageContext.request.contextPath}/goodsreceipt?action=create&poId=' + poId;
+                                                          }
+                                                      });
+
+                                                      function recalcTotals() {
+                                                          var totalReceived = 0;
+                                                          var grandTotal = 0;
+
+                                                          $('.qty-received').each(function () {
+                                                              var qty = parseInt($(this).val()) || 0;
+                                                              var unitCost = parseFloat($(this).data('unit-cost')) || 0;
+                                                              var lineTotal = qty * unitCost;
+
+                                                              $(this).closest('tr').find('.line-total').text(
+                                                                      lineTotal.toLocaleString('vi-VN')
+                                                                      );
+
+                                                              totalReceived += qty;
+                                                              grandTotal += lineTotal;
+                                                          });
+
+                                                          $('#totalReceived').text(totalReceived.toLocaleString('vi-VN'));
+                                                          $('#grandTotal').text(grandTotal.toLocaleString('vi-VN'));
+                                                      }
+
+                                                      recalcTotals();
+
+                                                      $(document).on('input', '.qty-received', function () {
+                                                          var max = parseInt($(this).data('ordered')) || 0; // SL đặt tối đa
+                                                          var val = parseInt($(this).val()) || 0;
+
+                                                          if (val < 0) {
+                                                              $(this).val(0);
+                                                          } else if (val > max) {
+                                                              $(this).val(max);
+                                                              $(this).addClass('is-invalid');
+                                                          } else {
+                                                              $(this).removeClass('is-invalid');
+                                                          }
+
+                                                          recalcTotals();
+                                                      });
+
+                                                      $('#grForm').on('submit', function (e) {
+                                                          if (!$('#poSelect').val()) {
+                                                              alert('Vui lòng chọn đơn đặt hàng.');
+                                                              e.preventDefault();
+                                                              return;
+                                                          }
+
+                                                          var hasQty = false;
+                                                          $('.qty-received').each(function () {
+                                                              if (parseInt($(this).val()) > 0) {
+                                                                  hasQty = true;
+                                                              }
+                                                          });
+
+                                                          if (!hasQty) {
+                                                              alert('Vui lòng nhập số lượng nhận cho ít nhất 1 sản phẩm.');
+                                                              e.preventDefault();
+                                                          }
+                                                      });
+
+                                                  });
+        </script>
+
+    </body>
+</html>

@@ -63,7 +63,7 @@
                                         <div class="card-tools">
                                             <a href="${pageContext.request.contextPath}/goodsreceipt?action=create"
                                                class="btn btn-success btn-sm">
-                                                <i class="fas fa-plus"></i> + Tạo phiếu nhập từ ĐĐH
+                                                <i class="fas fa-plus"></i>Tạo phiếu nhập từ ĐĐH
                                             </a>
                                         </div>
                                     </div>
@@ -127,9 +127,9 @@
                                                             <th>Ngày nhập</th>
                                                             <th>Mã ĐĐH</th>
                                                             <th>Nhà CC</th>
-                                                            <th class="text-right">Tổng tiền</th>
-                                                            <th class="text-center">Trạng thái</th>
-                                                            <th class="text-center">Thao tác</th>
+                                                            <th>Tổng tiền</th>
+                                                            <th>Trạng thái</th>
+                                                            <th>Thao tác</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -152,9 +152,7 @@
                                                                             </span>
                                                                         </c:when>
                                                                         <c:when test="${item.status == 'COMPLETED'}">
-                                                                            <span class="badge badge-success">
-                                                                                <i class="fas fa-check-square"></i> Hoàn tất
-                                                                            </span>
+                                                                            <span class="badge badge-success">Hoàn tất</span>
                                                                         </c:when>
                                                                         <c:otherwise>
                                                                             <span class="badge badge-secondary">${item.status}</span>
