@@ -145,6 +145,16 @@ public class GoodsReceiptController extends HttpServlet {
             request.setAttribute("error", error);
             request.getSession().removeAttribute("error");
         }
+        
+        Object accountObj = request.getSession().getAttribute("account");
+        String currentUserName;
+        if(accountObj !=null){
+            currentUserName = accountObj.toString();
+        }else{
+            currentUserName = "Staff A"; //thay bang ten taht tu sesssion sau khi tich hop auth 
+        }
+        
+        request.setAttribute("currentUserName", currentUserName);
         request.setAttribute("mode", "create");
         request.getRequestDispatcher("/AdminLTE-3.2.0/gr-form.jsp").forward(request, response);
     }
