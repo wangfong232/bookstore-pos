@@ -397,6 +397,36 @@ public class GoodsReceiptDAO extends DBContext {
         return false;
     }
 
+    public boolean cancelGR(String receiptNumber) {
+        String sqlDet = """
+                        delete grd from GoodsReceiptDetails grd
+                        join GoodsReceipts gr on grd.ReceiptID = gr.ReceiptID
+                        where gr.ReceiptNumber = ? and gr.Status = 'PENDING'
+                        """;
+        String sqlGR = "delete from GoodsReceipts where ReceiptNumber = ? and Status = 'PENDING'";
+        try (Connection connection = getConnection()) {
+            try {
+                connection.setAutoCommit(false);
+                PreparedStatement stmDet = connection.prepareStatement(sqlDet);
+                stmDet.setString(1, receiptNumber);
+                stmDet.executeUpdate();
+
+                PreparedStatement stmGR = connection.prepareStatement(sqlGR);
+                stmGR.setString(1, receiptNumber);
+                int rows = stmGR.executeUpdate();
+                connection.commit();
+                return rows > 0;
+            } catch (Exception e) {
+                connection.rollback();
+                System.out.println("ERR cancelGR: " + e.getMessage());
+                return false;
+            }
+        } catch (Exception e) {
+            System.out.println("ERR cancelGR conn: " + e.getMessage());
+            return false;
+        }
+    }
+
     public String generateNextGRNumber() {
         int currentYear = java.time.Year.now().getValue();
         String yearPrefix = "GR-" + currentYear + "-";
@@ -416,7 +446,7 @@ public class GoodsReceiptDAO extends DBContext {
         } catch (Exception e) {
             System.out.println("ERR: generateNextGRNumber: " + e.getMessage());
         }
-        return String.format("GR-%d-%04d", currentYear,1);
+        return String.format("GR-%d-%04d", currentYear, 1);
     }
 
     public boolean isReceiptNumberExist(String receiptNumber) {
