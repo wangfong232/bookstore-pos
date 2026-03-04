@@ -433,6 +433,16 @@
                                            class="btn btn-secondary mr-2">
                                             <i class="fas fa-arrow-left"></i> Quay lại
                                         </a>
+                                        <!-- cancel button -->
+                                        <form method="post" action="${pageContext.request.contextPath}/goodsreceipt"
+                                              style="display:inline"
+                                              onsubmit="return confirm('Xác nhận HỦY phiếu ${gr.receiptNumber}? Phiếu sẽ bị xóa vĩnh viễn và không thể khôi phục.')">
+                                            <input type="hidden" name="action" value="cancel">
+                                            <input type="hidden" name="receiptNumber" value="${gr.receiptNumber}">
+                                            <button type="submit" class="btn btn-danger mr-2">
+                                                <i class="fas fa-trash-alt"></i> Hủy phiếu
+                                            </button>
+                                        </form>
                                         <!-- Complete button -->
                                         <form method="post" action="${pageContext.request.contextPath}/goodsreceipt" style="display:inline"
                                               onsubmit="return confirm('Xác nhận hoàn tất nhập kho? Tồn kho sẽ được cập nhật ngay lập tức và không thể hoàn tác.');">

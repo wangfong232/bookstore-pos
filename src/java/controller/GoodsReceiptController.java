@@ -45,6 +45,7 @@ public class GoodsReceiptController extends HttpServlet {
             case "create":
                 showCreateForm(request, response);
                 break;
+           
             case "detail":
                 showDetail(request, response);
                 break;
@@ -67,6 +68,9 @@ public class GoodsReceiptController extends HttpServlet {
                 break;
             case "complete":
                 completeGR(request, response);
+                break;
+            case "cancel":
+                cancelGR(request, response);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
@@ -145,15 +149,15 @@ public class GoodsReceiptController extends HttpServlet {
             request.setAttribute("error", error);
             request.getSession().removeAttribute("error");
         }
-        
+
         Object accountObj = request.getSession().getAttribute("account");
         String currentUserName;
-        if(accountObj !=null){
+        if (accountObj != null) {
             currentUserName = accountObj.toString();
-        }else{
+        } else {
             currentUserName = "Staff A"; //thay bang ten taht tu sesssion sau khi tich hop auth 
         }
-        
+
         request.setAttribute("currentUserName", currentUserName);
         request.setAttribute("mode", "create");
         request.getRequestDispatcher("/AdminLTE-3.2.0/gr-form.jsp").forward(request, response);
@@ -190,7 +194,7 @@ public class GoodsReceiptController extends HttpServlet {
 
         request.getRequestDispatcher("/AdminLTE-3.2.0/gr-form.jsp").forward(request, response);
     }
-    
+
     private void completeGR(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String receiptNumber = request.getParameter("receiptNumber");
@@ -210,7 +214,6 @@ public class GoodsReceiptController extends HttpServlet {
         }
     }
 
-    
     private void saveGR(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String poIdParam = request.getParameter("poId");
@@ -257,7 +260,7 @@ public class GoodsReceiptController extends HttpServlet {
         }
 
         if (!hasPositiveQty && valid.isValid()) {
-           valid.addError("Phải nhập ít nhất 1 sản phẩm với số lượng > 0.");
+            valid.addError("Phải nhập ít nhất 1 sản phẩm với số lượng > 0.");
         }
 
         if (!valid.isValid()) {
@@ -279,7 +282,7 @@ public class GoodsReceiptController extends HttpServlet {
         if (receivedByParam != null && !receivedByParam.trim().isEmpty()) {
             receivedBy = parseIntSafe(receivedByParam);
         }
-        
+
         gr.setReceivedBy(receivedBy);
 
         for (int i = 0; i < poLineIds.length; i++) {
@@ -295,7 +298,7 @@ public class GoodsReceiptController extends HttpServlet {
             d.setQuantityReceived(qty);
             BigDecimal cost = parseBigDecimalSafe(unitCosts != null && i < unitCosts.length ? unitCosts[i] : "0");
             d.setUnitCost(cost);
-            
+
             d.calculateLineTotal();
             d.setNotes(itemNotes != null && i < itemNotes.length ? itemNotes[i] : null);
             gr.addDetail(d);
@@ -312,9 +315,25 @@ public class GoodsReceiptController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
         }
     }
-
+    
+    private void cancelGR(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String receiptNumber = request.getParameter("receiptNumber");
+        if (receiptNumber == null || receiptNumber.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+            return;
+        }
+        boolean success = grDAO.cancelGR(receiptNumber);
+        if (success) {
+            request.getSession().setAttribute("msg", "success_cancel");
+        } else {
+            request.getSession().setAttribute("error", "Không thể hủy phiếu. Phiếu phải ở trạng thái 'Đang nhập'.");
+        }
+        response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+    }
 
     
+
 //helper
     private LocalDate parseLocalDate(String value) {
         try {
