@@ -49,8 +49,7 @@ public class GoodsReceiptDAO extends DBContext {
         sql.append(" order by gr.ReceiptID desc ");
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ");
 
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql.toString())) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (keyword != null && !keyword.trim().isEmpty()) {
@@ -105,8 +104,7 @@ public class GoodsReceiptDAO extends DBContext {
             sql.append(" and CAST(gr.ReceiptDate AS DATE) <= ? ");
         }
 
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql.toString())) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql.toString())) {
             int idx = 1;
             if (keyword != null && !keyword.trim().isEmpty()) {
                 String p = "%" + keyword + "%";
@@ -145,8 +143,7 @@ public class GoodsReceiptDAO extends DBContext {
                 join Employees e ON gr.ReceivedBy = e.EmployeeID
                 where gr.ReceiptNumber = ?
                 """;
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, receiptNumber);
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
@@ -169,8 +166,7 @@ public class GoodsReceiptDAO extends DBContext {
                      where grd.ReceiptID = ?
                      order by grd.ReceiptDetailID
                      """;
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setLong(1, receiptId);
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
@@ -193,9 +189,7 @@ public class GoodsReceiptDAO extends DBContext {
                      where po.Status in ('APPROVED', 'PARTIAL_RECEIVED')
                      order by po.PONumber
                      """;
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql);
-             ResultSet rs = stm.executeQuery()) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
             while (rs.next()) {
                 PurchaseOrder po = new PurchaseOrder();
                 po.setId(rs.getLong("POID"));
@@ -222,29 +216,28 @@ public class GoodsReceiptDAO extends DBContext {
                      where poi.POID = ?
                      order by poi.LineItemID
                      """;
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setLong(1, poId);
             try (ResultSet rs = stm.executeQuery()) {
-            while (rs.next()) {
-                GoodsReceiptDetail d = new GoodsReceiptDetail();
-                d.setPoLineItemId(rs.getLong("LineItemID"));
-                d.setProductId(rs.getInt("ProductID"));
-                d.setProductName(rs.getString("ProductName"));
-                int ordered = rs.getInt("QuantityOrdered");
-                int alreadyReceived = rs.getInt("QuantityReceived");
-                int remaining = ordered - alreadyReceived;
+                while (rs.next()) {
+                    GoodsReceiptDetail d = new GoodsReceiptDetail();
+                    d.setPoLineItemId(rs.getLong("LineItemID"));
+                    d.setProductId(rs.getInt("ProductID"));
+                    d.setProductName(rs.getString("ProductName"));
+                    int ordered = rs.getInt("QuantityOrdered");
+                    int alreadyReceived = rs.getInt("QuantityReceived");
+                    int remaining = ordered - alreadyReceived;
 
-                d.setQuantityOrdered(ordered);
-                d.setQuantityReceived(remaining > 0 ? remaining : 0);   //improve UX
-                d.setUnitCost(rs.getBigDecimal("UnitPrice"));
-                if (d.getUnitCost() != null && d.getQuantityReceived() != null && d.getQuantityReceived() > 0) {
-                    d.calculateLineTotal();
-                } else {
-                    d.setLineTotal(BigDecimal.ZERO);
+                    d.setQuantityOrdered(ordered);
+                    d.setQuantityReceived(remaining > 0 ? remaining : 0);   //improve UX
+                    d.setUnitCost(rs.getBigDecimal("UnitPrice"));
+                    if (d.getUnitCost() != null && d.getQuantityReceived() != null && d.getQuantityReceived() > 0) {
+                        d.calculateLineTotal();
+                    } else {
+                        d.setLineTotal(BigDecimal.ZERO);
+                    }
+                    list.add(d);
                 }
-                list.add(d);
-            }
             }
         } catch (Exception e) {
             System.out.println("ERR: getPoItemsForGR: " + e.getMessage());
@@ -326,7 +319,10 @@ public class GoodsReceiptDAO extends DBContext {
             }
         } finally {
             if (connection != null) {
-                try { connection.close(); } catch (Exception ex) {}
+                try {
+                    connection.close();
+                } catch (Exception ex) {
+                }
             }
         }
         return false;
@@ -385,39 +381,47 @@ public class GoodsReceiptDAO extends DBContext {
         } catch (Exception e) {
             System.out.println("ERR: completeGR: " + e.getMessage());
             try {
-                if (connection != null) connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (Exception ex) {
             }
         } finally {
             if (connection != null) {
-                try { connection.close(); } catch (Exception ex) {}
+                try {
+                    connection.close();
+                } catch (Exception ex) {
+                }
             }
         }
         return false;
     }
 
     public String generateNextGRNumber() {
-        String sql = "select MAX(ReceiptNumber) from GoodsReceipts where ReceiptNumber like 'GR-%'";
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql);
-             ResultSet rs = stm.executeQuery()) {
-            if (rs.next()) {
-                String maxCode = rs.getString(1);
-                if (maxCode != null) {
-                    int num = Integer.parseInt(maxCode.substring(3)) + 1;
-                    return String.format("GR-%04d", num);
+        int currentYear = java.time.Year.now().getValue();
+        String yearPrefix = "GR-" + currentYear + "-";
+        String sql = """
+                      select TOP 1 ReceiptNumber from GoodsReceipts where ReceiptNumber like ? order by ReceiptNumber desc
+                      """;
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, yearPrefix + "%");
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    String last = rs.getString(1);
+                    String numberPart = last.substring(last.lastIndexOf("-") + 1);
+                    int next = Integer.parseInt(numberPart) + 1;
+                    return String.format("GR-%d-%04d", currentYear, next);
                 }
             }
         } catch (Exception e) {
             System.out.println("ERR: generateNextGRNumber: " + e.getMessage());
         }
-        return "GR-0001";
+        return String.format("GR-%d-%04d", currentYear,1);
     }
 
     public boolean isReceiptNumberExist(String receiptNumber) {
         String sql = "select 1 from GoodsReceipts where ReceiptNumber = ? ";
-        try (Connection connection = getConnection();
-             PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, receiptNumber);
             try (ResultSet rs = stm.executeQuery()) {
                 return rs.next();
