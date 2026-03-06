@@ -245,6 +245,32 @@ public class GoodsReceiptDAO extends DBContext {
         return list;
     }
 
+    public boolean isPoAvailableForGR(long poId) {
+        String sql = "select COUNT(*) from PurchaseOrders where POID = ? and status in ('APPROVED','PARTIAL_RECEIVED')";
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setLong(1, poId);
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            System.out.println("ERR isPoAvailableForGR: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean hasPendingGRForPO(long poId) {
+        String sql = "select COUNT(*) from GoodsReceipts where POID = ? and Satus = 'PENDING' ";
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setLong(1, poId);
+            try (ResultSet rs = stm.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            System.out.println("ERR hasPendingGRForPO: " + e.getMessage());
+        }
+        return false;
+    }
+
     //add
     public boolean createGR(GoodsReceipt gr) {
         Connection connection = null;

@@ -234,12 +234,25 @@ public class GoodsReceiptController extends HttpServlet {
 
         long poId = 0;
 
+        LocalDateTime receiptDate = parseLocalDateTime(receiptDateParam);
+        if (receiptDate != null && receiptDate.isAfter(LocalDateTime.now())) {
+            valid.addError("Ngày nhập không được là ngày trong tương lai.");
+        }
+
         if (poIdParam != null && !poIdParam.trim().isEmpty()) {
             try {
                 poId = Long.parseLong(poIdParam);
             } catch (NumberFormatException e) {
                 valid.addError("Mã đơn đặt hàng không hợp lệ.");
             }
+        }
+
+        if (poId > 0 && !grDAO.isPoAvailableForGR(poId)) {
+            valid.addError("Đơn đặt hàng không hợp lệ hoặc đã hoàn tất.");
+        }
+
+        if (poId > 0 && valid.isValid() && grDAO.hasPendingGRForPO(poId)) {
+            valid.addError("Đơn đặt hàng này đã có phiếu nhập đang xử lý (PENDING). Vui lòng hoàn tất hoặc hủy phiếu đó trước.");
         }
 
         if (poLineIds == null || poLineIds.length == 0) {
@@ -285,7 +298,6 @@ public class GoodsReceiptController extends HttpServlet {
         gr.setReceiptNumber(grDAO.generateNextGRNumber());
         gr.setPoId(poId);
         gr.setNotes(notesParam);
-        LocalDateTime receiptDate = parseLocalDateTime(receiptDateParam);
         gr.setReceiptDate(receiptDate != null ? receiptDate : LocalDateTime.now());
 
         // Fake current user id = 1
@@ -308,6 +320,11 @@ public class GoodsReceiptController extends HttpServlet {
             d.setProductId(parseIntSafe(productIds != null && i < productIds.length ? productIds[i] : "0"));
             d.setQuantityReceived(qty);
             BigDecimal cost = parseBigDecimalSafe(unitCosts != null && i < unitCosts.length ? unitCosts[i] : "0");
+            if (cost.compareTo(BigDecimal.ZERO) <= 0) {
+                request.getSession().setAttribute("error", "Đơn giá sản phẩm phải lớn hơn 0.");
+                response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
+                return;
+            }
             d.setUnitCost(cost);
 
             d.calculateLineTotal();
