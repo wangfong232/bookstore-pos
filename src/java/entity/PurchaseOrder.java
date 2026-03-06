@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import util.DateUtil;
 
 /**
  *
@@ -103,12 +104,20 @@ public class PurchaseOrder {
         return orderDate;
     }
 
+    public String getOrderDateFormatted() {
+        return DateUtil.format(orderDate);
+    }
+
     public void setOrderDate(LocalDate orderDate) {
         this.orderDate = orderDate;
     }
 
     public LocalDate getExpectedDate() {
         return expectedDate;
+    }
+
+    public String getExpectedDateFormatted() {
+        return DateUtil.format(expectedDate);
     }
 
     public void setExpectedDate(LocalDate expectedDate) {
@@ -159,6 +168,10 @@ public class PurchaseOrder {
         return approvedAt;
     }
 
+    public String getApprovedAtFormatted() {
+        return DateUtil.format(approvedAt);
+    }
+
     public void setApprovedAt(LocalDateTime approvedAt) {
         this.approvedAt = approvedAt;
     }
@@ -181,6 +194,10 @@ public class PurchaseOrder {
 
     public LocalDateTime getCancelledAt() {
         return cancelledAt;
+    }
+
+    public String getCancelledAtFormatted() {
+        return DateUtil.format(cancelledAt);
     }
 
     public void setCancelledAt(LocalDateTime cancelledAt) {
@@ -215,12 +232,20 @@ public class PurchaseOrder {
         return createdAt;
     }
 
+    public String getCreatedAtFormatted() {
+        return DateUtil.format(createdAt);
+    }
+
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getUpdatedAtFormatted() {
+        return DateUtil.format(updatedAt);
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
@@ -330,5 +355,4 @@ public class PurchaseOrder {
                 ", totalAmount=" + totalAmount +
                 '}';
     }
-
 }

@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import util.DateUtil;
 
 /**
  *
@@ -93,6 +94,10 @@ public class GoodsReceipt {
         return receiptDate;
     }
 
+    public String getReceiptDateFormatted() {
+        return DateUtil.format(receiptDate);
+    }
+
     public void setReceiptDate(LocalDateTime receiptDate) {
         this.receiptDate = receiptDate;
     }
@@ -147,6 +152,10 @@ public class GoodsReceipt {
 
     public LocalDateTime getCompletedAt() {
         return completedAt;
+    }
+
+    public String getCompletedAtFormatted() {
+        return DateUtil.format(completedAt);
     }
 
     public void setCompletedAt(LocalDateTime completedAt) {
