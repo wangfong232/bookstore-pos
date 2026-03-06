@@ -138,7 +138,7 @@
                                                                 <td><strong>${item.receiptNumber}</strong></td>
                                                                 <td>
                                                                     <c:if test="${not empty item.receiptDate}">
-                                                                        ${item.receiptDate}
+                                                                        ${item.receiptDateFormatted}
                                                                     </c:if>
                                                                 </td>
                                                                 <td>${item.poNumber}</td>
@@ -230,9 +230,7 @@
 
             </div><!-- ./content-wrapper -->
 
-            <footer class="main-footer">
-                <strong>Bookstore POS System</strong>
-            </footer>
+         <jsp:include page="include/admin-footer.jsp" />
 
         </div>
         <!-- jQuery -->

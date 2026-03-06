@@ -151,10 +151,7 @@
             <!-- /.content-wrapper -->
             
             <!-- Footer -->
-            <footer class="main-footer">
-                <strong>Copyright &copy; 2026 Book Store POS.</strong>
-                All rights reserved.
-            </footer>
+           <jsp:include page="include/admin-footer.jsp" />
         </div>
         <!-- ./wrapper -->
 

@@ -69,13 +69,13 @@
                                     </div>
                                     <div class="col-md-4">
                                         <p><strong>Nhà cung cấp:</strong> ${not empty po.supplierName ? po.supplierName : po.supplierId}</p>
-                                        <p><strong>Ngày tạo:</strong> ${po.createdAt}</p>
+                                        <p><strong>Ngày tạo:</strong> ${po.createdAtFormatted}</p>
                                     </div>
                                     <div class="col-md-4">
                                         <p><strong>Ngày giao dự kiến:</strong> 
                                             <c:choose>
                                                 <c:when test="${not empty po.expectedDate}">
-                                                    ${po.expectedDate}
+                                                    ${po.expectedDateFormatted}
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="text-muted">(Chưa xác định)</span>
@@ -142,13 +142,13 @@
                                 <h5><strong>Thông tin kiểm soát</strong></h5>
                                 <div class="row text-muted" style="font-size: 0.9rem;">
                                     <div class="col-md-6">
-                                        Người tạo: <strong>${not empty po.createdByName ? po.createdByName : po.createdBy}</strong> - ${po.createdAt}
+                                        Người tạo: <strong>${not empty po.createdByName ? po.createdByName : po.createdBy}</strong> - ${po.createdAtFormatted}
                                     </div>
                                     <div class="col-md-6">
                                         Người duyệt:
                                         <c:choose>
                                             <c:when test="${not empty po.approvedBy}">
-                                                <strong>${not empty po.approvedByName ? po.approvedByName : po.approvedBy}</strong> - ${po.approvedAt}
+                                                <strong>${not empty po.approvedByName ? po.approvedByName : po.approvedBy}</strong> - ${po.approvedAtFormatted}
                                             </c:when>
                                             <c:otherwise>
                                                 <span class="text-muted">(Chưa duyệt)</span>
@@ -240,15 +240,7 @@
 
             </div><!-- ./content-wrapper -->
 
-            <!-- Main Footer -->
-            <footer class="main-footer">
-                <strong>Copyright &copy; 2026 <a href="#">Bookstore POS</a>.</strong>
-                All rights reserved.
-                <div class="float-right d-none d-sm-inline-block">
-                    <b>Version</b> 1.0.0
-                </div>
-            </footer>
-        </div><!-- ./wrapper -->
+           <jsp:include page="include/admin-footer.jsp" />
 
         <!-- jQuery -->
         <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>

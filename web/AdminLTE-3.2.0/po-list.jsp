@@ -21,6 +21,7 @@
         <div class="wrapper">
             <!--sidebar-->
             <jsp:include page="include/admin-sidebar.jsp" />
+            <jsp:include page="include/admin-header.jsp" />
 
             <!-- Content Wrapper -->
             <div class="content-wrapper">
@@ -62,7 +63,7 @@
                                 </c:choose>
                             </div>
                         </c:if>
-                        
+
                         <div class="row">
                             <div class="col-12">
                                 <!-- Search & Filter Card -->
@@ -144,7 +145,7 @@
                                                         <tr class="clickable-row" data-href="${pageContext.request.contextPath}/purchaseorder?action=detail&poNumber=${item.poNumber}"
                                                             style="cursor: pointer">
                                                             <td>${item.poNumber}</td>
-                                                            <td>${item.createdAt}</td>
+                                                            <td>${item.createdAtFormatted}</td>
                                                             <td>${item.supplierName}</td>
                                                             <td>${item.totalAmount}</td>
                                                             <td>
@@ -244,21 +245,21 @@
         </div>
         <!-- ./wrapper -->
 
-        <!-- jQuery -->
+<!--         jQuery 
         <script src="${pageContext.request.contextPath}/assets/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>
-        <!-- Bootstrap 4 -->
+         Bootstrap 4 
         <script src="${pageContext.request.contextPath}/assets/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-        <!-- AdminLTE App -->
-        <script src="${pageContext.request.contextPath}/assets/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>
+         AdminLTE App 
+        <script src="${pageContext.request.contextPath}/assets/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>-->
 
         <script>
-            document.addEventListener("DOMContentLoaded", function(){
+            document.addEventListener("DOMContentLoaded", function () {
                 var rows = document.querySelectorAll(".clickable-row");
-                
-                rows.forEach(function(row){
-                    row.addEventListener("click", function(){
+
+                rows.forEach(function (row) {
+                    row.addEventListener("click", function () {
                         var url = this.getAttribute("data-href");
-                        if(url){
+                        if (url) {
                             window.location.href = url;
                         }
                     });

@@ -261,7 +261,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-3 form-group">
+                                        <div class="col-md-4 form-group">
                                             <label class="text-muted">Mã phiếu nhập:</label>
                                             <div class="readonly-field"><strong>${gr.receiptNumber}</strong></div>
                                         </div>
@@ -275,10 +275,10 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-3 form-group">
+                                        <div class="col-md-4 form-group">
                                             <label class="text-muted">Ngày nhập:</label>
                                             <div class="readonly-field">
-                                                ${gr.receiptDate != null ? gr.receiptDate.toLocalDate() : '-'}
+                                                ${gr.receiptDate != null ? gr.receiptDateFormatted : '-'}
                                             </div>
                                         </div>        
 
@@ -296,7 +296,7 @@
                                         <c:if test="${mode == 'view' && not empty gr.completedAt}">
                                             <div class="col-md-4 form-group">
                                                 <label class="text-muted">Hoàn tất lúc:</label>
-                                                <div class="readonly-field">${gr.completedAt}</div>
+                                                <div class="readonly-field">${gr.completedAtFormatted}</div>
                                             </div>
                                         </c:if>
                                     </div>
@@ -454,10 +454,7 @@
                     </div><!-- ./fluid -->
                 </section><!-- ./content -->
             </div><!-- ./content-wrapper -->
-
-            <footer class="main-footer">
-                <strong>Bookstore POS System</strong>
-            </footer>
+          <jsp:include page="include/admin-footer.jsp" />
         </div><!-- ./wrapper -->
 
         <!-- jQuery -->
