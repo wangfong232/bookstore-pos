@@ -263,6 +263,72 @@ public class StockTakeDAO extends DBContext {
         return false;
     }
 
+    public boolean submitSTForApproval(long id, int createdBy) {
+        String sql = """
+                     update StockTakes 
+                     set Status = 'PENDING_APPROVAL',
+                        SubmittedAt = GETDATE(),
+                        TotalItems = (select COUNT(*) from StockTakeDetails where StockTakeID = ? ),
+                        TotalVarianceQty = (select ISNULL(SUM(ActualQuantity - SystemQuantity), 0) from StockTakeDetails where StockTakeID = ?),
+                        TotalVarianceValue = (select ISNULL(SUM((ActualQuantity - SystemQuantity)* UnitCost), 0) from StockTakeDetails where StockTakeID = ? )
+                     where
+                        StockTakeID = ? AND CreatedBy = ? AND Status = 'IN_PROGRESS'
+                     """;
+
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setLong(1, id);
+            stm.setLong(2, id);
+            stm.setLong(3, id);
+            stm.setLong(4, id);
+            stm.setInt(5, createdBy);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: submitSTForApproval: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean approveST(long id, int approvedBy) {
+        String sql = """
+                update StockTakes
+                set    Status     = 'COMPLETED',
+                       ApprovedBy = ?,
+                       ApprovedAt = GETDATE()
+                where  StockTakeID = ? AND Status = 'PENDING_APPROVAL' AND  CreatedBy <> ?
+                """;
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, approvedBy);
+            stm.setLong(2, id);
+            stm.setInt(3, approvedBy);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: approveST: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    public boolean requestRecountST(long id, int requestedBy, String reason) {
+        String sql = """
+                update StockTakes
+                set    Status                = 'IN_PROGRESS',
+                       RecountRequestedBy    = ?,
+                       RecountRequestedAt    = GETDATE(),
+                       RecountReason         = ?,
+                       SubmittedAt           = NULL
+                where  StockTakeID = ? AND Status = 'PENDING_APPROVAL'
+                """;
+        try (Connection connection = getConnection();
+                PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, requestedBy);
+            stm.setString(2, reason);
+            stm.setLong(3, id);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: requestRecountST: " + e.getMessage());
+        }
+        return false;
+    }
+
     private void appendFilters(StringBuilder sql, String keyword, String status,
             LocalDate from, LocalDate to) {
         if (keyword != null && !keyword.trim().isEmpty()) {
