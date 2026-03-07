@@ -40,6 +40,8 @@ public class StockTakeController extends HttpServlet {
             case "search":
                 showList(request, response);
                 break;
+            case "view":
+                showView(request, response);
             default:
                 showList(request, response);
         }
@@ -95,6 +97,26 @@ public class StockTakeController extends HttpServlet {
 
         resetSessionMsg(request);
         request.getRequestDispatcher("/AdminLTE-3.2.0/st-list.jsp").forward(request, response);
+    }
+
+    private void showView(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String number = request.getParameter("number");
+        if (number == null || number.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            return;
+        }
+    
+        StockTake st = stDAO.getSTByNumber(number);
+        if(st==null){
+            request.getSession().setAttribute("msg", "fail_notfound");
+            response.sendRedirect(request.getContextPath()+"/stocktake?action=list");
+            return;
+        }
+        
+        request.setAttribute("st", st);
+        resetSessionMsg(request);
+        request.getRequestDispatcher("/AdminLTE-3.2.0/st-view.jsp").forward(request, response);
     }
 
     private void resetSessionMsg(HttpServletRequest request) {
