@@ -197,6 +197,72 @@ public class StockTakeDAO extends DBContext {
         return String.format("ST-%d-0001", currentYear);
     }
 
+    public boolean createSTWithDetails(StockTake st) {
+        String sqlST = """
+                       insert into StockTakes
+                       (StockTakeNumber, ScopeType, ScopeValue, StockTakeDate, Status, TotalItems, 
+                       TotalVarianceQty, TotalVarianceValue, Notes, CreatedBy, CreatedAt)
+                       values(?,?,?,?,?,?,?,?,?,?,?)
+                       """;
+        String sqlDetail = """
+                           insert into StockTakeDetails
+                            (StockTakeID, ProductID, SystemQuantity, ActualQuantity, UnitCost, VarianceReason, Notes)
+                           values (?,?,?,?,?,?,?)
+                            """;
+        Connection con = getConnection();
+        try {
+            con.setAutoCommit(false);
+            long stId;
+            try (PreparedStatement stm = con.prepareStatement(sqlST, Statement.RETURN_GENERATED_KEYS)) {
+                stm.setString(1, st.getStockTakeNumber());
+                stm.setString(2, st.getScopeType());
+                stm.setString(3, st.getScopeValue());
+                stm.setDate(4, Date.valueOf(st.getStockTakeDate()));
+                stm.setString(5, st.getStatus());
+                stm.setInt(6, st.getTotalItems());
+                stm.setInt(7, st.getTotalVarianceQty());
+                stm.setBigDecimal(8, st.getTotalVarianceValue());
+                stm.setString(9, st.getNotes());
+                stm.setInt(10, st.getCreatedBy());
+                stm.setTimestamp(11, Timestamp.valueOf(st.getCreatedAt()));
+                stm.executeUpdate();
+                try (ResultSet keys = stm.getGeneratedKeys()) {
+                    if (!keys.next()) {
+                        throw new SQLException("No generated key");
+                    }
+                    stId = keys.getLong(1);
+                }
+
+                if (st.getDetails() != null) {
+                    try (PreparedStatement stmD = con.prepareStatement(sqlDetail)) {
+                        for (StockTakeDetail detail : st.getDetails()) {
+                            stmD.setLong(1, stId);
+                            stmD.setInt(2, detail.getProductId());
+                            stmD.setInt(3, detail.getSystemQuantity());
+                            stmD.setInt(4, detail.getActualQuantity());
+                            stmD.setBigDecimal(5, detail.getUnitCost());
+                            stmD.setString(6, detail.getVarianceReason());
+                            stmD.setString(7, detail.getNotes());
+                            stmD.addBatch();
+                        }
+                        stmD.executeBatch();
+                    }
+                }
+
+                con.commit();
+                return true;
+            } catch (Exception e) {
+                System.out.println("ERR: createSTWithDetails: " + e.getMessage());
+                try {
+                    con.rollback();
+                } catch (Exception ex) {
+                }
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
     private void appendFilters(StringBuilder sql, String keyword, String status,
             LocalDate from, LocalDate to) {
         if (keyword != null && !keyword.trim().isEmpty()) {
