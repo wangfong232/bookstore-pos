@@ -449,6 +449,50 @@ public class StockTakeDAO extends DBContext {
         return false;
     }
 
+    public boolean updateSTDetails(long stId, List<StockTakeDetail> details) {
+        String sqlDel = "delete from StockTakeDetails where StockTakeID = ? ";
+        String sqlIns = """
+                        insert into StockTakeDetails
+                          (StockTakeID, ProductID, SystemQuantity, ActualQuantity, UnitCost, VarianceReason, Notes)
+                            values (?,?,?,?,?,?,?)
+                        """;
+        Connection connection = getConnection();
+        try {
+            connection.setAutoCommit(false);
+            try (PreparedStatement stmDel = connection.prepareStatement(sqlDel)) {
+                stmDel.setLong(1, stId);
+                stmDel.executeQuery();
+            }
+            try (PreparedStatement stmIns = connection.prepareStatement(sqlIns)) {
+                for (StockTakeDetail detail : details) {
+                    stmIns.setLong(1, stId);
+                    stmIns.setInt(2, detail.getProductId());
+                    stmIns.setInt(3, detail.getSystemQuantity());
+                    stmIns.setInt(4, detail.getActualQuantity());
+                    stmIns.setBigDecimal(5, detail.getUnitCost());
+                    stmIns.setString(6, detail.getVarianceReason());
+                    stmIns.setString(7, detail.getNotes());
+                    stmIns.addBatch();
+                }
+                stmIns.executeBatch();
+            }
+            connection.commit();
+            return true;
+        } catch (Exception e) {
+            System.out.println("ERR: updateSTDetails: " + e.getMessage());
+            try {
+                connection.rollback();
+            } catch (Exception ex) {
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception ex) {
+            }
+        }
+        return false;
+    }
+
     private void appendFilters(StringBuilder sql, String keyword, String status,
             LocalDate from, LocalDate to) {
         if (keyword != null && !keyword.trim().isEmpty()) {
