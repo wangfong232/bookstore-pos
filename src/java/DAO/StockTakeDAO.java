@@ -289,24 +289,145 @@ public class StockTakeDAO extends DBContext {
     }
 
     public boolean approveST(long id, int approvedBy) {
-        String sql = """
+        String sqlApprove = """
                 update StockTakes
                 set    Status     = 'COMPLETED',
                        ApprovedBy = ?,
                        ApprovedAt = GETDATE()
                 where  StockTakeID = ? AND Status = 'PENDING_APPROVAL' AND  CreatedBy <> ?
                 """;
-        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setInt(1, approvedBy);
-            stm.setLong(2, id);
-            stm.setInt(3, approvedBy);
-            return stm.executeUpdate() > 0;
+        String sqlGetDetails = """
+                               select ProductID, ActualQuantity,UnitCost
+                               from  StockTakeDetails 
+                               where  StockTakeID = ? AND ActualQuantity <> SystemQuantity
+                               """;
+        String sqlUpdateStock = """
+                                update Products 
+                                set Stock = ?
+                                OUTPUT deleted.Stock AS StockBefore, inserted.Stock AS StockAfter
+                                where ProductID = ?
+                                """;
+        String sqlInsertTx = """
+                             insert into InventoryTransactions 
+                             (ProductID, TransactionType, ReferenceType, ReferenceID, ReferenceCode,
+                                                  QuantityChange, StockBefore, StockAfter, UnitCost, Notes, CreatedBy)
+                             values (?, 'ADJUSTMENT', 'STOCK_TAKE', ?, ?, ?, ?, ?, ?, ?, ?)
+                              """;
+
+        String stockTakeNumber = null;
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(
+                "select StockTakeNumber FROM StockTakes WHERE StockTakeID = ?")) {
+            stm.setLong(1, id);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    stockTakeNumber = rs.getString(1);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: approveST – getSTnumber: " + e.getMessage());
+            return false;
+        }
+        if (stockTakeNumber == null) {
+            return false;
+        }
+
+        Connection con = getConnection();
+        try {
+            con.setAutoCommit(false);
+
+            //update ST status
+            try (PreparedStatement stm = con.prepareStatement(sqlApprove)) {
+                stm.setInt(1, approvedBy);
+                stm.setLong(2, id);
+                stm.setInt(3, approvedBy);
+                if (stm.executeUpdate() == 0) {
+                    con.rollback();
+                    return false;
+                }
+            }
+
+            //update stock (only variance)
+            try (PreparedStatement stmGet = con.prepareStatement(sqlGetDetails)) {
+                stmGet.setLong(1, id);
+                try (ResultSet rs = stmGet.executeQuery()) {
+                    try (PreparedStatement stmStock = con.prepareStatement(sqlUpdateStock); PreparedStatement stmTx = con.prepareStatement(sqlInsertTx);) {
+
+                        while (rs.next()) {
+                            int productId = rs.getInt("ProductID");
+                            int actQty = rs.getInt("ActualQuantity");
+                            BigDecimal cost = rs.getBigDecimal("UnitCost");
+
+                            stmStock.setInt(1, actQty);
+                            stmStock.setInt(2, productId);
+                            int stockBefore, stockAfter, qtyChange;
+                            try (ResultSet out = stmStock.executeQuery()) {
+                                out.next();
+                                stockBefore = out.getInt("StockBefore");
+                                stockAfter = out.getInt("StockAfter");
+                                qtyChange = stockAfter - stockBefore;
+                            }
+
+                            //update transaction
+                            stmTx.setInt(1, productId);
+                            stmTx.setLong(2, id);
+                            stmTx.setString(3, stockTakeNumber);
+                            stmTx.setInt(4, qtyChange);
+                            stmTx.setInt(5, stockBefore);
+                            stmTx.setInt(6, stockAfter);
+                            stmTx.setBigDecimal(7, cost);
+                            stmTx.setString(8, "Stock take adjustment");
+                            stmTx.setInt(9, approvedBy);
+                            stmTx.addBatch();
+                        }
+                        stmTx.executeBatch();
+                    }
+                }
+            }
+            con.commit();
+            return true;
         } catch (Exception e) {
             System.out.println("ERR: approveST: " + e.getMessage());
+            try {
+                con.rollback();
+            } catch (Exception ex) {
+            }
+        } finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (Exception ex) {
+
+            }
         }
         return false;
     }
-    
+
+    //lock warehouse -- soft-freeze
+    public boolean isWarehouseLocked() {
+        String sql = "select TOP 1 1 from StockTakes where Status IN ('IN_PROGRESS','PENDING_APPROVAL')";
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+            return rs.next();
+        } catch (Exception e) {
+            System.out.println("ERR: isWarehouseLocked: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public String getActiveLockSTNumber() {
+        String sql = """
+                select TOP 1 StockTakeNumber FROM StockTakes
+                where Status IN ('IN_PROGRESS','PENDING_APPROVAL')
+                ORDER BY StockTakeID DESC
+                """;
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString(1);
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getActiveLockSTNumber: " + e.getMessage());
+        }
+        return null;
+    }
+
     public boolean requestRecountST(long id, int requestedBy, String reason) {
         String sql = """
                 update StockTakes
@@ -317,8 +438,7 @@ public class StockTakeDAO extends DBContext {
                        SubmittedAt           = NULL
                 where  StockTakeID = ? AND Status = 'PENDING_APPROVAL'
                 """;
-        try (Connection connection = getConnection();
-                PreparedStatement stm = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setInt(1, requestedBy);
             stm.setString(2, reason);
             stm.setLong(3, id);
