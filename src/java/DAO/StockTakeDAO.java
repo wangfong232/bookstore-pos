@@ -461,7 +461,7 @@ public class StockTakeDAO extends DBContext {
             connection.setAutoCommit(false);
             try (PreparedStatement stmDel = connection.prepareStatement(sqlDel)) {
                 stmDel.setLong(1, stId);
-                stmDel.executeQuery();
+                stmDel.executeUpdate();
             }
             try (PreparedStatement stmIns = connection.prepareStatement(sqlIns)) {
                 for (StockTakeDetail detail : details) {
