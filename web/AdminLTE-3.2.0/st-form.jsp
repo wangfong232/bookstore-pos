@@ -16,6 +16,9 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/css/adminlte.min.css">
         <style>
+            #productTable {
+                table-layout: fixed;
+            }
             .step-indicator{
                 display: flex;
                 align-items: center;
@@ -230,6 +233,10 @@
                                         </div>
                                     </div>
                                     <div class="card-body p-0">
+                                        <div class="p-2 border-bottom">
+                                            <input type="text" id="countSearch" class="form-control form-control-sm"
+                                                   placeholder="Tìm theo tên hoặc SKU..." style="max-width:280px">
+                                        </div>
                                         <table class="table table-bordered table-sm mb-0" id="countTable">
                                             <thead class="thead-light">
                                                 <tr>
@@ -269,7 +276,7 @@
             </div><!-- /container-wrapper -->
             <jsp:include page="include/admin-footer.jsp"/>
         </div><!-- /wrapper -->
-
+        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>        
         <script>
             //data from server
             var ALL_PRODUCTS = [];
@@ -286,6 +293,9 @@
 
             var REASON_OPTIONS = ['', 'LOSS', 'DAMAGE', 'THEFT', 'ERROR', 'OTHER'];
             var REASON_LABELS = ['-- Lý do --', 'Mất hàng', 'Hư hỏng', 'Trộm cắp', 'Lỗi nhập liệu', 'Khác'];
+            var savedActQtys = {};
+            var savedReasons  = {};
+            var savedNotes    = {};
 
             function showStep(n) {
                 $('#step1-panel').toggle(n === 1);
@@ -315,13 +325,60 @@
                 }
             });
 
-            $('#productSearch').on('input', function () {
-                var keyword = $(this).val().toLowerCase();
-                $('#productTable tbody tr.product-row').each(function () {
-                    var name = $(this).data('name').toLowerCase();
-                    var sku = $(this).data('sku').toLowerCase();
-                    $(this).toggle(name.includes(keyword) || sku.includes(keyword));
+            function sortProductTable(kw) {
+                kw = (kw || '').toLowerCase().trim();
+                var tbody = $('#productTable tbody');
+                var checkedMatched = [], uncheckedMatched = [], unmatched = [];
+
+                tbody.find('tr.product-row').each(function () {
+                    var isChecked = $(this).find('.product-check').prop('checked');
+                    var sku = String($(this).data('sku') || '').toLowerCase();
+                    var name = String($(this).data('name') || '').toLowerCase();
+                    var matches = !kw || sku.includes(kw) || name.includes(kw);
+
+                    if (isChecked && matches) {
+                        checkedMatched.push(this);
+                    } else if (!isChecked && matches) {
+                        uncheckedMatched.push(this);
+                    } else {
+                        unmatched.push(this);
+                    }
                 });
+
+                checkedMatched.forEach(function (row) {
+                    tbody.append(row);
+                    $(row).show();
+                });
+                uncheckedMatched.forEach(function (row) {
+                    tbody.append(row);
+                    $(row).show();
+                });
+                unmatched.forEach(function (row) {
+                    tbody.append(row);
+                    $(row).hide();
+                });
+            }
+
+            $('#productSearch').on('input', function () {
+                sortProductTable($(this).val());
+            });
+
+            $('#productSearch').on('keydown', function (e) {
+                if (e.key !== 'Enter')
+                    return;
+                e.preventDefault();
+
+                var firstVisible = $('#productTable tbody tr.product-row:visible').first();
+                if (!firstVisible.length)
+                    return;
+
+                var cb = firstVisible.find('.product-check');
+                var nowChecked = !cb.prop('checked');
+                cb.prop('checked', nowChecked);
+                firstVisible.toggleClass('product-row-selected', nowChecked);
+                updateSelectedCount();
+
+                $(this).val('').trigger('input');
             });
 
             //all
@@ -334,6 +391,7 @@
             $(document).on('change', '.product-check', function () {
                 updateSelectedCount();
                 updateRowHighlight();
+                sortProductTable($('#productSearch').val());
             });
 
             function updateSelectedCount() {
@@ -389,10 +447,18 @@
                 tbody.empty();
 
                 products.forEach(function (p, idx) {
-                    var reasonOpts = REASON_OPTIONS.map(function (v, i) {
-                        return '<option value="' + v + '">' + REASON_LABELS[i] + '</option>';
-                    }).join('');
 
+
+                    var actVal    = (savedActQtys[p.id] !== undefined) ? savedActQtys[p.id] : p.stock;
+                    var savedReason = savedReasons[p.id] || '';
+                    var savedNote   = savedNotes[p.id]   || '';
+                    var diff = actVal - p.stock;
+                    var varianceHtml = diff === 0 ? '<span class="text-muted">0</span>' : diff > 0
+                            ? '<span class="variance-surplus">+' + diff + '</span>'
+                            : '<span class="variance-shortage">' + diff + '</span>';
+                    var reasonOptsSel = REASON_OPTIONS.map(function (v, i) {
+                        return '<option value="' + v + '"' + (v === savedReason ? ' selected' : '') + '>' + REASON_LABELS[i] + '</option>';
+                    }).join('');
                     var row =
                             '<tr id="crow_' + idx + '">' +
                             '<td>' + (idx + 1) + '</td>' +
@@ -401,22 +467,21 @@
                             '<td class="text-center"><strong>' + p.stock + '</strong></td>' +
                             '<td>' +
                             '<input type="number" class="form-control form-control-sm actual-qty" min="0"' +
-                            ' value="' + p.stock + '" data-sys="' + p.stock + '" data-idx="' + idx + '">' +
+                            ' value="' + actVal + '" data-sys="' + p.stock + '" data-idx="' + idx + '" data-pid="' + p.id + '">' +
                             '</td>' +
-                            '<td class="text-center variance-cell" id="var_' + idx + '"><span class="text-muted">0</span></td>' +
+                            '<td class="text-center variance-cell" id="var_' + idx + '">' + varianceHtml + '</td>' +
                             '<td>' +
-                            '<select class="form-control form-control-sm reason-select" id="reason_' + idx + '" disabled>' +
-                            reasonOpts +
+                            '<select class="form-control form-control-sm reason-select" id="reason_' + idx + '" data-pid="' + p.id + '"' + (diff === 0 ? ' disabled' : '') + '>' + reasonOptsSel +
                             '</select>' +
                             '</td>' +
                             '<td>' +
-                            '<input type="text" class="form-control form-control-sm" id="dnote_' + idx + '" placeholder="Ghi chú...">' +
+                            '<input type="text" class="form-control form-control-sm note-input" id="dnote_' + idx + '" data-pid="' + p.id + '" placeholder="Ghi chú..." value="' + escHtml(savedNote) + '">' +
                             '</td>' +
                             '<td style="display:none">' +
                             '<input type="hidden" name="pid[]" value="' + p.id + '">' +
                             '<input type="hidden" name="sysQty[]" value="' + p.stock + '">' +
                             '<input type="hidden" name="cost[]" value="' + p.cost + '">' +
-                            '<input type="hidden" class="act-hidden" name="actQty[]" value="' + p.stock + '">' +
+                            '<input type="hidden" class="act-hidden" name="actQty[]" value="' + actVal + '">' +
                             '<input type="hidden" class="reason-hidden" name="reason[]" value="">' +
                             '<input type="hidden" class="note-hidden" name="detailNotes[]" value="">' +
                             '</td>' +
@@ -425,8 +490,9 @@
                 });
 
                 //bind
-                tbody.off('input').on('input', '.actual-qty', function () {
+                tbody.off('input change').on('input', '.actual-qty', function () {
                     var idx = $(this).data('idx');
+                    var pid = $(this).data('pid');
                     var sysQty = parseInt($(this).data('sys'));
                     var actQty = parseInt($(this).val()) || 0;
                     var diff = actQty - sysQty;
@@ -435,6 +501,7 @@
                     if (diff === 0) {
                         cell.html('<span class="text-muted">0</span>');
                         $('#reason_' + idx).prop('disabled', true).val('');
+                        if (pid) savedReasons[pid] = '';
                     } else if (diff > 0) {
                         cell.html('<span class="variance-surplus">+' + diff + '</span>');
                         $('#reason_' + idx).prop('disabled', false);
@@ -443,29 +510,53 @@
                         $('#reason_' + idx).prop('disabled', false);
                     }
                     $(this).closest('tr').find('.act-hidden').val(actQty);
+                    if (pid) savedActQtys[pid] = actQty;
+                }).on('change', '.reason-select', function () {
+                    var pid = $(this).data('pid');
+                    if (pid) savedReasons[pid] = $(this).val();
+                }).on('input', '.note-input', function () {
+                    var pid = $(this).data('pid');
+                    if (pid) savedNotes[pid] = $(this).val();
                 });
 
-                //before submit, sync reaon + notes hidden input
                 $('#st-form').off('submit').on('submit', function () {
                     $('#countTableBody tr').each(function () {
-                        $(this).find('.reason-hidden').val($(this).find('.reason-select').val());
-                        var noteInput = $(this).find('input[class*="form-control-sm"]:not(.actual-qty)');
-                        $(this).find('.note-hidden').val($(this).find('td:last input.form-control-sm').val());
+                        var idx = $(this).find('.actual-qty').data('idx');
+                        $(this).find('.reason-hidden').val($('#reason_' + idx).val());
+                        $(this).find('.note-hidden').val($('#dnote_' + idx).val());
                     });
-
-                    var n = $('#countTableBody tr').length;
-                    for (var i = 0; i < n; i++) {
-                        $('#countTableBody tr').eq(i).find('.reason-hidden').val($('#reason_' + i).val());
-                        $('#countTableBody tr').eq(i).find('.note-hidden').val($('#dnote_' + i).val());
-                    }
                 });
-
-                $('#countTableBody .reason-select').prop('disabled', true);
 
             }
 
             $('#btnBack').on('click', function () {
                 showStep(1);
+            });
+
+            // Step 2 live search
+            $(document).on('input', '#countSearch', function () {
+                var kw = $(this).val().toLowerCase().trim();
+                var tbody = $('#countTableBody');
+                var matched = [], unmatched = [];
+
+                tbody.find('tr').each(function () {
+                    var sku = $(this).find('td:eq(1)').text().toLowerCase();
+                    var name = $(this).find('td:eq(2)').text().toLowerCase();
+                    if (!kw || sku.includes(kw) || name.includes(kw)) {
+                        matched.push(this);
+                    } else {
+                        unmatched.push(this);
+                    }
+                });
+
+                matched.forEach(function (row) {
+                    tbody.append(row);
+                    $(row).show();
+                });
+                unmatched.forEach(function (row) {
+                    tbody.append(row);
+                    $(row).hide();
+                });
             });
             function escHtml(s) {
                 return $('<div>').text(s).html();
