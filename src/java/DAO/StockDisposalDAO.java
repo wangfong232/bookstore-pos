@@ -166,6 +166,73 @@ public class StockDisposalDAO extends DBContext {
         return String.format("SD-%d-0001", currentYear);
     }
 
+    public boolean createDisposalWithDetails(StockDisposal sd) {
+        String sqlSD = """
+                         insert into StockDisposals
+                         (DisposalNumber, DisposalDate, DisposalReason, Status, TotalQuantity, 
+                         TotalValue, Notes, CreatedBy, CreatedAt)
+                         values (?,?,?,?,?,?,?,?,?)
+                         """;
+        String sqlDetail = """
+                             insert into StockDisposalDetails
+                             (DisposalID, ProductID, Quantity, UnitCost, LineTotal, SpecificReason, Notes)
+                             values (?,?,?,?,?,?,?)
+                             """;
+        Connection con = getConnection();
+        try {
+            con.setAutoCommit(false);
+            long sdId;
+            try (PreparedStatement stm = con.prepareStatement(sqlSD, Statement.RETURN_GENERATED_KEYS)) {
+                stm.setString(1, sd.getDisposalNumber());
+                stm.setTimestamp(2, Timestamp.valueOf(sd.getDisposalDate() != null ? sd.getDisposalDate() : LocalDateTime.now()));
+                stm.setString(3, sd.getDisposalReason());
+                stm.setString(4, sd.getStatus());
+                stm.setInt(5, sd.getTotalQuantity());
+                stm.setBigDecimal(6, sd.getTotalValue());
+                stm.setString(7, sd.getNotes());
+                stm.setInt(8, sd.getCreatedBy());
+                stm.setTimestamp(9, Timestamp.valueOf(
+                        sd.getCreatedAt() != null ? sd.getCreatedAt() : LocalDateTime.now()));
+                stm.executeUpdate();
+                try (ResultSet keys = stm.getGeneratedKeys()) {
+                    if (!keys.next()) {
+                        throw new SQLException("No generated key returned");
+                    }
+                    sdId = keys.getLong(1);
+                }
+            }
+            if (sd.getDetails() != null && !sd.getDetails().isEmpty()) {
+                try (PreparedStatement stmD = con.prepareStatement(sqlSD)) {
+                    for (StockDisposalDetail detail : sd.getDetails()) {
+                        stmD.setLong(1, sdId);
+                        stmD.setInt(2, detail.getProductId());
+                        stmD.setInt(3, detail.getQuantity());
+                        stmD.setBigDecimal(4, detail.getUnitCost());
+                        stmD.setBigDecimal(5, detail.getLineTotal());
+                        stmD.setString(6, detail.getSpecificReason());
+                        stmD.setString(7, detail.getNotes());
+                        stmD.addBatch();
+                    }
+                    stmD.executeBatch();
+                }
+            }
+            con.commit();
+            return true;
+        } catch (Exception e) {
+            System.out.println("ERR: createDisposalWithDetails: " + e.getMessage());
+            try {
+                con.rollback();
+            } catch (Exception ex) {
+            }
+        } finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (Exception e) {
+            }
+        }
+        return false;
+    }
+
     private void appendFilters(StringBuilder sql, String keyword, String status, String reason, LocalDate from, LocalDate to) {
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (sd.DisposalNumber LIKE ? OR sd.Notes LIKE ?)");
