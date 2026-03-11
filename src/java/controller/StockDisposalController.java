@@ -59,6 +59,9 @@ public class StockDisposalController extends HttpServlet {
             case "reject":
                 reject(request, response);
                 break;
+            case "complete":
+                complete(request, response);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
         }
@@ -154,6 +157,29 @@ public class StockDisposalController extends HttpServlet {
 
         boolean ok = sdDAO.rejectDisposal(sd.getId(), employeeId, reason.trim());
         request.getSession().setAttribute("msg", ok ? "success_reject" : "fail_reject");
+        response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
+    }
+
+    private void complete(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String number = request.getParameter("number");
+        String confirmed = request.getParameter("physicalConfirmed");
+        int employeeId = getLoggedInEmployeeId(request);
+
+        if (!"true".equals(confirmed)) {
+            request.getSession().setAttribute("msg", "fail_no_physical_confirm");
+            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
+            return;
+        }
+
+        StockDisposal sd = sdDAO.getSDByNumber(number);
+        if (sd == null) {
+            request.getSession().setAttribute("msg", "fail_notfound");
+            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+            return;
+        }
+        boolean ok = sdDAO.completeDisposal(sd.getId(), employeeId);
+        request.getSession().setAttribute("msg", ok ? "success_complete" : "fail_complete");
         response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
     }
 
