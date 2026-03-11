@@ -5,6 +5,8 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
@@ -23,7 +25,8 @@
                      class="img-dot-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
-                <a href="#" class="d-block">Admin User</a>
+                <a href="${pageContext.request.contextPath}/profile" class="d-block">${sessionScope.fullName != null ? sessionScope.fullName : 'User'}</a>
+                <small class="text-muted">${sessionScope.roleName != null ? sessionScope.roleName : ''}</small>
             </div>
         </div>
 
@@ -43,274 +46,309 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
-                <!-- Dashboard -->
+                <!-- Dashboard - Tất cả role -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="${pageContext.request.contextPath}/dashboard" class="nav-link">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
 
-                <!-- POS - Bán hàng -->
-                <li class="nav-item">
-                    <a href="${pageContext.request.contextPath}/pos" class="nav-link">
-                        <i class="nav-icon fas fa-cash-register"></i>
-                        <p>Bán hàng (POS)</p>
-                    </a>
-                </li>
+                <!-- POS - Bán hàng (Saler, Staff, Store Manager, Manager) -->
+                <c:if test="${sessionScope.roleId == 5 || sessionScope.roleId == 3 || sessionScope.roleId == 2 || sessionScope.roleId == 1}">
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/pos" class="nav-link">
+                            <i class="nav-icon fas fa-cash-register"></i>
+                            <p>Bán hàng (POS)</p>
+                        </a>
+                    </li>
+                </c:if>
 
-                <!-- Quản lý sản phẩm -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-book"></i>
-                        <p>
-                            Quản lý sản phẩm
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh sách sản phẩm</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="categories" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh mục</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="brands" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Thương hiệu</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Chấm công - Cho nhân viên (Staff, Saler, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 3 || sessionScope.roleId == 5 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/staff/attendance-checkin" class="nav-link">
+                            <i class="nav-icon fas fa-fingerprint"></i>
+                            <p>Chấm công</p>
+                        </a>
+                    </li>
+                </c:if>
 
-                <!-- Quản lý kho -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-warehouse"></i>
-                        <p>
-                            Quản lý kho
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Tồn kho</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/purchaseorder" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Nhập hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Kiểm kho</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Xuất hủy</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- ======================== MANAGER & STORE MANAGER MENU ======================== -->
 
-                <!-- Đơn mua hàng -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-shopping-cart"></i>
-                        <p>
-                            Đơn mua hàng
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh sách đơn hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/supplier" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Nhà cung cấp</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Quản lý sản phẩm (Manager, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-book"></i>
+                            <p>
+                                Quản lý sản phẩm
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh sách sản phẩm</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/categories" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh mục</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/brands" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Thương hiệu</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
 
-                <!-- Hóa đơn bán hàng -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-file-invoice"></i>
-                        <p>
-                            Hóa đơn bán
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh sách hóa đơn</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Thanh toán</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Quản lý kho (Manager, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-warehouse"></i>
+                            <p>
+                                Quản lý kho
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Tồn kho</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/purchaseorder" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Nhập hàng</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Kiểm kho</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Xuất hủy</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
 
-                <!-- Khách hàng -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>
-                            Khách hàng
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh sách khách hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Điểm tích lũy</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="admin/customer-tiers" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Hạng thành viên</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Đơn mua hàng (Manager, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-shopping-cart"></i>
+                            <p>
+                                Đơn mua hàng
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh sách đơn hàng</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/supplier" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Nhà cung cấp</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
 
-                <!-- Khuyến mãi -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-tags"></i>
-                        <p>
-                            Khuyến mãi
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="promotions" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh sách khuyến mãi</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Điều kiện áp dụng</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Hóa đơn bán hàng (Manager, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-file-invoice"></i>
+                            <p>
+                                Hóa đơn bán
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh sách hóa đơn</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Thanh toán</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
 
-                <!-- Nhân viên -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-user-tie"></i>
-                        <p>
-                            Nhân viên
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/employees"
-                               class="nav-link ${pageContext.request.requestURI.contains('/admin/employees') ? 'active' : ''}">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh sách nhân viên</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/attendance?action=list"
-                               class="nav-link ${pageContext.request.requestURI.contains('/admin/attendance') ? 'active' : ''}">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Chấm công</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/shift-management" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Ca làm việc</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Phân quyền</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/staff/swap"
-                               class="nav-link ${pageContext.request.requestURI.contains('/staff/swap') ? 'active' : ''}">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Đơn đổi ca</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Khách hàng (Manager, Store Manager, Saler) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2 || sessionScope.roleId == 5}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>
+                                Khách hàng
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh sách khách hàng</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Điểm tích lũy</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/customer-tiers" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Hạng thành viên</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
 
-                <!-- Báo cáo -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-chart-line"></i>
-                        <p>
-                            Báo cáo
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Doanh thu</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Tồn kho</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Sản phẩm bán chạy</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <!-- Khuyến mãi (Manager, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-tags"></i>
+                            <p>
+                                Khuyến mãi
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="promotions" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh sách khuyến mãi</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Điều kiện áp dụng</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
 
-                <!-- Thông báo -->
+                <!-- Ca làm việc (Manager, Store Manager, Staff, Saler) - view only for Staff/Saler -->
+                <c:if test="${sessionScope.roleId == 3 || sessionScope.roleId == 5}">
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/admin/shift-management" class="nav-link">
+                            <i class="far fa-dot-circle nav-icon"></i>
+                            <p>Ca làm việc</p>
+                        </a>
+                    </li>
+                </c:if>
+
+                <!-- Nhân viên (Manager, Store Manager) -->
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-user-tie"></i>
+                            <p>
+                                Nhân viên
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/employees"
+                                   class="nav-link ${pageContext.request.requestURI.contains('/admin/employees') ? 'active' : ''}">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Danh sách nhân viên</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/attendance?action=list"
+                                   class="nav-link ${pageContext.request.requestURI.contains('/admin/attendance') ? 'active' : ''}">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Chấm công</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/shift-management" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Ca làm việc</p>
+                                </a>
+                            </li>
+                            
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/staff/swap"
+                                   class="nav-link ${pageContext.request.requestURI.contains('/staff/swap') ? 'active' : ''}">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Đơn đổi ca</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
+
+                <!-- Báo cáo (Manager) -->
+                <c:if test="${sessionScope.roleId == 1}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-chart-line"></i>
+                            <p>
+                                Báo cáo
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Doanh thu</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Tồn kho</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="far fa-dot-circle nav-icon"></i>
+                                    <p>Sản phẩm bán chạy</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
+
+                <!-- Thông báo (Tất cả) -->
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-bell"></i>
@@ -321,22 +359,31 @@
                     </a>
                 </li>
 
-                <!-- Cài đặt -->
+                <!-- Cài đặt (Manager) -->
+                <c:if test="${sessionScope.roleId == 1}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-cog"></i>
+                            <p>Cài đặt hệ thống</p>
+                        </a>
+                    </li>
+                </c:if>
+
+                <!-- Hồ sơ cá nhân (Tất cả) -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-cog"></i>
-                        <p>Cài đặt hệ thống</p>
+                    <a href="${pageContext.request.contextPath}/profile" class="nav-link">
+                        <i class="nav-icon fas fa-user-circle"></i>
+                        <p>Hồ sơ cá nhân</p>
                     </a>
                 </li>
 
-                <!-- Đăng xuất -->
+                <!-- Đăng xuất (Tất cả) -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="${pageContext.request.contextPath}/logout" class="nav-link">
                         <i class="nav-icon fas fa-sign-out-alt"></i>
                         <p>Đăng xuất</p>
                     </a>
                 </li>
-
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
