@@ -8,7 +8,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SalesInvoiceDAO extends DBContext {
 
@@ -204,6 +207,100 @@ public class SalesInvoiceDAO extends DBContext {
                 }
             }
         }
+    }
+
+    /**
+     * Lấy danh sách hóa đơn với filter ngày và từ khóa.
+     *
+     * @param fromDate ngày bắt đầu (có thể null)
+     * @param toDate   ngày kết thúc (có thể null)
+     * @param keyword  từ khóa tìm kiếm (mã HĐ, khách, nhân viên) (có thể null/rỗng)
+     * @param limit    số bản ghi tối đa
+     */
+    public List<Map<String, Object>> searchInvoices(java.sql.Date fromDate, java.sql.Date toDate,
+                                                    String keyword, int limit) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (limit <= 0) {
+            limit = 100;
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT TOP ").append(limit).append("""
+                si.InvoiceID,
+                si.InvoiceCode,
+                si.TotalAmount,
+                si.DiscountAmount,
+                si.FinalAmount,
+                si.PaymentStatus,
+                c.FullName AS CustomerName,
+                e.FullName AS StaffName,
+                p.PaidAt AS PaidAt
+            FROM SalesInvoice si
+            LEFT JOIN Customers c ON si.CustomerID = c.CustomerID
+            LEFT JOIN Employees e ON si.StaffID = e.EmployeeID
+            LEFT JOIN Payments p ON si.InvoiceID = p.InvoiceID AND p.Status = 'COMPLETED'
+            WHERE 1 = 1
+            """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (fromDate != null) {
+            sql.append(" AND CAST(ISNULL(p.PaidAt, si.CreatedAt) AS DATE) >= ? ");
+            params.add(fromDate);
+        }
+        if (toDate != null) {
+            sql.append(" AND CAST(ISNULL(p.PaidAt, si.CreatedAt) AS DATE) <= ? ");
+            params.add(toDate);
+        }
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("""
+                    AND (
+                        si.InvoiceCode LIKE ?
+                        OR c.FullName LIKE ?
+                        OR e.FullName LIKE ?
+                    )
+                    """);
+            String like = "%" + keyword.trim() + "%";
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+
+        sql.append(" ORDER BY ISNULL(p.PaidAt, GETDATE()) DESC, si.InvoiceID DESC");
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            for (Object p : params) {
+                if (p instanceof java.sql.Date d) {
+                    ps.setDate(idx++, d);
+                } else if (p instanceof String s) {
+                    ps.setString(idx++, s);
+                }
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("invoiceId", rs.getLong("InvoiceID"));
+                    row.put("invoiceCode", rs.getString("InvoiceCode"));
+                    row.put("totalAmount", rs.getDouble("TotalAmount"));
+                    row.put("discountAmount", rs.getDouble("DiscountAmount"));
+                    row.put("finalAmount", rs.getDouble("FinalAmount"));
+                    row.put("paymentStatus", rs.getString("PaymentStatus"));
+                    row.put("customerName", rs.getString("CustomerName"));
+                    row.put("staffName", rs.getString("StaffName"));
+                    row.put("paidAt", rs.getTimestamp("PaidAt"));
+                    list.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("ERR: searchInvoices: " + e.getMessage());
+        }
+
+        return list;
     }
 }
 

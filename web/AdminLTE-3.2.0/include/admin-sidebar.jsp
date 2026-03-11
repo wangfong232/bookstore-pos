@@ -163,13 +163,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/sales-invoices" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh sách hóa đơn</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/pos" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Thanh toán</p>
                             </a>
