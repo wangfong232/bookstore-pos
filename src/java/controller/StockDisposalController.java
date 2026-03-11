@@ -5,6 +5,7 @@
 package controller;
 
 import DAO.StockDisposalDAO;
+import entity.Product;
 import entity.StockDisposal;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -39,6 +40,8 @@ public class StockDisposalController extends HttpServlet {
             case "view":
                 showView(request, response);
                 break;
+            case "create":
+                showCreateForm(request, response);
             default:
                 showList(request, response);
         }
@@ -111,6 +114,20 @@ public class StockDisposalController extends HttpServlet {
         request.setAttribute("sd", sd);
         resetSessionMsg(request);
         request.getRequestDispatcher("/AdminLTE-3.2.0/sd-view.jsp").forward(request, response);
+    }
+
+    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        List<Product> productList = sdDAO.getAllActiveProducts();
+        String sdNumber = sdDAO.generateNextSDNumber();
+        String today = LocalDate.now().toString();
+
+        request.setAttribute("productList", productList);
+        request.setAttribute("sdNumber", sdNumber);
+        request.setAttribute("today", today);
+
+        resetSessionMsg(request);
+        request.getRequestDispatcher("/AdminLTE-3.2.0/sd-form.jsp").forward(request, response);
     }
 
     private void approve(HttpServletRequest request, HttpServletResponse response)
