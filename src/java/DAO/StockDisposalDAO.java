@@ -71,7 +71,7 @@ public class StockDisposalDAO extends DBContext {
         String sql = """
                 select sd.*, e1.FullName AS CreatedByName,
                      e2.FullName AS ApprovedByName,
-                     e3.FullName AS DisposedByName,
+                     e3.FullName AS DisposedByName
                 from StockDisposals sd
                 left join Employees e1 ON sd.CreatedBy = e1.EmployeeID
                 left join Employees e2 ON sd.ApprovedBy = e2.EmployeeID
@@ -157,7 +157,7 @@ public class StockDisposalDAO extends DBContext {
                     String lastSDNumber = rs.getString("DisposalNumber");
                     String numberPart = lastSDNumber.substring(lastSDNumber.lastIndexOf("-") + 1);
                     int nextNumber = Integer.parseInt(numberPart) + 1;
-                    return String.format("ST-%d-%04d", currentYear, nextNumber);
+                    return String.format("SD-%d-%04d", currentYear, nextNumber);
                 }
             }
         } catch (Exception e) {
