@@ -42,18 +42,7 @@ public class EmployeeController extends HttpServlet {
             toggleStatus(request, response);
         } else if (action.equals("delete")) {
             deleteEmployee(request, response);
-        } else if (action.equals("login")) {
-            showLoginForm(request, response);
-
-        } else if (action.equals("register")) {
-            showRegisterForm(request, response);
-
-        } else if (action.equals("logout")) {
-            logout(request, response);
-        } else if (action.equals("forgot")) {
-            request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
-        } else if (action.equals("recover")) {
-            request.getRequestDispatcher("/recover-password.jsp").forward(request, response);
+        
         } else {
             listEmployees(request, response);
         }
@@ -70,11 +59,7 @@ public class EmployeeController extends HttpServlet {
             insertEmployee(request, response);
         } else if ("update".equals(action)) {
             updateEmployee(request, response);
-        } else if ("login".equals(action)) {
-            login(request, response);
-
-        } else if ("register".equals(action)) {
-            register(request, response);
+        
         }
     }
 
@@ -84,6 +69,16 @@ public class EmployeeController extends HttpServlet {
     private void listEmployees(HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
+
+        // Check authorization: only Manager and Store Manager can access employee list
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || (currentUserRoleId != 1 && currentUserRoleId != 2)) {
+            // Not authorized, redirect to dashboard with error
+            response.sendRedirect(request.getContextPath() + "/dashboard?error=unauthorized");
+            return;
+        }
 
         String search = request.getParameter("key");
         String roleParam = request.getParameter("roleId");
@@ -126,6 +121,16 @@ public class EmployeeController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Check authorization: only Manager (roleId=1) and Store Manager (roleId=2) can add employees
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || (currentUserRoleId != 1 && currentUserRoleId != 2)) {
+            // Not authorized, redirect to dashboard with error
+            response.sendRedirect(request.getContextPath() + "/dashboard?error=unauthorized");
+            return;
+        }
+
         List<Role> roles = roleDAO.getAllRoles();
         request.setAttribute("roles", roles);
 
@@ -140,6 +145,15 @@ public class EmployeeController extends HttpServlet {
     private void insertEmployee(HttpServletRequest request,
             HttpServletResponse response)
             throws IOException {
+
+        // Check authorization: only Manager (roleId=1) and Store Manager (roleId=2) can add
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || (currentUserRoleId != 1 && currentUserRoleId != 2)) {
+            response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=unauthorized");
+            return;
+        }
 
         try {
             Employee e = new Employee();
@@ -158,7 +172,6 @@ public class EmployeeController extends HttpServlet {
             e.setRole(r);
 
             // giả sử admin login lưu trong session
-            HttpSession session = request.getSession();
             Integer adminId = (Integer) session.getAttribute("adminId");
             if (adminId == null) {
                 adminId = 1;
@@ -192,6 +205,16 @@ public class EmployeeController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Check authorization: only Manager (roleId=1) and Store Manager (roleId=2) can edit employees
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || (currentUserRoleId != 1 && currentUserRoleId != 2)) {
+            // Not authorized, redirect to dashboard with error
+            response.sendRedirect(request.getContextPath() + "/dashboard?error=unauthorized");
+            return;
+        }
+
         int id = Integer.parseInt(request.getParameter("id"));
 
         Employee e = employeeDAO.getEmployeeByID(id);
@@ -211,6 +234,15 @@ public class EmployeeController extends HttpServlet {
     private void updateEmployee(HttpServletRequest request,
             HttpServletResponse response)
             throws IOException {
+
+        // Check authorization: only Manager (roleId=1) and Store Manager (roleId=2) can update
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || (currentUserRoleId != 1 && currentUserRoleId != 2)) {
+            response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=unauthorized");
+            return;
+        }
 
         try {
             Employee e = new Employee();
@@ -238,7 +270,6 @@ public class EmployeeController extends HttpServlet {
             r.setRoleId(Integer.parseInt(request.getParameter("roleId")));
             e.setRole(r);
 
-            HttpSession session = request.getSession();
             Integer adminId = (Integer) session.getAttribute("adminId");
             if (adminId == null) {
                 adminId = 1;
@@ -272,10 +303,19 @@ public class EmployeeController extends HttpServlet {
             HttpServletResponse response)
             throws IOException {
 
+        // Check authorization: only Manager (roleId=1) can delete employees
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || currentUserRoleId != 1) {
+            response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=unauthorized");
+            return;
+        }
+
         try {
             int id = Integer.parseInt(request.getParameter("id"));
 
-            HttpSession session = request.getSession();
+            session = request.getSession();
             Integer adminId = (Integer) session.getAttribute("adminId");
             if (adminId == null) {
                 adminId = 1;
@@ -309,10 +349,19 @@ public class EmployeeController extends HttpServlet {
             HttpServletResponse response)
             throws IOException {
 
+        // Check authorization: only Manager (roleId=1) and Store Manager (roleId=2) can toggle status
+        HttpSession session = request.getSession();
+        Integer currentUserRoleId = (Integer) session.getAttribute("roleId");
+        
+        if (currentUserRoleId == null || (currentUserRoleId != 1 && currentUserRoleId != 2)) {
+            response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=unauthorized");
+            return;
+        }
+
         try {
             int id = Integer.parseInt(request.getParameter("id"));
 
-            HttpSession session = request.getSession();
+            session = request.getSession();
             Integer adminId = (Integer) session.getAttribute("adminId");
             if (adminId == null) {
                 adminId = 1;
@@ -333,94 +382,5 @@ public class EmployeeController extends HttpServlet {
         }
     }
 
-    private void showLoginForm(HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.getRequestDispatcher("/login.jsp")
-                .forward(request, response);
-    }
-
-    private void showRegisterForm(HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.getRequestDispatcher("/register.jsp")
-                .forward(request, response);
-    }
-
-    private void login(HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException, ServletException {
-
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-
-        Employee emp = employeeDAO.checkLogin(email, password);
-
-        if (emp != null) {
-
-            HttpSession session = request.getSession();
-            session.setAttribute("adminId", emp.getEmployeeId());
-            session.setAttribute("admin", emp);
-
-            response.sendRedirect(
-                    request.getContextPath() + "/admin/employees?action=list"
-            );
-
-        } else {
-            request.setAttribute("error", "Invalid email or password");
-            request.getRequestDispatcher("/login.jsp")
-                    .forward(request, response);
-        }
-    }
-
-    private void register(HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException, ServletException {
-
-        try {
-
-            Employee e = new Employee();
-            e.setFullName(request.getParameter("fullName"));
-            e.setEmail(request.getParameter("email"));
-            e.setPassword(request.getParameter("password"));
-            e.setPhone(request.getParameter("phone"));
-            e.setStatus("ACTIVE");
-
-            boolean success = employeeDAO.register(e);
-
-            if (success) {
-                response.sendRedirect(
-                        request.getContextPath()
-                        + "/admin/employees?action=login&success=register"
-                );
-            } else {
-                request.setAttribute("error", "Register failed");
-                request.getRequestDispatcher("/register.jsp")
-                        .forward(request, response);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect(
-                    request.getContextPath()
-                    + "/admin/employees?action=register&error=true"
-            );
-        }
-    }
-
-    private void logout(HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException {
-
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-
-        response.sendRedirect(
-                request.getContextPath() + "/admin/employees?action=login"
-        );
-    }
+    
 }

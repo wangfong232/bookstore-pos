@@ -226,7 +226,7 @@ public class ShiftAssignmentDAO extends DBContext {
 
         return list;
     }
-    
+
     //Giới hạn 8 người 1 ca
     public int countEmployeesInShift(int shiftID, Date workDate) {
 
@@ -248,5 +248,95 @@ public class ShiftAssignmentDAO extends DBContext {
         }
 
         return 0;
+    }
+
+    public List<EmployeeShiftAssignment>
+            getAssignmentsByEmployeeAndDate(int empID, String date) {
+
+        List<EmployeeShiftAssignment> list = new ArrayList<>();
+
+        String sql = "SELECT a.AssignmentID, a.EmployeeID, a.ShiftID, "
+                + "a.WorkDate, a.Status, "
+                + "s.ShiftName, s.StartTime, s.EndTime "
+                + "FROM EmployeeShiftAssignments a "
+                + "JOIN Shifts s ON a.ShiftID = s.ShiftID "
+                + "WHERE a.EmployeeID = ? "
+                + "AND a.WorkDate = ?";
+
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+
+            ps.setInt(1, empID);
+            ps.setDate(2, java.sql.Date.valueOf(date));
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                EmployeeShiftAssignment a = new EmployeeShiftAssignment();
+
+                a.setAssignmentID(rs.getInt("AssignmentID"));
+                a.setEmployeeId(rs.getInt("EmployeeID"));
+                a.setShiftID(rs.getInt("ShiftID"));
+                a.setWorkDate(rs.getDate("WorkDate"));
+                a.setStatus(rs.getString("Status"));
+
+                a.setShiftName(rs.getString("ShiftName"));
+                a.setStartTime(rs.getString("StartTime"));
+                a.setEndTime(rs.getString("EndTime"));
+
+                list.add(a);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<EmployeeShiftAssignment>
+            getAssignmentsByDateExceptEmployee(int empID, String date) {
+
+        List<EmployeeShiftAssignment> list = new ArrayList<>();
+
+        String sql = "SELECT a.AssignmentID, a.EmployeeID, a.ShiftID, "
+                + "a.WorkDate, a.Status, "
+                + "s.ShiftName, s.StartTime, s.EndTime "
+                + "FROM EmployeeShiftAssignments a "
+                + "JOIN Shifts s ON a.ShiftID = s.ShiftID "
+                + "WHERE a.EmployeeID <> ? "
+                + "AND a.WorkDate = ?";
+
+        try {
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+
+            ps.setInt(1, empID);
+            ps.setDate(2, java.sql.Date.valueOf(date));
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                EmployeeShiftAssignment a = new EmployeeShiftAssignment();
+
+                a.setAssignmentID(rs.getInt("AssignmentID"));
+                a.setEmployeeId(rs.getInt("EmployeeID"));
+                a.setShiftID(rs.getInt("ShiftID"));
+                a.setWorkDate(rs.getDate("WorkDate"));
+                a.setStatus(rs.getString("Status"));
+
+                a.setShiftName(rs.getString("ShiftName"));
+                a.setStartTime(rs.getString("StartTime"));
+                a.setEndTime(rs.getString("EndTime"));
+
+                list.add(a);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

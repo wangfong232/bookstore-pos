@@ -23,6 +23,20 @@ public class ShiftManagementController extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
+        // ===== AUTHORIZATION CHECK =====
+        HttpSession session = request.getSession();
+        Integer roleId = (Integer) session.getAttribute("roleId");
+        
+        // Allow only Manager(1), Store Manager(2), Staff(3), Saler(5)
+        if (roleId == null || (roleId != 1 && roleId != 2 && roleId != 3 && roleId != 5)) {
+            response.sendRedirect(request.getContextPath() + "/dashboard?error=unauthorized");
+            return;
+        }
+        
+        // Set view-only mode for Staff(3) and Saler(5)
+        boolean isViewOnly = (roleId == 3 || roleId == 5);
+        request.setAttribute("isViewOnly", isViewOnly);
+
         EmployeeDAO empDAO = new EmployeeDAO();
         // ===== LẤY TOÀN BỘ NHÂN VIÊN ACTIVE CHO MODAL =====
         List<Employee> allEmployees = empDAO.getEmployees(null, null, "ACTIVE", 1, Integer.MAX_VALUE);
@@ -65,7 +79,7 @@ public class ShiftManagementController extends HttpServlet {
         List<Shift> shifts = shiftDAO.getAllShifts();
         request.setAttribute("shifts", shifts);
 
-        // ===== THÊM PHẦN NÀY =====
+        // ===== Lấy ngày của hệ thống để ngăn việc gán vào thời gian đã qua =====
         Date today = new Date(System.currentTimeMillis());
 
         if (request.getParameter("viewDate") != null) {
@@ -94,11 +108,13 @@ public class ShiftManagementController extends HttpServlet {
                 month = Integer.parseInt(parts[1]);
             }
 
+            //Lấy số ngày trong tháng
             YearMonth ym = YearMonth.of(year, month);
 
             int daysInMonth = ym.lengthOfMonth();
             int firstDayOfWeek = ym.atDay(1).getDayOfWeek().getValue();
 
+            //Lấy ca làm cả tháng
             List<EmployeeShiftAssignment> monthAssignments
                     = assignDAO.getAssignmentsByMonth(month, year);
 
@@ -117,6 +133,15 @@ public class ShiftManagementController extends HttpServlet {
     protected void doPost(HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
+
+        // ===== AUTHORIZATION CHECK - Only Manager(1) and Store Manager(2) can assign =====
+        HttpSession session = request.getSession();
+        Integer roleId = (Integer) session.getAttribute("roleId");
+        
+        if (roleId == null || (roleId != 1 && roleId != 2)) {
+            response.sendRedirect(request.getContextPath() + "/admin/shift-management?error=unauthorized");
+            return;
+        }
 
         String empIDsParam = request.getParameter("employeeIDs");
 
