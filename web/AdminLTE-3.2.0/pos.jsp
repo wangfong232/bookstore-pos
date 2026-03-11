@@ -42,7 +42,7 @@
             .pos-wrapper-full .content-wrapper {
                 margin-left: 0 !important;
             }
-            
+
             .pos-offcanvas-backdrop {
                 position: fixed;
                 inset: 0;
@@ -52,7 +52,7 @@
                 visibility: hidden;
                 transition: opacity 0.3s ease, visibility 0.3s ease;
             }
-            
+
             .pos-sidebar-open .pos-offcanvas-backdrop {
                 opacity: 1;
                 visibility: visible;
@@ -414,20 +414,22 @@
                         <div class="row">
                             <!-- Left column: search & product list -->
                             <div class="col-lg-8 mb-3">
+
                                 <!-- Messages -->
                                 <c:if test="${not empty msg}">
                                     <div class="alert alert-success alert-dismissible fade show">
                                         <i class="fas fa-check-circle"></i> ${msg}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
+                                        <button type="button" class="close" data-dismiss="alert">
+                                            <span>&times;</span>
                                         </button>
                                     </div>
                                 </c:if>
+
                                 <c:if test="${not empty error}">
                                     <div class="alert alert-danger alert-dismissible fade show">
                                         <i class="fas fa-exclamation-triangle"></i> ${error}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
+                                        <button type="button" class="close" data-dismiss="alert">
+                                            <span>&times;</span>
                                         </button>
                                     </div>
                                 </c:if>
@@ -436,91 +438,192 @@
                                 <form action="<c:url value='/pos'/>" method="get" class="mb-3">
                                     <div class="pos-search-bar">
                                         <i class="fas fa-search"></i>
-                                        <input type="text" name="key" value="${searchKey}"
-                                               placeholder="Tìm sản phẩm theo tên, SKU..." autocomplete="off">
+                                        <input type="text"
+                                               name="key"
+                                               value="${searchKey}"
+                                               placeholder="Tìm sản phẩm theo tên, SKU..."
+                                               autocomplete="off">
                                     </div>
                                 </form>
 
-                                <!-- Filter danh mục: dropdown (bảng Categories) -->
+                                <!-- Category Filter -->
                                 <c:if test="${not empty categories}">
                                     <div class="mb-3">
-                                        <form id="pos-category-form" action="<c:url value='/pos'/>" method="get" class="d-inline">
+
+                                        <form id="pos-category-form"
+                                              action="<c:url value='/pos'/>"
+                                              method="get"
+                                              class="d-inline">
+
                                             <input type="hidden" name="key" value="${searchKey}">
-                                            <label for="pos-category" class="mr-2 text-muted small">Danh mục:</label>
-                                            <select id="pos-category" name="categoryId" class="pos-select form-control form-control-sm d-inline-block" style="width: auto; min-width: 180px;">
+
+                                            <label for="pos-category"
+                                                   class="mr-2 text-muted small">
+                                                Danh mục:
+                                            </label>
+
+                                            <select id="pos-category"
+                                                    name="categoryId"
+                                                    class="pos-select form-control form-control-sm d-inline-block"
+                                                    style="width: auto; min-width: 180px;">
+
                                                 <option value="">Tất cả</option>
+
                                                 <c:forEach var="cat" items="${categories}">
-                                                    <option value="${cat.categoryID}" ${selectedCategoryId != null && selectedCategoryId == cat.categoryID ? 'selected' : ''}>${cat.categoryName}</option>
+                                                    <option value="${cat.categoryID}"
+                                                            ${selectedCategoryId != null && selectedCategoryId == cat.categoryID ? 'selected' : ''}>
+                                                        ${cat.categoryName}
+                                                    </option>
                                                 </c:forEach>
+
                                             </select>
+
                                         </form>
+
                                     </div>
                                 </c:if>
 
-                                <!-- Products grid -->
+
+                                <!-- Quick add by SKU (ĐÃ CHUYỂN XUỐNG DƯỚI CATEGORY) -->
+                                <div class="mb-3">
+
+                                    <form action="<c:url value='/pos'/>"
+                                          method="post"
+                                          class="form-inline">
+
+                                        <input type="hidden" name="action" value="addItem">
+
+                                        <div class="form-group mr-3">
+
+                                            <label for="sku"
+                                                   class="mr-2 text-sm">
+                                                SKU:
+                                            </label>
+
+                                            <input type="text"
+                                                   class="form-control form-control-sm"
+                                                   id="sku"
+                                                   name="sku"
+                                                   placeholder="VD: VN-001, NN-001..."
+                                                   autofocus>
+                                        </div>
+
+                                        <div class="form-group mr-3">
+
+                                            <label for="quantity"
+                                                   class="mr-2 text-sm">
+                                                SL:
+                                            </label>
+
+                                            <input type="number"
+                                                   min="1"
+                                                   class="form-control form-control-sm"
+                                                   id="quantity"
+                                                   name="quantity"
+                                                   value="1"
+                                                   style="width:80px;">
+
+                                        </div>
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-info">
+
+                                            <i class="fas fa-plus"></i>
+                                            Thêm
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+
+                                <!-- Product Grid -->
                                 <c:if test="${not empty products}">
+
                                     <div class="pos-products-grid">
+
                                         <c:forEach var="p" items="${products}">
-                                            <form action="<c:url value='/pos'/>" method="post">
+
+                                            <form action="<c:url value='/pos'/>"
+                                                  method="post">
+
                                                 <input type="hidden" name="action" value="addItem">
                                                 <input type="hidden" name="sku" value="${p.sku}">
                                                 <input type="hidden" name="quantity" value="1">
-                                                <button type="submit" class="pos-product-card" style="width: 100%; text-align: left;">
+
+                                                <button type="submit"
+                                                        class="pos-product-card"
+                                                        style="width:100%; text-align:left;">
+
                                                     <div class="d-flex justify-content-between align-items-start">
+
                                                         <div class="pos-product-icon">
                                                             <i class="fas fa-book"></i>
                                                         </div>
-                                                        <span class="badge badge-secondary" style="background: #ffffff; color: #000000; border-radius: 999px; font-size: 10px; border: 1px solid #1f2937;">
-                                                            <i class="fas fa-box-open"></i> ${p.stock}
+
+                                                        <span class="badge badge-secondary"
+                                                              style="background:#ffffff;color:#000000;
+                                                              border-radius:999px;font-size:10px;
+                                                              border:1px solid #1f2937;">
+
+                                                            <i class="fas fa-box-open"></i>
+                                                            ${p.stock}
+
                                                         </span>
+
                                                     </div>
+
                                                     <div class="pos-product-name">
                                                         ${p.productName}
                                                     </div>
+
                                                     <div class="pos-product-sku">
                                                         SKU: ${p.sku}
                                                     </div>
+
                                                     <div class="pos-product-price-row">
+
                                                         <div class="pos-product-price">
-                                                            <fmt:formatNumber value="${p.sellingPrice}" type="number" maxFractionDigits="0"/> đ
+                                                            <fmt:formatNumber value="${p.sellingPrice}"
+                                                                              type="number"
+                                                                              maxFractionDigits="0"/> đ
                                                         </div>
+
                                                         <span class="pos-product-add-btn">
-                                                            <i class="fas fa-plus"></i> Thêm
+                                                            <i class="fas fa-plus"></i>
+                                                            Thêm
                                                         </span>
+
                                                     </div>
+
                                                 </button>
+
                                             </form>
+
                                         </c:forEach>
+
                                     </div>
+
                                 </c:if>
 
+
+                                <!-- Empty State -->
                                 <c:if test="${empty products}">
                                     <div class="pos-empty-state">
+
                                         <div class="pos-empty-icon">
                                             <i class="fas fa-book-open"></i>
                                         </div>
+
                                         Nhập từ khóa hoặc SKU để tìm và thêm sản phẩm vào đơn hàng.
+
                                     </div>
                                 </c:if>
 
-                                <!-- Quick add by SKU (fallback) -->
-                                <div class="mt-4">
-                                    <form action="<c:url value='/pos'/>" method="post" class="form-inline">
-                                        <input type="hidden" name="action" value="addItem">
-                                        <div class="form-group mr-2 mb-2">
-                                            <label for="sku" class="mr-2 text-sm">SKU nhanh:</label>
-                                            <input type="text" class="form-control form-control-sm" id="sku" name="sku" placeholder="VD: VN-001, NN-001...">
-                                        </div>
-                                        <div class="form-group mr-2 mb-2">
-                                            <label for="quantity" class="mr-2 text-sm">SL:</label>
-                                            <input type="number" min="1" class="form-control form-control-sm" id="quantity" name="quantity" value="1">
-                                        </div>
-                                        <button type="submit" class="btn btn-sm btn-outline-info mb-2">
-                                            <i class="fas fa-plus"></i> Thêm
-                                        </button>
-                                    </form>
-                                </div>
                             </div>
+
+
 
                             <!-- Right column: cart & payment -->
                             <div class="col-lg-4">
@@ -708,6 +811,22 @@
                                                                             });
                                                                             $(document).on('change', 'input[name="quantity"]', function () {
                                                                                 $(this).closest('form').submit();
+                                                                            });
+                                                                            $(document).ready(function () {
+
+                                                                                // Focus vào ô SKU khi load trang
+                                                                                $('#sku').focus();
+
+                                                                                // Khi submit form thêm sản phẩm
+                                                                                $('form').on('submit', function () {
+
+                                                                                    setTimeout(function () {
+                                                                                        $('#sku').focus();
+                                                                                        $('#sku').select(); // chọn lại text để scan tiếp
+                                                                                    }, 100);
+
+                                                                                });
+
                                                                             });
         </script>
     </body>
