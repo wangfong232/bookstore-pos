@@ -1,4 +1,4 @@
-package dao;
+package DAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,7 +14,7 @@ public class HRAuditLogDAO {
         String sql = """
             INSERT INTO HRAuditLogs
             (EmployeeID, Action, PerformedBy)
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?);
         """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

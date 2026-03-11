@@ -13,11 +13,14 @@ public class AttendanceView {
     private Time endTime;
     private Time checkIn;
     private Time checkOut;
+    /** Trạng thái thời gian ca: NOT_YET | ACTIVE | EXPIRED | WORKING | COMPLETED */
+    private String shiftStatus;
 
     public AttendanceView() {
     }
 
-    public AttendanceView(int attendanceId, String fullName, String shiftName, Time startTime, Time endTime, Time checkIn, Time checkOut) {
+    public AttendanceView(int attendanceId, String fullName, String shiftName, Time startTime, Time endTime,
+            Time checkIn, Time checkOut) {
         this.attendanceId = attendanceId;
         this.fullName = fullName;
         this.shiftName = shiftName;
@@ -26,8 +29,6 @@ public class AttendanceView {
         this.checkIn = checkIn;
         this.checkOut = checkOut;
     }
-
-    
 
     public int getAttendanceId() {
         return attendanceId;
@@ -83,5 +84,13 @@ public class AttendanceView {
 
     public void setCheckOut(Time checkOut) {
         this.checkOut = checkOut;
+    }
+    //Thêm attribute shiftStatus
+    public String getShiftStatus() {
+        return shiftStatus;
+    }
+
+    public void setShiftStatus(String shiftStatus) {
+        this.shiftStatus = shiftStatus;
     }
 }
