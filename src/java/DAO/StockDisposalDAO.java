@@ -150,7 +150,7 @@ public class StockDisposalDAO extends DBContext {
                       order by DisposalNumber desc 
                       """;
         try (Connection con = getConnection(); PreparedStatement stm = con.prepareStatement(sql)) {
-            String yearPrefix = "ST-" + currentYear + '-';
+            String yearPrefix = "SD-" + currentYear + '-';
             stm.setString(1, yearPrefix + "%");
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
