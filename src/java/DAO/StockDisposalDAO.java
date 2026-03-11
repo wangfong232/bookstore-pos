@@ -316,7 +316,7 @@ public class StockDisposalDAO extends DBContext {
         String sqlGetNumber = "select DisposalNumber from StockDisposals where DisposalID = ?";
         String sqlComplete = """
                          update StockDisposals
-                         set Status = 'COMPLETED', PhysicDisposalConfirmed = 1,
+                         set Status = 'COMPLETED', PhysicalDisposalConfirmed = 1,
                          DisposedBy =?, DisposedAt = GETDATE()
                          where DisposalID = ? AND Status = 'APPROVED'
                          """;
