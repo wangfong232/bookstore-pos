@@ -216,6 +216,16 @@ public class StockDisposalDAO extends DBContext {
                     }
                     stmD.executeBatch();
                 }
+                //lock inventory
+                String sqlReserve = "UPDATE Products SET ReservedStock = ReservedStock + ? WHERE ProductID = ?";
+                try (PreparedStatement stmR = con.prepareStatement(sqlReserve)) {
+                    for (StockDisposalDetail d : sd.getDetails()) {
+                        stmR.setInt(1, d.getQuantity());
+                        stmR.setInt(2, d.getProductId());
+                        stmR.addBatch();
+                    }
+                    stmR.executeBatch();
+                }
             }
             con.commit();
             return true;
@@ -252,18 +262,52 @@ public class StockDisposalDAO extends DBContext {
     }
 
     public boolean rejectDisposal(long id, int rejectedBy, String reason) {
-        String sql = """
+        String sqlReject = """
                         update StockDisposals
                         set Status = 'REJECTED', ApprovedBy = ?, ApprovedAt = GETDATE(), RejectionReason = ?
                         where DisposalID = ? AND Status = 'PENDING_APPROVAL'
                      """;
-        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setInt(1, rejectedBy);
-            stm.setString(2, reason);
-            stm.setLong(3, id);
-            return stm.executeUpdate() > 0;
+        String sqlGetDetails = "select ProductID, Quantity from StockDisposalDetails where DisposalID = ?";
+        String sqlRelease = "update Products set ReservedStock = ReservedStock - ? where ProductID = ? AND ReservedStock >= ?";
+        Connection con = getConnection();
+        try {
+            con.setAutoCommit(false);
+            try (PreparedStatement stm = con.prepareStatement(sqlReject)) {
+                stm.setInt(1, rejectedBy);
+                stm.setString(2, reason);
+                stm.setLong(3, id);
+                if (stm.executeUpdate() == 0) {
+                    con.rollback();
+                    return false;
+                }
+            }
+
+            try (PreparedStatement stmD = con.prepareStatement(sqlGetDetails)) {
+                stmD.setLong(1, id);
+                try (ResultSet rs = stmD.executeQuery(); PreparedStatement stmR = con.prepareStatement(sqlRelease)) {
+                    while (rs.next()) {
+                        int qty = rs.getInt("Quantity");
+                        stmR.setInt(1, qty);
+                        stmR.setInt(2, rs.getInt("ProductID"));
+                        stmR.setInt(3, qty);
+                        stmR.addBatch();
+                    }
+                    stmR.executeBatch();
+                }
+            }
+            con.commit();
+            return true;
         } catch (Exception e) {
             System.out.println("ERR: rejectDisposal: " + e.getMessage());
+            try {
+                con.rollback();
+            } catch (Exception ex) {
+            }
+        } finally {
+            try {
+                con.setAutoCommit(true);
+            } catch (Exception ex) {
+            }
         }
         return false;
     }
@@ -281,9 +325,9 @@ public class StockDisposalDAO extends DBContext {
                            """;
         String sqlUpdateStock = """
                             update Products
-                            set Stock = Stock - ? 
+                            set Stock = Stock - ? , ReservedStock = ReservedStock - ?
                             OUTPUT deleted.Stock AS StockBefore, inserted.Stock AS StockAfter
-                            where ProductID = ? AND Stock >= ? 
+                            where ProductID = ? AND Stock >= ? AND StockReserved >= ?
                             """;
         String sqlInsertTx = """
                          insert into InventoryTransactions
@@ -335,9 +379,11 @@ public class StockDisposalDAO extends DBContext {
                         BigDecimal cost = rs.getBigDecimal("UnitCost");
 
                         stmStock.setInt(1, qty);
-                        stmStock.setInt(2, productId);
-                        stmStock.setInt(3, qty);
-
+                        stmStock.setInt(2, qty);
+                        stmStock.setInt(3, productId);
+                        stmStock.setInt(4, qty);
+                        stmStock.setInt(5, qty);
+                        
                         int stockBefore, stockAfter;
                         try (ResultSet out = stmStock.executeQuery()) {
                             if (!out.next()) {
