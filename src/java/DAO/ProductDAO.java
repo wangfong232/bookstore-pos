@@ -1,12 +1,10 @@
 /*
- * Product DAO for POS module
+ * Product DAO for POS module and Product Management
  */
 package DAO;
 
 import entity.Product;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,11 +112,301 @@ public class ProductDAO extends DBContext {
         p.setSupplierId(rs.getObject("SupplierID") != null ? rs.getInt("SupplierID") : null);
         p.setSku(rs.getString("SKU"));
         p.setDescription(rs.getString("Description"));
-        p.setCostPrice(rs.getDouble("CostPrice"));
+        p.setSpecifications(rs.getString("Specifications"));
+        p.setImageURL(rs.getString("ImageURL"));
+        p.setCostPrice(rs.getObject("CostPrice") != null ? rs.getDouble("CostPrice") : null);
         p.setSellingPrice(rs.getDouble("SellingPrice"));
+        p.setCompareAtPrice(rs.getObject("CompareAtPrice") != null ? rs.getDouble("CompareAtPrice") : null);
         p.setStock(rs.getInt("Stock"));
         p.setReorderLevel(rs.getInt("ReorderLevel"));
         p.setActive(rs.getBoolean("IsActive"));
+        p.setCreatedDate(rs.getTimestamp("CreatedDate"));
+        p.setUpdatedDate(rs.getTimestamp("UpdatedDate"));
         return p;
+    }
+    
+    // Get products with search, filter, sort and paging for admin
+    public List<Product> getProducts(String search, Boolean isActive, Integer categoryId, Integer brandId, 
+                                     String sortBy, String sortOrder, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM Products WHERE 1=1");
+        
+        // Search
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (ProductName LIKE ? OR SKU LIKE ? OR Description LIKE ?)");
+        }
+        
+        // Filter by status
+        if (isActive != null) {
+            sql.append(" AND IsActive = ?");
+        }
+        
+        // Filter by category
+        if (categoryId != null) {
+            sql.append(" AND CategoryID = ?");
+        }
+        
+        // Filter by brand
+        if (brandId != null) {
+            sql.append(" AND BrandID = ?");
+        }
+        
+        // Sort
+        if (sortBy != null && !sortBy.isEmpty()) {
+            sql.append(" ORDER BY ").append(sortBy);
+            if (sortOrder != null && sortOrder.equalsIgnoreCase("DESC")) {
+                sql.append(" DESC");
+            } else {
+                sql.append(" ASC");
+            }
+        } else {
+            sql.append(" ORDER BY ProductID DESC");
+        }
+        
+        // Paging
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            
+            // Set search parameters
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            
+            // Set filter parameters
+            if (isActive != null) {
+                ps.setBoolean(paramIndex++, isActive);
+            }
+            
+            if (categoryId != null) {
+                ps.setInt(paramIndex++, categoryId);
+            }
+            
+            if (brandId != null) {
+                ps.setInt(paramIndex++, brandId);
+            }
+            
+            // Set paging parameters
+            ps.setInt(paramIndex++, (page - 1) * pageSize);
+            ps.setInt(paramIndex++, pageSize);
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(extractProductFromResultSet(rs));
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getProducts: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    // Get total count for pagination
+    public int getTotalProducts(String search, Boolean isActive, Integer categoryId, Integer brandId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Products WHERE 1=1");
+        
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (ProductName LIKE ? OR SKU LIKE ? OR Description LIKE ?)");
+        }
+        
+        if (isActive != null) {
+            sql.append(" AND IsActive = ?");
+        }
+        
+        if (categoryId != null) {
+            sql.append(" AND CategoryID = ?");
+        }
+        
+        if (brandId != null) {
+            sql.append(" AND BrandID = ?");
+        }
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            
+            if (isActive != null) {
+                ps.setBoolean(paramIndex++, isActive);
+            }
+            
+            if (categoryId != null) {
+                ps.setInt(paramIndex++, categoryId);
+            }
+            
+            if (brandId != null) {
+                ps.setInt(paramIndex++, brandId);
+            }
+            
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getTotalProducts: " + e.getMessage());
+        }
+        return 0;
+    }
+    
+    // Get product by ID
+    public Product getProductByID(int id) {
+        String sql = "SELECT * FROM Products WHERE ProductID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return extractProductFromResultSet(rs);
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getProductByID: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    // Insert new product
+    public boolean insertProduct(Product product) {
+        String sql = "INSERT INTO Products (ProductName, CategoryID, BrandID, SupplierID, SKU, Description, " +
+                     "Specifications, ImageURL, CostPrice, SellingPrice, CompareAtPrice, Stock, ReorderLevel, IsActive) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, product.getProductName());
+            ps.setInt(2, product.getCategoryId());
+            
+            if (product.getBrandId() != null) {
+                ps.setInt(3, product.getBrandId());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
+            
+            if (product.getSupplierId() != null) {
+                ps.setInt(4, product.getSupplierId());
+            } else {
+                ps.setNull(4, Types.INTEGER);
+            }
+            
+            ps.setString(5, product.getSku());
+            ps.setString(6, product.getDescription());
+            ps.setString(7, product.getSpecifications());
+            ps.setString(8, product.getImageURL());
+            
+            if (product.getCostPrice() != null) {
+                ps.setDouble(9, product.getCostPrice());
+            } else {
+                ps.setNull(9, Types.DECIMAL);
+            }
+            
+            ps.setDouble(10, product.getSellingPrice());
+            
+            if (product.getCompareAtPrice() != null) {
+                ps.setDouble(11, product.getCompareAtPrice());
+            } else {
+                ps.setNull(11, Types.DECIMAL);
+            }
+            
+            ps.setInt(12, product.getStock());
+            ps.setInt(13, product.getReorderLevel());
+            ps.setBoolean(14, product.isIsActive());
+            
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: insertProduct: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Update product
+    public boolean updateProduct(Product product) {
+        String sql = "UPDATE Products SET ProductName = ?, CategoryID = ?, BrandID = ?, SupplierID = ?, " +
+                     "SKU = ?, Description = ?, Specifications = ?, ImageURL = ?, CostPrice = ?, " +
+                     "SellingPrice = ?, CompareAtPrice = ?, Stock = ?, ReorderLevel = ?, IsActive = ? " +
+                     "WHERE ProductID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, product.getProductName());
+            ps.setInt(2, product.getCategoryId());
+            
+            if (product.getBrandId() != null) {
+                ps.setInt(3, product.getBrandId());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
+            
+            if (product.getSupplierId() != null) {
+                ps.setInt(4, product.getSupplierId());
+            } else {
+                ps.setNull(4, Types.INTEGER);
+            }
+            
+            ps.setString(5, product.getSku());
+            ps.setString(6, product.getDescription());
+            ps.setString(7, product.getSpecifications());
+            ps.setString(8, product.getImageURL());
+            
+            if (product.getCostPrice() != null) {
+                ps.setDouble(9, product.getCostPrice());
+            } else {
+                ps.setNull(9, Types.DECIMAL);
+            }
+            
+            ps.setDouble(10, product.getSellingPrice());
+            
+            if (product.getCompareAtPrice() != null) {
+                ps.setDouble(11, product.getCompareAtPrice());
+            } else {
+                ps.setNull(11, Types.DECIMAL);
+            }
+            
+            ps.setInt(12, product.getStock());
+            ps.setInt(13, product.getReorderLevel());
+            ps.setBoolean(14, product.isIsActive());
+            ps.setInt(15, product.getId());
+            
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: updateProduct: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Check if SKU exists (for duplicate validation)
+    public boolean isSkuExists(String sku, Integer excludeProductID) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Products WHERE SKU = ?");
+        
+        // Exclude current product when updating
+        if (excludeProductID != null) {
+            sql.append(" AND ProductID != ?");
+        }
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            ps.setString(1, sku);
+            
+            if (excludeProductID != null) {
+                ps.setInt(2, excludeProductID);
+            }
+            
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: isSkuExists: " + e.getMessage());
+        }
+        return false;
     }
 }
