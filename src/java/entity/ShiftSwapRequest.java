@@ -1,11 +1,9 @@
-
-
 package entity;
 
 import java.util.Date;
 
-
 public class ShiftSwapRequest {
+
     private int swapRequestID;
     private int fromEmployeeID;
     private int fromAssignmentID;
@@ -15,13 +13,17 @@ public class ShiftSwapRequest {
     private String fullName;
     private String shiftName;
     private Date workDate;
-    private int toEmployeeID; 
+    private int toEmployeeID;
     private int toAssignmentID;
+
+    private String toFullName;
+    private String toShiftName;
+    private Date toWorkDate;
 
     public ShiftSwapRequest() {
     }
 
-    public ShiftSwapRequest(int swapRequestID, int fromEmployeeID, int fromAssignmentID, String reason, String status, String fullName, String shiftName, Date workDate, int toEmployeeID, int toAssignmentID) {
+    public ShiftSwapRequest(int swapRequestID, int fromEmployeeID, int fromAssignmentID, String reason, String status, String fullName, String shiftName, Date workDate, int toEmployeeID, int toAssignmentID, String toFullName, String toShiftName, Date toWorkDate) {
         this.swapRequestID = swapRequestID;
         this.fromEmployeeID = fromEmployeeID;
         this.fromAssignmentID = fromAssignmentID;
@@ -32,6 +34,9 @@ public class ShiftSwapRequest {
         this.workDate = workDate;
         this.toEmployeeID = toEmployeeID;
         this.toAssignmentID = toAssignmentID;
+        this.toFullName = toFullName;
+        this.toShiftName = toShiftName;
+        this.toWorkDate = toWorkDate;
     }
 
     public int getSwapRequestID() {
@@ -112,6 +117,30 @@ public class ShiftSwapRequest {
 
     public void setToAssignmentID(int toAssignmentID) {
         this.toAssignmentID = toAssignmentID;
+    }
+
+    public String getToFullName() {
+        return toFullName;
+    }
+
+    public void setToFullName(String toFullName) {
+        this.toFullName = toFullName;
+    }
+
+    public String getToShiftName() {
+        return toShiftName;
+    }
+
+    public void setToShiftName(String toShiftName) {
+        this.toShiftName = toShiftName;
+    }
+
+    public Date getToWorkDate() {
+        return toWorkDate;
+    }
+
+    public void setToWorkDate(Date toWorkDate) {
+        this.toWorkDate = toWorkDate;
     }
     
     

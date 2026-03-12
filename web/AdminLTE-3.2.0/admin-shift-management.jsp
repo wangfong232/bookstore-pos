@@ -88,12 +88,10 @@
 
                         <!-- View-only alert for Staff & Saler -->
                         <c:if test="${requestScope.isViewOnly}">
-                            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                <i class="fas fa-info-circle"></i> <strong>Chế độ xem</strong> - Bạn chỉ có thể xem thông tin ca làm việc và nhân viên làm việc trong ngày, không thể phân công ca.
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
-                            </div>
+                            
                         </c:if>
 
                         <!-- Assign Card - Only show for Manager & Store Manager -->
