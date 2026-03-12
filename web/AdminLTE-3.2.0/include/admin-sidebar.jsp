@@ -70,7 +70,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/categories" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/admin/products" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Danh sách sản phẩm</p>
                             </a>
