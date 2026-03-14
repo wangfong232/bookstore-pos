@@ -49,7 +49,7 @@
                         </c:if>
 
 
-                        <form action="${pageContext.request.contextPath}/stockdisposal" method="post">
+                        <form action="${pageContext.request.contextPath}/stockdisposal" method="post" id="disposalForm">
                             <input type="hidden" name="action" value="save">
                             <input type="hidden" name="sdNumber" value="${sdNumber}">
 
@@ -92,73 +92,261 @@
 
                                 <div class="card-body">
                                     <div class="row mb-3">
-                                        <div class="col-md-6">
+                                        <div class="col-md-6" style="position: relative;">
                                             <label>Tìm và thêm sản phẩm:</label>
                                             <div class="input-group">
-                                                <input type="text" class="form-control" placeholder="Gõ tên hoặc SKU sản phẩm...">
+                                                <input type="text" class="form-control" placeholder="Gõ tên hoặc SKU sản phẩm..." id="productSearchInput" >
                                                 <div class="input-group-append">
                                                     <button type="button" class="btn btn-primary"><i class="fas fa-plus"></i>Thêm</button>
                                                 </div>
                                             </div>
-                                            <div  class="list-group shadow">
-                                                
+                                            <div id="productDropdown" class="list-group shadow"
+                                                 style="position:absolute; z-index:9999; width:100%; display:none;">
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <table class="table table-borderd product-table">
-                                        <thead class="thead-light">
-                                            <tr>
-                                                <th style="width:50px" class="text-center">STT</th>
-                                                <th>Sản phẩm</th>
-                                                <th style="width:120px" class="text-center">Khả dụng / Tồn</th>
-                                                <th style="width:150px" class="text-center">SL xuất hủy</th>
-                                                <th>Lý do cụ thể</th>
-                                                <th style="width:60px" class="text-center">Xóa</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="6" class="text-center text-muted py-4">
-                                                    <i class="fas fa-box-open mr-1"></i> Chưa có sản phẩm. Dùng ô tìm kiếm để thêm sản phẩm.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                        <table class="table table-bordered product-table" id="detailTable">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th style="width:50px" class="text-center">STT</th>
+                                                    <th>Sản phẩm</th>
+                                                    <th style="width:120px" class="text-center">Khả dụng / Tồn</th>
+                                                    <th style="width:150px" class="text-center">SL xuất hủy</th>
+                                                    <th>Lý do cụ thể</th>
+                                                    <th style="width:60px" class="text-center">Xóa</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="detailBody">
+                                                <tr id="emptyRow">
+                                                    <td colspan="6" class="text-center text-muted py-4">
+                                                        <i class="fas fa-box-open mr-1"></i> Chưa có sản phẩm. Dùng ô tìm kiếm để thêm sản phẩm.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
 
-                                    <div class="mt-2">
-                                        <strong>Tổng số lượng xuất hủy: </strong>
-                                        <span class="text-danger">0</span>
-                                    </div>
+                                        <div class="mt-2">
+                                            <strong>Tổng số lượng xuất hủy: </strong>
+                                            <span id="totalQtyDisplay"  class="text-danger">0</span>
+                                        </div>
 
-                                </div>
-                            </div>
-
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="form-group">
-                                        <label>Ghi chú:</label>
-                                        <textarea name="notes" class="form-control" rows="3"
-                                                  placeholder="Ghi chú thêm về đợt xuất hủy này..."></textarea>
-                                    </div>
-                                    <div class="d-flex justify-content-end">
-                                        <a href="${pageContext.request.contextPath}/stockdisposal?action=list"
-                                           class="btn btn-default mr-2">
-                                            <i class="fas fa-times"></i> Hủy
-                                        </a>
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-paper-plane"></i> Lưu và gửi duyệt
-                                        </button>
                                     </div>
                                 </div>
-                            </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label>Ghi chú:</label>
+                                            <textarea name="notes" class="form-control" rows="3"
+                                                      placeholder="Ghi chú thêm về đợt xuất hủy này..."></textarea>
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <a href="${pageContext.request.contextPath}/stockdisposal?action=list"
+                                               class="btn btn-default mr-2">
+                                                <i class="fas fa-times"></i> Hủy
+                                            </a>
+                                            <button type="submit" class="btn btn-danger" id="btnSubmit">
+                                                <i class="fas fa-paper-plane"></i> Lưu và gửi duyệt
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                         </form>
                     </div>
                 </section>
             </div>
+  </div>
 
-            <jsp:include page="include/admin-footer.jsp"/>
-        </div>
-          
-    </body>
-</html>
+        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>
+        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+            <script>
+                var products = [
+                <c:forEach var="p" items="${productList}" varStatus="s">
+                {id: ${p.id},
+                        name: "<c:out value='${p.productName}'/>",
+                        sku: "<c:out value='${p.sku}'/>",
+                        stock: ${p.stock},
+                        reservedStock: ${p.reservedStock},
+                        availableStock: ${p.stock - p.reservedStock}
+                }<c:if test="${!s.last}">,</c:if>
+                </c:forEach>
+                ];
+                $(function () {
+
+                    var $search = $("#productSearchInput");
+                    var $dropdown = $("#productDropdown");
+                    var $table = $("#detailBody");
+                    var $total = $("#totalQtyDisplay");
+                    
+                    $search.on("input", function () {
+
+                        var query = $(this).val().toLowerCase().trim();
+                        $dropdown.empty().hide();
+
+                        if (query.length < 1)
+                            return;
+
+                        var filtered = products.filter(function (p) {
+                            return p.name.toLowerCase().includes(query) ||
+                                    p.sku.toLowerCase().includes(query);
+                        }).slice(0, 8);
+
+                        if (filtered.length === 0) {
+                            $dropdown.html(
+                                    '<div class="list-group-item text-muted">Không tìm thấy sản phẩm</div>'
+                                    ).show();
+                            return;
+                        }
+
+                        var html = "";
+
+                        filtered.forEach(function (p) {
+
+                            html += '<a href="#" class="list-group-item list-group-item-action product-item"' +
+                                    ' data-id="' + p.id + '"' +
+                                    ' data-name="' + p.name + '"' +
+                                    ' data-stock="' + p.stock + '"' +
+                                    ' data-available="' + p.availableStock + '">' +
+                                    '<strong>' + p.name + '</strong>' +
+                                    '<div class="small text-muted">Khả dụng: ' + p.availableStock + ' / Tồn: ' + p.stock + '</div>' +
+                                    '</a>';
+                        });
+
+                        $dropdown.html(html).show();
+
+                    });
+
+                    $dropdown.on("click", ".product-item", function (e) {
+
+                        e.preventDefault();
+
+                        var id = $(this).data("id");
+                        var name = $(this).data("name");
+                        var stock = $(this).data("stock");
+                        var available = $(this).data("available");
+
+                        addProduct(id, name, stock, available);
+
+                        $search.val("").focus();
+                        $dropdown.hide();
+
+                    });
+
+                    function addProduct(id, name, stock, available) {
+
+                        var found = false;
+
+                        $table.find("tr").each(function () {
+
+                            var pid = $(this).find("input[name='pid[]']").val();
+
+                            if (pid == id) {
+
+                                var $qty = $(this).find(".qty-input");
+
+                                $qty.val(parseInt($qty.val()) + 1);
+
+                                highlightRow($(this));
+
+                                found = true;
+
+                            }
+                        });
+
+                        if (found) {
+                            updateTotal();
+                            return;
+                        }
+
+                        $("#emptyRow").remove();
+
+                        var index = $table.find("tr").length + 1;
+
+                        var row = '<tr>' +
+                                '<td class="text-center">' + index + '</td>' +
+                                '<td><strong>' + name + '</strong>' +
+                                '<input type="hidden" name="pid[]" value="' + id + '"></td>' +
+                                '<td class="text-center">' + available + ' / ' + stock + '</td>' +
+                                '<td><input type="number" class="form-control qty-input" name="dispQty[]" value="1" min="1"></td>' +
+                                '<td><input type="text" class="form-control" name="specificReason[]" placeholder="Lý do..."></td>' +
+                                '<td class="text-center"><button type="button" class="btn btn-danger btn-sm btn-remove"><i class="fas fa-trash"></i></button></td>' +
+                                '</tr>';
+
+                        var $row = $(row).appendTo($table);
+
+                        highlightRow($row);
+
+                        updateTotal();
+                    }
+
+                    $table.on("click", ".btn-remove", function () {
+
+                        $(this).closest("tr").remove();
+
+                        updateRowNumbers();
+                        updateTotal();
+
+                    });
+
+                    function updateRowNumbers() {
+
+                        $table.find("tr").each(function (i) {
+
+                            $(this).find("td:first").text(i + 1);
+
+                        });
+
+                    }
+
+                    $table.on("input", ".qty-input", updateTotal);
+
+                    function updateTotal() {
+
+                        var total = 0;
+
+                        $(".qty-input").each(function () {
+
+                            total += parseInt($(this).val()) || 0;
+
+                        });
+
+                        $total.text(total);
+                    }
+
+                    function highlightRow($row) {
+
+                        $row.addClass("highlight-row");
+
+                        setTimeout(function () {
+                            $row.removeClass("highlight-row");
+                        }, 700);
+
+                        $row[0].scrollIntoView({
+                            behavior: "smooth",
+                            block: "center"
+                        });
+
+                    }
+
+                    $(document).click(function (e) {
+
+                        if (!$(e.target).closest("#productSearchInput,#productDropdown").length) {
+
+                            $dropdown.hide();
+
+                        }
+
+                    });
+
+                    $("#disposalForm").on("keydown", function (e) {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                        }
+
+                    });
+
+                });
+            </script>
+      
+   <jsp:include page="include/admin-footer.jsp"/>
