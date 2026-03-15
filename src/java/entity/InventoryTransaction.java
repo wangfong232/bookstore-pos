@@ -40,7 +40,8 @@ public class InventoryTransaction {
     private String productName;
     private String productSku;
     private String createdByName;
-    
+    private String referenceUrl;
+
     public InventoryTransaction() {
         this.transactionDate = LocalDateTime.now();
     }
@@ -164,7 +165,7 @@ public class InventoryTransaction {
         this.transactionDate = transactionDate;
     }
 
-        public String getProductName() {
+    public String getProductName() {
         return productName;
     }
 
@@ -187,7 +188,15 @@ public class InventoryTransaction {
     public void setCreatedByName(String createdByName) {
         this.createdByName = createdByName;
     }
-    
+
+    public String getReferenceUrl() {
+        return referenceUrl;
+    }
+
+    public void setReferenceUrl(String referenceUrl) {
+        this.referenceUrl = referenceUrl;
+    }
+
     public boolean isInBound() {
         return TYPE_IN.equals(transactionType);
     }
@@ -208,9 +217,9 @@ public class InventoryTransaction {
     }
 
     public static InventoryTransaction createGoodsReceiptTransaction(Integer productId,
-            Integer quantity, Integer stockBefore, BigDecimal unitCost, Long receiptId, 
+            Integer quantity, Integer stockBefore, BigDecimal unitCost, Long receiptId,
             String receiptCode, Integer createdBy) {
-        InventoryTransaction tx = new InventoryTransaction(productId, TYPE_IN, REF_GOODS_RECEIPT, receiptId, 
+        InventoryTransaction tx = new InventoryTransaction(productId, TYPE_IN, REF_GOODS_RECEIPT, receiptId,
                 receiptCode, quantity, stockBefore, createdBy);
         tx.setUnitCost(unitCost);
         return tx;
@@ -222,7 +231,7 @@ public class InventoryTransaction {
 
         InventoryTransaction tx = new InventoryTransaction(
                 productId, TYPE_OUT, REF_SALE,
-                invoiceId, invoiceCode, -quantity, stockBefore, createdBy); 
+                invoiceId, invoiceCode, -quantity, stockBefore, createdBy);
         tx.setUnitCost(unitCost);
         return tx;
     }
@@ -233,7 +242,7 @@ public class InventoryTransaction {
 
         InventoryTransaction tx = new InventoryTransaction(
                 productId, TYPE_OUT, REF_DISPOSAL,
-                disposalId, disposalCode, -quantity, stockBefore, createdBy);  
+                disposalId, disposalCode, -quantity, stockBefore, createdBy);
         tx.setUnitCost(unitCost);
         return tx;
     }

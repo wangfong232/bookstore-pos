@@ -178,7 +178,7 @@ public class InventoryTransactionDAO extends DBContext {
         }
         return idx;
     }
-
+    
     private InventoryTransaction extractFromRS(ResultSet rs) throws SQLException {
         InventoryTransaction t = new InventoryTransaction();
         t.setTransactionId(rs.getLong("TransactionID"));
