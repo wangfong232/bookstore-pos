@@ -75,6 +75,32 @@ public class InventoryTransactionDAO extends DBContext {
         return 0;
     }
 
+    
+    public InventoryTransaction getTransactionById(long id) {
+        String sql = """
+                select t.*, 
+                       p.ProductName, p.SKU,
+                       e.FullName AS CreatedByName
+                from InventoryTransactions t
+                left join Products p on t.ProductID = p.ProductID
+                left join Employees e on t.CreatedBy = e.EmployeeID
+                where t.TransactionID = ?
+                """;
+                
+        try (Connection con = getConnection();
+             PreparedStatement stm = con.prepareStatement(sql)) {
+            stm.setLong(1, id);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    return extractFromRS(rs);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getTransactionById: " + e.getMessage());
+        }
+        return null;
+    }
+    
     private void appendFilters(StringBuilder sql, String keyword, String transactionType, Integer productId,
             LocalDate from, LocalDate to) {
         if (keyword != null && !keyword.trim().isEmpty()) {
