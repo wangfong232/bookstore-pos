@@ -79,7 +79,7 @@ public class InventoryTransactionController extends HttpServlet {
             case InventoryTransaction.REF_STOCK_TAKE:
                 return ctx + "/admin/stocktake?action=view&number=" + refCode;
             case InventoryTransaction.REF_GOODS_RECEIPT:
-                return ctx + "/admin/goodsreceipt?action=view&number=" + refCode;
+                return ctx + "/admin/goodsreceipt?action=view&receiptNumber=" + refCode;
 //            case InventoryTransaction.REF_SALE:
 //                return ctx + "/pos?action=view&number=" + refCode;
             default: 
