@@ -15,7 +15,7 @@
             <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
         </li>
         <li class="nav-item d-none d-sm-inline-block">
-            <a href="${pageContext.request.contextPath}/AdminLTE-3.2.0/index.jsp" class="nav-link">Home</a>
+            <a href="${pageContext.request.contextPath}/dashboard" class="nav-link">Home</a>
         </li>
     </ul>
 

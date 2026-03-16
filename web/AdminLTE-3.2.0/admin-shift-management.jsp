@@ -86,88 +86,98 @@
                 <section class="content">
                     <div class="container-fluid">
 
-                        <!-- Assign Card -->
-                        <div class="card card-primary">
-                            <div class="card-header">
-                                <h3 class="card-title">Phân công nhân viên vào ca làm việc</h3>
-                            </div>
+                        <!-- View-only alert for Staff & Saler -->
+                        <c:if test="${requestScope.isViewOnly}">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            
+                        </c:if>
 
-                            <form method="post" action="shift-management">
-                                <div class="card-body row">
+                        <!-- Assign Card - Only show for Manager & Store Manager -->
+                        <c:if test="${not requestScope.isViewOnly}">
+                            <div class="card card-primary">
+                                <div class="card-header">
+                                    <h3 class="card-title">Phân công nhân viên vào ca làm việc</h3>
+                                </div>
 
-                                    <div class="form-group col-md-3">
-                                        <div class="form-group row-md-3">
-                                            <label>Loại thời gian</label>
-                                            <select id="dateType" class="form-control">
-                                                <option value="day">Theo ngày</option>
-                                                <option value="week">Theo tuần</option>
-                                                <option value="month">Theo tháng</option>
+                                <form method="post" action="shift-management">
+                                    <div class="card-body row">
+
+                                        <div class="form-group col-md-3">
+                                            <div class="form-group row-md-3">
+                                                <label>Loại thời gian</label>
+                                                <select id="dateType" class="form-control">
+                                                    <option value="day">Theo ngày</option>
+                                                    <option value="week">Theo tuần</option>
+                                                    <option value="month">Theo tháng</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group row-md-3">
+                                                <label>Chọn thời gian</label>
+
+                                                <!-- Theo ngày -->
+                                                <input type="date" name="workDate"
+                                                       id="dateInput"
+                                                       class="form-control">
+
+                                                <!-- Theo tuần -->
+                                                <input type="week"
+                                                       name="weekInput"
+                                                       id="weekInput"
+                                                       class="form-control d-none">
+
+                                                <!-- Theo tháng -->
+                                                <input type="month"
+                                                       name="monthInput"
+                                                       id="monthInput"
+                                                       class="form-control d-none">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group col-md-3">
+                                            <label>Ca</label>
+                                            <select name="shiftID" class="form-control">
+                                                <c:forEach var="s" items="${shifts}">
+                                                    <option value="${s.shiftID}">
+                                                        ${s.shiftName}
+                                                        (${s.startTime} - ${s.endTime})
+                                                    </option>
+                                                </c:forEach>
                                             </select>
                                         </div>
 
-                                        <div class="form-group row-md-3">
-                                            <label>Chọn thời gian</label>
+                                        <div class="form-group col-md-4">
+                                            <label>Nhân viên</label>
 
-                                            <!-- Theo ngày -->
-                                            <input type="date" name="workDate"
-                                                   id="dateInput"
-                                                   class="form-control">
+                                            <button type="button"
+                                                    class="btn btn-outline-primary btn-block"
+                                                    data-toggle="modal"
+                                                    data-target="#employeeModal">
+                                                Chọn nhân viên
+                                            </button>
 
-                                            <!-- Theo tuần -->
-                                            <input type="week"
-                                                   name="weekInput"
-                                                   id="weekInput"
-                                                   class="form-control d-none">
+                                            <!-- Hidden input để submit -->
+                                            <input type="hidden" name="employeeIDs" id="selectedEmployeeIDs" required>
 
-                                            <!-- Theo tháng -->
-                                            <input type="month"
-                                                   name="monthInput"
-                                                   id="monthInput"
-                                                   class="form-control d-none">
+                                            <!-- Hiển thị tên đã chọn -->
+                                            <div id="selectedEmployeeName"
+                                                 class="mt-2 text-muted small">
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group col-md-3">
-                                        <label>Ca</label>
-                                        <select name="shiftID" class="form-control">
-                                            <c:forEach var="s" items="${shifts}">
-                                                <option value="${s.shiftID}">
-                                                    ${s.shiftName}
-                                                    (${s.startTime} - ${s.endTime})
-                                                </option>
-                                            </c:forEach>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group col-md-4">
-                                        <label>Nhân viên</label>
-
-                                        <button type="button"
-                                                class="btn btn-outline-primary btn-block"
-                                                data-toggle="modal"
-                                                data-target="#employeeModal">
-                                            Chọn nhân viên
-                                        </button>
-
-                                        <!-- Hidden input để submit -->
-                                        <input type="hidden" name="employeeIDs" id="selectedEmployeeIDs" required>
-
-                                        <!-- Hiển thị tên đã chọn -->
-                                        <div id="selectedEmployeeName"
-                                             class="mt-2 text-muted small">
+                                        <div class="form-group col-md-2">
+                                            <label style="visibility:hidden;">Action</label>
+                                            <button class="btn btn-primary btn-block">
+                                                Phân công
+                                            </button>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group col-md-2">
-                                        <label style="visibility:hidden;">Action</label>
-                                        <button class="btn btn-primary btn-block">
-                                            Phân công
-                                        </button>
                                     </div>
-
-                                </div>
-                            </form>
-                        </div>
+                                </form>
+                            </div>
+                        </c:if>
 
                         <!-- DAILY SHIFT OVERVIEW -->
                         <div class="card card-info">
@@ -225,29 +235,30 @@
                                             </form>
 
                                             <!-- DROPDOWN -->
-                                            <div class="btn-group ml-2">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-warning dropdown-toggle"
-                                                        data-toggle="dropdown"
-                                                        style="font-size:16px; padding: 3px 10px">
-                                                    <i class="fas fa-file-alt mr-1"></i>
-                                                    Xem đơn
-                                                </button>
+                                            <c:if test="${not requestScope.isViewOnly}">
+                                                <div class="btn-group ml-2">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-warning dropdown-toggle"
+                                                            data-toggle="dropdown"
+                                                            style="font-size:16px; padding: 3px 10px">
+                                                        <i class="fas fa-file-alt mr-1"></i>
+                                                        Xem đơn
+                                                    </button>
 
-                                                <div class="dropdown-menu bg-white">
-                                                    <a class="dropdown-item" href="swap-approval">
-                                                        <i class="fas fa-exchange-alt mr-2 text-primary"></i>
-                                                        Xem đơn đổi ca
-                                                    </a>
-                                                    <a class="dropdown-item" href="ot-approval">
-                                                        <i class="fas fa-clock mr-2 text-success"></i>
-                                                        Xem đơn OT
-                                                    </a>
+                                                    <div class="dropdown-menu bg-white">
+                                                        <a class="dropdown-item" href="swap-approval">
+                                                            <i class="fas fa-exchange-alt mr-2 text-primary"></i>
+                                                            Xem đơn đổi ca
+                                                        </a>
+                                                        <a class="dropdown-item" href="ot-approval">
+                                                            <i class="fas fa-clock mr-2 text-success"></i>
+                                                            Xem đơn OT
+                                                        </a>
+                                                    </div>
+
                                                 </div>
-                                            </div>
-
+                                            </c:if>
                                         </div>
-
                                     </div>
 
                                 </div>

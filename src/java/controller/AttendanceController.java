@@ -20,7 +20,7 @@ import java.util.Map;
  *
  * @author ADMIN
  */
-@WebServlet(urlPatterns = {"/admin/attendance"})
+@WebServlet(urlPatterns = { "/admin/attendance" })
 public class AttendanceController extends HttpServlet {
 
     private AttendanceDAO dao = new AttendanceDAO();
@@ -53,13 +53,13 @@ public class AttendanceController extends HttpServlet {
         int totalRecords = dao.countAttendanceByDate(workDate);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
-        List<AttendanceView> list
-                = dao.getAttendanceByDate(workDate, page, pageSize);
+        List<AttendanceView> list = dao.getAttendanceByDate(workDate, page, pageSize);
         Map<String, Integer> stats = dao.getDashboardStats(workDate);
-        
+
         request.setAttribute("attendanceList", list);
         request.setAttribute("workDate", workDate);
         request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentPage", page);
         request.setAttribute("stats", stats);
 
         request.getRequestDispatcher(
