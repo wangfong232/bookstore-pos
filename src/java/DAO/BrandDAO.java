@@ -30,6 +30,29 @@ public class BrandDAO extends DBContext {
         return list;
     }
     
+    // Get only active brands
+    public List<Brand> getAllActiveBrands() {
+        List<Brand> list = new ArrayList<>();
+        String sql = "SELECT * FROM Brands WHERE IsActive = 1 ORDER BY BrandName";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Brand brand = new Brand(
+                    rs.getInt("BrandID"),
+                    rs.getString("BrandName"),
+                    rs.getString("Logo"),
+                    rs.getString("Description"),
+                    rs.getBoolean("IsActive")
+                );
+                list.add(brand);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
     // Get brands with search, filter, sort and paging
     public List<Brand> getBrands(String search, Boolean isActive, String sortBy, String sortOrder, int page, int pageSize) {
         List<Brand> list = new ArrayList<>();

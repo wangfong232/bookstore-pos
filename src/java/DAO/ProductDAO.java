@@ -2,7 +2,7 @@
  * Product DAO for POS module and Product Management
  */
 package DAO;
-
+     
 import entity.Product;
 import java.sql.*;
 import java.util.ArrayList;
@@ -204,6 +204,125 @@ public class ProductDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+    
+    // Get products with stock status filter (for public page)
+    public List<Product> getProducts(String search, Boolean isActive, Integer categoryId, Integer brandId, 
+                                     String stockStatus, String sortBy, String sortOrder, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM Products WHERE 1=1");
+        
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (ProductName LIKE ? OR SKU LIKE ? OR Description LIKE ?)");
+        }
+        if (isActive != null) {
+            sql.append(" AND IsActive = ?");
+        }
+        if (categoryId != null) {
+            sql.append(" AND CategoryID = ?");
+        }
+        if (brandId != null) {
+            sql.append(" AND BrandID = ?");
+        }
+        // Stock status filter
+        if ("in_stock".equals(stockStatus)) {
+            sql.append(" AND Stock > 0");
+        } else if ("out_of_stock".equals(stockStatus)) {
+            sql.append(" AND Stock <= 0");
+        }
+        
+        if (sortBy != null && !sortBy.isEmpty()) {
+            sql.append(" ORDER BY ").append(sortBy);
+            if (sortOrder != null && sortOrder.equalsIgnoreCase("DESC")) {
+                sql.append(" DESC");
+            } else {
+                sql.append(" ASC");
+            }
+        } else {
+            sql.append(" ORDER BY ProductID DESC");
+        }
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            if (isActive != null) {
+                ps.setBoolean(paramIndex++, isActive);
+            }
+            if (categoryId != null) {
+                ps.setInt(paramIndex++, categoryId);
+            }
+            if (brandId != null) {
+                ps.setInt(paramIndex++, brandId);
+            }
+            ps.setInt(paramIndex++, (page - 1) * pageSize);
+            ps.setInt(paramIndex++, pageSize);
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(extractProductFromResultSet(rs));
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getProducts(stockStatus): " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    // Get total count with stock status filter (for public page)
+    public int getTotalProducts(String search, Boolean isActive, Integer categoryId, Integer brandId, String stockStatus) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Products WHERE 1=1");
+        
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (ProductName LIKE ? OR SKU LIKE ? OR Description LIKE ?)");
+        }
+        if (isActive != null) {
+            sql.append(" AND IsActive = ?");
+        }
+        if (categoryId != null) {
+            sql.append(" AND CategoryID = ?");
+        }
+        if (brandId != null) {
+            sql.append(" AND BrandID = ?");
+        }
+        if ("in_stock".equals(stockStatus)) {
+            sql.append(" AND Stock > 0");
+        } else if ("out_of_stock".equals(stockStatus)) {
+            sql.append(" AND Stock <= 0");
+        }
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search + "%";
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+                ps.setString(paramIndex++, searchPattern);
+            }
+            if (isActive != null) {
+                ps.setBoolean(paramIndex++, isActive);
+            }
+            if (categoryId != null) {
+                ps.setInt(paramIndex++, categoryId);
+            }
+            if (brandId != null) {
+                ps.setInt(paramIndex++, brandId);
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getTotalProducts(stockStatus): " + e.getMessage());
+        }
+        return 0;
     }
     
     // Get total count for pagination
