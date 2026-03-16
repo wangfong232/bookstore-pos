@@ -86,6 +86,37 @@
                 <section class="content">
                     <div class="container-fluid">
 
+                        <%-- Thông báo kết quả phân công --%>
+                        <c:choose>
+                            <c:when test="${param.error == 'pastdate'}">
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong>Không thể phân công!</strong> Tuần / tháng / ngày đã chọn đã ở trong quá khứ. Vui lòng chọn từ hôm nay trở đi.
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            </c:when>
+                            <c:when test="${param.error == 'noemployee'}">
+                                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                    <strong>Chưa chọn nhân viên!</strong> Vui lòng chọn ít nhất một nhân viên trước khi phân công.
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            </c:when>
+                            <c:when test="${param.success == '1'}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    <strong>Phân công thành công!</strong> Nhân viên đã được thêm vào ca làm việc.
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            </c:when>
+                        </c:choose>
+
                         <!-- View-only alert for Staff & Saler -->
                         <c:if test="${requestScope.isViewOnly}">
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
