@@ -259,7 +259,7 @@ public class GoodsReceiptDAO extends DBContext {
     }
 
     public boolean hasPendingGRForPO(long poId) {
-        String sql = "select COUNT(*) from GoodsReceipts where POID = ? and Satus = 'PENDING' ";
+        String sql = "select COUNT(*) from GoodsReceipts where POID = ? and Status = 'PENDING' ";
         try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setLong(1, poId);
             try (ResultSet rs = stm.executeQuery()) {
@@ -354,8 +354,21 @@ public class GoodsReceiptDAO extends DBContext {
         return false;
     }
 
-    //complete GR
     public boolean completeGR(String receiptNumber) {
+        String sqlUpdateStock = """
+                                update Products 
+                                set Stock = Stock + ?, CostPrice = ?, UpdatedDate = GETDATE()
+                                OUTPUT deleted.Stock AS StockBefore, inserted.Stock AS StockAfter
+                                where ProductID = ?
+                                """;
+
+        String sqlInsertTx = """
+                             insert into InventoryTransactions 
+                             (ProductID, TransactionType, ReferenceType, ReferenceID, ReferenceCode,
+                              QuantityChange, StockBefore, StockAfter, UnitCost, Notes, CreatedBy)
+                             values (?, 'IN', 'RECEIPT', ?, ?, ?, ?, ?, ?, ?, ?)
+                             """;
+
         Connection connection = null;
 
         try {
@@ -376,18 +389,44 @@ public class GoodsReceiptDAO extends DBContext {
                 return false;
             }
 
-            //for each detail, update product stock, cal MAC, and update the row with MAC snapshot
-            for (GoodsReceiptDetail detail : details) {
-                int oldQty = getProductStock(connection, detail.getProductId());
-                BigDecimal oldCost = getProductCostPrice(connection, detail.getProductId());
+            try (PreparedStatement stmStock = connection.prepareStatement(sqlUpdateStock);
+                 PreparedStatement stmTx = connection.prepareStatement(sqlInsertTx)) {
 
-                detail.setMACSnapshot(oldQty, oldCost);
-                detail.calculateNewAvgCost();
+                //for each detail, update product stock, cal MAC, and update the row with MAC snapshot
+                for (GoodsReceiptDetail detail : details) {
+                    int oldQty = getProductStock(connection, detail.getProductId());
+                    BigDecimal oldCost = getProductCostPrice(connection, detail.getProductId());
 
-                updateProductStock(connection, detail.getProductId(), detail.getQuantityReceived(), detail.getNewAvgCost());
+                    detail.setMACSnapshot(oldQty, oldCost);
+                    detail.calculateNewAvgCost();
 
-                updatePOItemReceived(connection, detail.getPoLineItemId(), detail.getQuantityReceived());
-                updateGRDetailMAC(connection, detail.getId(), detail.getOldQty(), detail.getOldCost(), detail.getNewAvgCost());
+                    stmStock.setInt(1, detail.getQuantityReceived());
+                    stmStock.setBigDecimal(2, detail.getNewAvgCost());
+                    stmStock.setInt(3, detail.getProductId());
+                    
+                    int stockBefore = 0, stockAfter = 0;
+                    try (ResultSet out = stmStock.executeQuery()) {
+                        if (out.next()) {
+                            stockBefore = out.getInt("StockBefore");
+                            stockAfter = out.getInt("StockAfter");
+                        }
+                    }
+
+                    stmTx.setInt(1, detail.getProductId());
+                    stmTx.setLong(2, gr.getId());
+                    stmTx.setString(3, receiptNumber);
+                    stmTx.setInt(4, detail.getQuantityReceived());
+                    stmTx.setInt(5, stockBefore);
+                    stmTx.setInt(6, stockAfter);
+                    stmTx.setBigDecimal(7, detail.getUnitCost());
+                    stmTx.setString(8, "Goods receipt: " + receiptNumber);
+                    stmTx.setInt(9, gr.getReceivedBy());
+                    stmTx.addBatch();
+
+                    updatePOItemReceived(connection, detail.getPoLineItemId(), detail.getQuantityReceived());
+                    updateGRDetailMAC(connection, detail.getId(), detail.getOldQty(), detail.getOldCost(), detail.getNewAvgCost());
+                }
+                stmTx.executeBatch();
             }
 
             String sqlCompleteGR = """
@@ -396,9 +435,10 @@ public class GoodsReceiptDAO extends DBContext {
                                    where ReceiptNumber = ?
                                    """;
 
-            PreparedStatement stmGR = connection.prepareStatement(sqlCompleteGR);
-            stmGR.setString(1, receiptNumber);
-            stmGR.executeUpdate();
+            try (PreparedStatement stmGR = connection.prepareStatement(sqlCompleteGR)) {
+                stmGR.setString(1, receiptNumber);
+                stmGR.executeUpdate();
+            }
 
             updatePOStatus(connection, gr.getPoId());
 
@@ -415,6 +455,7 @@ public class GoodsReceiptDAO extends DBContext {
         } finally {
             if (connection != null) {
                 try {
+                    connection.setAutoCommit(true);
                     connection.close();
                 } catch (Exception ex) {
                 }
@@ -457,8 +498,8 @@ public class GoodsReceiptDAO extends DBContext {
         int currentYear = java.time.Year.now().getValue();
         String yearPrefix = "GR-" + currentYear + "-";
         String sql = """
-                      select TOP 1 ReceiptNumber from GoodsReceipts where ReceiptNumber like ? order by ReceiptNumber desc
-                      """;
+                     select TOP 1 ReceiptNumber from GoodsReceipts where ReceiptNumber like ? order by ReceiptNumber desc
+                     """;
         try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setString(1, yearPrefix + "%");
             try (ResultSet rs = stm.executeQuery()) {
@@ -563,6 +604,7 @@ public class GoodsReceiptDAO extends DBContext {
                     gr.setPoId(rs.getLong("POID"));
                     gr.setStatus(rs.getString("Status"));
                     gr.setReceiptDate(getLocalDateTime(rs, "ReceiptDate"));
+                    gr.setReceivedBy(rs.getInt("ReceivedBy")); 
                     return gr;
                 }
             }
@@ -623,16 +665,6 @@ public class GoodsReceiptDAO extends DBContext {
         return BigDecimal.ZERO;
     }
 
-    private void updateProductStock(Connection con, int productId, int addQty, BigDecimal newAvgCost) throws Exception {
-        String sql = "update Products set Stock = Stock + ?, CostPrice = ?, UpdatedDate = GETDATE() where ProductID = ?";
-        try (PreparedStatement stm = con.prepareStatement(sql)) {
-            stm.setInt(1, addQty);
-            stm.setBigDecimal(2, newAvgCost);
-            stm.setInt(3, productId);
-            stm.executeUpdate();
-        }
-    }
-
     private void updatePOItemReceived(Connection con, long lineItemId, int addQty) throws Exception {
         String sql = "update PurchaseOrderItems set QuantityReceived = QuantityReceived + ?  where LineItemID = ? ";
         try (PreparedStatement stm = con.prepareStatement(sql)) {
@@ -661,9 +693,9 @@ public class GoodsReceiptDAO extends DBContext {
         String sqlCheck = """
                      select COUNT(*) as total,
                               SUM(CASE WHEN QuantityReceived >= QuantityOrdered THEN 1 ELSE 0 END) as fullyReceived
-                      from PurchaseOrderItems
-                      where POID = ? 
-                      """;
+                     from PurchaseOrderItems
+                     where POID = ? 
+                     """;
         try (PreparedStatement stmCheck = con.prepareStatement(sqlCheck)) {
             stmCheck.setLong(1, poId);
             try (ResultSet rs = stmCheck.executeQuery()) {
