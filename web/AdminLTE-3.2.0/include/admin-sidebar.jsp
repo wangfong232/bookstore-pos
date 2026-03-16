@@ -129,8 +129,8 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
+                            <a href="${pageContext.request.contextPath}/admin/stocktake" class="nav-link">
+                                <i class="fa-solid fa-list-check nav-icon"></i>
                                 <p>Kiểm kho</p>
                             </a>
                         </li>
