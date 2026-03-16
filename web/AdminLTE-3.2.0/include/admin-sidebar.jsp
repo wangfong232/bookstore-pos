@@ -123,7 +123,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/purchaseorder" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/admin/purchaseorder" class="nav-link">
                                 <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Nhập hàng</p>
                             </a>

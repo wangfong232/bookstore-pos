@@ -37,7 +37,7 @@
                             <div class="col-sm-6">
                                 <ol class="breadcrumb float-sm-right">
                                     <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/purchaseorder?action=list">Đơn đặt hàng</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/purchaseorder?action=list">Đơn đặt hàng</a></li>
                                     <li class="breadcrumb-item active">
                                         Chi tiết
                                     </li>
@@ -158,17 +158,17 @@
                                 </div>
 
                                 <div class="mt-4 pt-3 border-top">
-                                    <!-- Actions for Manager when status is PENDING_APPROVAL -->
-                                    <c:if test="${po.status == 'PENDING_APPROVAL'}">
+                                    <!-- Actions for Manager/Admin when status is PENDING_APPROVAL -->
+                                    <c:if test="${po.status == 'PENDING_APPROVAL' && (sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Admin')}">
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <!-- Approve Form -->
-                                                <form method="post" action="${pageContext.request.contextPath}/purchaseorder" 
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/purchaseorder"
                                                       onsubmit="return confirm('Bạn có chắc muốn duyệt đơn hàng này?');">
                                                     <input type="hidden" name="action" value="approve" />
                                                     <input type="hidden" name="poNumber" value="${po.poNumber}" />
-                                                    <input type="hidden" name="by" value="1" /><!-- TODO: Get from session -->
-                                                    
+                                                    <input type="hidden" name="by" value="${sessionScope.employeeId}" />
+
                                                     <button type="submit" class="btn btn-success btn-lg">
                                                         <i class="fas fa-check"></i> Duyệt đơn
                                                     </button>
@@ -176,18 +176,18 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <!-- Reject Form -->
-                                                <form method="post" action="${pageContext.request.contextPath}/purchaseorder" 
+                                                <form method="post" action="${pageContext.request.contextPath}/admin/purchaseorder"
                                                       onsubmit="return validateRejectForm(this);">
                                                     <input type="hidden" name="action" value="reject" />
                                                     <input type="hidden" name="poNumber" value="${po.poNumber}" />
-                                                    <input type="hidden" name="by" value="1" /><!-- TODO: Get from session -->
-                                                    
+                                                    <input type="hidden" name="by" value="${sessionScope.employeeId}" />
+
                                                     <div class="form-group">
                                                         <label for="rejectReason">Lý do từ chối: <span class="text-danger">*</span></label>
-                                                        <textarea class="form-control" id="rejectReason" name="reason" rows="3" 
+                                                        <textarea class="form-control" id="rejectReason" name="reason" rows="3"
                                                                   placeholder="Nhập lý do từ chối..." required></textarea>
                                                     </div>
-                                                    
+
                                                     <button type="submit" class="btn btn-danger btn-lg">
                                                         <i class="fas fa-times"></i> Từ chối
                                                     </button>
@@ -197,17 +197,17 @@
                                         <hr class="my-3">
                                     </c:if>
 
-                                    <!-- Actions for Manager when status is APPROVED -->
-                                    <c:if test="${po.status == 'APPROVED'}">
-                                        <form method="post" action="${pageContext.request.contextPath}/purchaseorder" 
+                                    <!-- Actions for Manager/Admin when status is APPROVED -->
+                                    <c:if test="${po.status == 'APPROVED' && (sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Admin')}">
+                                        <form method="post" action="${pageContext.request.contextPath}/admin/purchaseorder"
                                               onsubmit="return validateCancelForm(this);">
                                             <input type="hidden" name="action" value="cancel" />
                                             <input type="hidden" name="poNumber" value="${po.poNumber}" />
-                                            <input type="hidden" name="by" value="1" /><!-- TODO: Get from session -->
+                                            <input type="hidden" name="by" value="${sessionScope.employeeId}" />
 
                                             <div class="form-group">
                                                 <label for="cancelReason">Lý do hủy: <span class="text-danger">*</span></label>
-                                                <textarea class="form-control" id="cancelReason" name="reason" rows="3" 
+                                                <textarea class="form-control" id="cancelReason" name="reason" rows="3"
                                                           placeholder="Nhập lý do hủy đơn..." required></textarea>
                                             </div>
 
@@ -220,17 +220,16 @@
 
                                     <!-- Actions for Staff (Creator) when status is PENDING or REJECTED -->
                                     <c:if test="${po.status == 'PENDING_APPROVAL' || po.status == 'REJECTED'}">
-                                        <a href="${pageContext.request.contextPath}/purchaseorder?action=edit&poNumber=${po.poNumber}" 
+                                        <a href="${pageContext.request.contextPath}/admin/purchaseorder?action=edit&poNumber=${po.poNumber}"
                                            class="btn btn-primary btn-lg">
                                             <i class="fas fa-edit"></i> Sửa đơn
                                         </a>
                                     </c:if>
 
-                                    <!-- Back Button (always visible) -->
-                                    <a href="${pageContext.request.contextPath}/purchaseorder?action=list" 
+                                    <a href="${pageContext.request.contextPath}/admin/purchaseorder?action=list"
                                        class="btn btn-secondary btn-lg">
                                         <i class="fas fa-arrow-left"></i> Quay lại
-                                    </a>                                        
+                                    </a>
                                 </div><!-- ./mt-4 -->
                             </div><!-- ./card-body -->
                         </div><!-- ./card -->
@@ -241,21 +240,8 @@
             </div><!-- ./content-wrapper -->
 
             <!-- Main Footer -->
-            <footer class="main-footer">
-                <strong>Copyright &copy; 2026 <a href="#">Bookstore POS</a>.</strong>
-                All rights reserved.
-                <div class="float-right d-none d-sm-inline-block">
-                    <b>Version</b> 1.0.0
-                </div>
-            </footer>
+            <jsp:include page="include/admin-footer.jsp"/>
         </div><!-- ./wrapper -->
-
-        <!-- jQuery -->
-        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>
-        <!-- Bootstrap 4 -->
-        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-        <!-- AdminLTE App -->
-        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>
         
         <script>
             function validateRejectForm(form) {
