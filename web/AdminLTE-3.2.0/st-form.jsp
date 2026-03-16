@@ -87,7 +87,7 @@
                             <div class="col-sm-6">
                                 <ol class="breadcrumb float-sm-right">
                                     <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/stocktake?action=list">Kiểm kê kho</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/stocktake?action=list">Kiểm kê kho</a></li>
                                     <li class="breadcrumb-item active">Tạo mới</li>
                                 </ol>
                             </div>
@@ -227,7 +227,7 @@
                             </div>
 
                             <div class="text-right mt-3">
-                                <a href="${pageContext.request.contextPath}/stocktake?action=list" class="btn btn-default mr-2">
+                                <a href="${pageContext.request.contextPath}/admin/stocktake?action=list" class="btn btn-default mr-2">
                                     <i class="fas fa-times"></i> Hủy
                                 </a>
                                 <button type="button" class="btn btn-primary" id="btnToStep2">
@@ -239,7 +239,7 @@
 
                         <!-- step 2 -->
                         <div id="step2-panel">
-                            <form action="${pageContext.request.contextPath}/stocktake" method="post" id="st-form">
+                            <form action="${pageContext.request.contextPath}/admin/stocktake" method="post" id="st-form">
                                 <input type="hidden" name="action" value="save">
                                 <input type="hidden" name="stNumber" id="f_stNumber">
                                 <input type="hidden" name="stockTakeDate" id="f_stockTakeDate">

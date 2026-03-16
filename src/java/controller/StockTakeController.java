@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @author qp
  */
-@WebServlet(name = "StockTakeController", urlPatterns = {"/stocktake"})
+@WebServlet(name = "StockTakeController", urlPatterns = {"/admin/stocktake"})
 public class StockTakeController extends HttpServlet {
 
     private final StockTakeDAO stDAO = new StockTakeDAO();
@@ -77,13 +77,15 @@ public class StockTakeController extends HttpServlet {
                 submitForApproval(request, response);
                 break;
             case "approve":
+                if (!requireManager(request, response, request.getContextPath() + "/admin/stocktake?action=view&number=" + request.getParameter("number"))) return;
                 approve(request, response);
                 break;
             case "recount":
+                if (!requireManager(request, response, request.getContextPath() + "/admin/stocktake?action=view&number=" + request.getParameter("number"))) return;
                 requestRecount(request, response);
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+                response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
         }
     }
 
@@ -129,14 +131,14 @@ public class StockTakeController extends HttpServlet {
             throws ServletException, IOException {
         String number = request.getParameter("number");
         if (number == null || number.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
 
         StockTake st = stDAO.getSTByNumber(number);
         if (st == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
         String scopeValue = st.getScopeValue();
@@ -214,7 +216,7 @@ public class StockTakeController extends HttpServlet {
         LocalDate date = parseLocalDate(dateStr);
         if (date == null || !date.equals(LocalDate.now())) {
             request.getSession().setAttribute("msg", "fail_date");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
 
@@ -229,7 +231,7 @@ public class StockTakeController extends HttpServlet {
         st.setScopeValue(request.getParameter("scopeValue"));
         st.setNotes(notes);
 
-        String[] pids = request.getParameterValues("pid[]");
+        String[] pids    = request.getParameterValues("pid[]");
         String[] actQtys = request.getParameterValues("actQty[]");
         String[] reasons = request.getParameterValues("reason[]");
         String[] detNotes = request.getParameterValues("detailNotes[]");
@@ -238,22 +240,19 @@ public class StockTakeController extends HttpServlet {
             for (int i = 0; i < pids.length; i++) {
                 int productId = parseIntSafe(pids[i]);
                 Product p = productMap.get(productId);
-                if (p == null) {
-                    continue;
-                }
+                if (p == null) continue; 
 
-                int sysQty = p.getStock();
+                int sysQty = p.getStock(); 
                 int actQty = parseIntSafe(actQtys[i]);
-
                 if (actQty < 0) {
                     request.getSession().setAttribute("msg", "fail_invalid_qty");
-                    response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
                     return;
                 }
+                BigDecimal unitCost = (p.getCostPrice() != null)
+                        ? BigDecimal.valueOf(p.getCostPrice()) : BigDecimal.ZERO; 
 
-                BigDecimal unitCost = (p.getCostPrice() != null) ? BigDecimal.valueOf(p.getCostPrice()) : BigDecimal.ZERO;
-
-                String reason = (reasons != null && i < reasons.length) ? reasons[i] : null;
+                String reason  = (reasons  != null && i < reasons.length)  ? reasons[i]  : null;
                 String detNote = (detNotes != null && i < detNotes.length) ? detNotes[i] : null;
 
                 StockTakeDetail d = new StockTakeDetail(productId, sysQty, unitCost);
@@ -269,19 +268,19 @@ public class StockTakeController extends HttpServlet {
         }
         st.recalculateSummary();
 
-        String lockNumber = stDAO.getActiveLockSTNumber();
-        if (lockNumber != null) {
-            request.getSession().setAttribute("msg", "Không thể tạo phiếu kiểm kho mới. Phiếu " + lockNumber + " đang hoạt động.");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
-            return;
-        }
+//        String lockNumber = stDAO.getActiveLockSTNumber();
+//        if (lockNumber != null) {
+//            request.getSession().setAttribute("msg", "Không thể tạo phiếu kiểm kho mới. Phiếu " + lockNumber + " đang hoạt động.");
+//            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
+//            return;
+//        }
         boolean ok = stDAO.createSTWithDetails(st);
         if (ok) {
             request.getSession().setAttribute("msg", "success_save");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=view&number=" + stNumber);
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + stNumber);
         } else {
             request.getSession().setAttribute("msg", "fail_save");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
         }
     }
 
@@ -293,12 +292,12 @@ public class StockTakeController extends HttpServlet {
         StockTake st = stDAO.getSTByNumber(number);
         if (st == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
         boolean ok = stDAO.submitSTForApproval(st.getId(), employeeId);
         request.getSession().setAttribute("msg", ok ? "success_submit" : "fail_submit");
-        response.sendRedirect(request.getContextPath() + "/stocktake?action=view&number=" + number);
+        response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + number);
     }
 
     private void approve(HttpServletRequest request, HttpServletResponse response)
@@ -309,19 +308,19 @@ public class StockTakeController extends HttpServlet {
         StockTake st = stDAO.getSTByNumber(number);
         if (st == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
 
         if (st.getCreatedBy() != null && st.getCreatedBy() == employeeId) {
             request.getSession().setAttribute("msg", "fail_self_approve");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=view&number=" + number);
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + number);
             return;
         }
 
         boolean ok = stDAO.approveST(st.getId(), employeeId);
         request.getSession().setAttribute("msg", ok ? "success_approve" : "fail_approve");
-        response.sendRedirect(request.getContextPath() + "/stocktake?action=view&number=" + number);
+        response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + number);
     }
 
     private void requestRecount(HttpServletRequest request, HttpServletResponse response)
@@ -333,20 +332,20 @@ public class StockTakeController extends HttpServlet {
 
         if (reason == null || reason.isBlank()) {
             request.getSession().setAttribute("msg", "fail_recount_noreason");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=view&number=" + number);
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + number);
             return;
         }
 
         StockTake st = stDAO.getSTByNumber(number);
         if (st == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stocktake?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
 
         boolean ok = stDAO.requestRecountST(st.getId(), employeeId, reason);
         request.getSession().setAttribute("msg", ok ? "success_recount" : "fail_recount");
-        response.sendRedirect(request.getContextPath() + "/stocktake?action=view&number=" + number);
+        response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + number);
     }
 
     private int getLoggedInEmployeeId(HttpServletRequest request) {
@@ -354,7 +353,7 @@ public class StockTakeController extends HttpServlet {
         if (emp instanceof Integer) {
             return (Integer) emp;
         }
-        return 1;   //hard code truoc
+        return 0;
     }
 
     private void resetSessionMsg(HttpServletRequest request) {
@@ -416,4 +415,16 @@ public class StockTakeController extends HttpServlet {
             return BigDecimal.ZERO;
         }
     }
+
+    private boolean requireManager(HttpServletRequest request, HttpServletResponse response,
+                                   String redirectUrl) throws IOException {
+        String role = (String) request.getSession(false).getAttribute("roleName");
+        if (!"Store Manager".equals(role) && !"Admin".equals(role) && !"Manager".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied");
+            response.sendRedirect(redirectUrl);
+            return false;
+        }
+        return true;
+    }
 }
+

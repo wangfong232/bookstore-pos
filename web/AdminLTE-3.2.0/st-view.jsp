@@ -60,7 +60,7 @@
                             <div class="col-sm-6">
                                 <ol class="breadcrumb float-sm-right">
                                     <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/stocktake?action=list">Kiểm kê kho</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/stocktake?action=list">Kiểm kê kho</a></li>
                                     <li class="breadcrumb-item active">${st.stockTakeNumber}</li>
                                 </ol>
                             </div>
@@ -241,8 +241,7 @@
                                     </div>
 
                                     <div class="card-body">
-                                        <c:if test="${st.status == 'IN_PROGRESS'}">
-                                            <form action="${pageContext.request.contextPath}/stocktake" method="post">
+                                        <c:if test="${st.status == 'IN_PROGRESS' && (sessionScope.employeeId == st.createdBy || sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Store Manager' || sessionScope.roleName == 'Admin')}">                                            <form action="${pageContext.request.contextPath}/admin/stocktake" method="post">
                                                 <input type="hidden" name="action" value="submit">
                                                 <input type="hidden" name="number" value="${st.stockTakeNumber}">
                                                 <button type="submit" class="btn btn-primary btn-block mb-2"
@@ -252,8 +251,8 @@
                                             </form>
                                         </c:if> 
 
-                                        <c:if test="${st.status == 'PENDING_APPROVAL'}">
-                                            <form action="${pageContext.request.contextPath}/stocktake" method="post">
+                                        <c:if test="${st.status == 'PENDING_APPROVAL' && (sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Store Manager' || sessionScope.roleName == 'Admin')}">
+                                            <form action="${pageContext.request.contextPath}/admin/stocktake" method="post">
                                                 <input type="hidden" name="action" value="approve">
                                                 <input type="hidden" name="number" value="${st.stockTakeNumber}">
                                                 <button type="submit" class="btn btn-success btn-block mb-2"
@@ -262,13 +261,15 @@
                                                 </button>
                                             </form>
 
-                                            <button type="button" class="btn btn-warning btn-block mb-2"
-                                                    data-toggle="modal" data-target="#recountModal">
-                                                <i class="fas fa-redo"></i> Yêu cầu kiểm lại
-                                            </button>
+                                            <c:if test="${st.status == 'PENDING_APPROVAL' && (sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Store Manager' || sessionScope.roleName == 'Admin')}">
+                                                <button type="button" class="btn btn-warning btn-block mb-2"
+                                                        data-toggle="modal" data-target="#recountModal">
+                                                    <i class="fas fa-redo"></i> Yêu cầu kiểm lại
+                                                </button>
+                                            </c:if>
                                         </c:if>
 
-                                        <a href="${pageContext.request.contextPath}/stocktake?action=list"
+                                        <a href="${pageContext.request.contextPath}/admin/stocktake?action=list"
                                            class="btn btn-default btn-block">
                                             <i class="fas fa-arrow-left"></i> Quay lại danh sách
                                         </a>
@@ -328,7 +329,7 @@
                                                                             </c:otherwise>
                                                                         </c:choose>
                                                                     </td>
-                                                                  
+
                                                                     <td class="text-right">
                                                                         <c:set var="varVal" value="${d.varianceValue}"/>
                                                                         <c:choose>
@@ -376,7 +377,7 @@
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
-                                                                 <td class="text-right font-weight-bold">
+                                                                <td class="text-right font-weight-bold">
                                                                     <c:choose>
                                                                         <c:when test="${st.totalVarianceValue < 0}">
                                                                             <span class="variance-loss"><fmt:formatNumber value="${st.totalVarianceValue}" type="currency" currencySymbol="đ"/></span>
@@ -418,7 +419,7 @@
         <div class="modal fade" id="recountModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form action="${pageContext.request.contextPath}/stocktake" method="post">
+                    <form action="${pageContext.request.contextPath}/admin/stocktake" method="post">
                         <input type="hidden" name="action" value="recount">
                         <input type="hidden" name="number" value="${st.stockTakeNumber}">
                         <div class="modal-header">
