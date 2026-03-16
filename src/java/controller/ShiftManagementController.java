@@ -197,11 +197,19 @@ public class ShiftManagementController extends HttpServlet {
                     .ofYearDay(year, 1)
                     .with(java.time.temporal.IsoFields.WEEK_OF_WEEK_BASED_YEAR, week)
                     .with(java.time.DayOfWeek.MONDAY);
+            LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+            // Nếu toàn bộ tuần đã qua (ngày cuối tuần < hôm nay) -> báo lỗi
+            if (endOfWeek.isBefore(LocalDate.now())) {
+                response.sendRedirect("shift-management?error=pastdate");
+                return;
+            }
 
             for (int i = 0; i < 7; i++) {
 
                 LocalDate date = startOfWeek.plusDays(i);
 
+                // Chỉ phân công từ hôm nay trở đi (bỏ qua ngày đã qua trong tuần)
                 if (!date.isBefore(LocalDate.now())) {
 
                     Date sqlDate = Date.valueOf(date);
@@ -227,11 +235,19 @@ public class ShiftManagementController extends HttpServlet {
         if (monthParam != null && !monthParam.isEmpty()) {
 
             YearMonth ym = YearMonth.parse(monthParam);
+            LocalDate lastDayOfMonth = ym.atEndOfMonth();
+
+            // Nếu toàn bộ tháng đã qua (ngày cuối tháng < hôm nay) -> báo lỗi
+            if (lastDayOfMonth.isBefore(LocalDate.now())) {
+                response.sendRedirect("shift-management?error=pastdate");
+                return;
+            }
 
             for (int i = 1; i <= ym.lengthOfMonth(); i++) {
 
                 LocalDate date = ym.atDay(i);
 
+                // Chỉ phân công từ hôm nay trở đi (bỏ qua ngày đã qua trong tháng)
                 if (!date.isBefore(LocalDate.now())) {
 
                     Date sqlDate = Date.valueOf(date);

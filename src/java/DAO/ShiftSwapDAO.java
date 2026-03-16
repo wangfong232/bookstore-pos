@@ -283,6 +283,27 @@ public class ShiftSwapDAO extends DBContext {
         return list;
     }
 
+    //Tự động reject đơn đổi ca quá h
+    public int rejectExpiredPendingRequests() {
+    String sql =
+        "UPDATE r " +
+        "SET Status='REJECTED', ApprovedAt=GETDATE() " +
+        "FROM ShiftSwapRequests r " +
+        "JOIN EmployeeShiftAssignments a1 ON r.FromAssignmentID = a1.AssignmentID " +
+        "JOIN EmployeeShiftAssignments a2 ON r.ToAssignmentID = a2.AssignmentID " +
+        "WHERE r.Status = 'PENDING' " +
+        "AND (a1.WorkDate < CAST(GETDATE() AS DATE) " +
+        "     OR a2.WorkDate < CAST(GETDATE() AS DATE))";
+    try (Connection conn = getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        return ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+
+
     /** Lấy swap request trong cùng một transaction connection */
     public ShiftSwapRequest getRequestByIdWithConn(int requestID, Connection conn) throws Exception {
         String sql = "SELECT * FROM ShiftSwapRequests WHERE SwapRequestID = ?";

@@ -61,7 +61,7 @@
                                 <div class="col-sm-6">
                                     <ol class="breadcrumb float-sm-right">
                                         <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/purchaseorder?action=list">Đơn đặt hàng</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/purchaseorder?action=list">Đơn đặt hàng</a></li>
                                     <li class="breadcrumb-item active">
                                         <c:if test="${mode=='add'}">Thêm mới</c:if>
                                         <c:if test="${mode=='edit'}">Chỉnh sửa</c:if>
@@ -94,7 +94,7 @@
                                     </c:if>
 
                                     <!-- form start -->
-                                    <form action="${pageContext.request.contextPath}/purchaseorder" method="post">
+                                    <form action="${pageContext.request.contextPath}/admin/purchaseorder" method="post">
                                         <div class="card-body">
                                             <div class="form-group">
                                                 <label for="poNumber">Mã ĐĐH: <span class="text-danger">*</span></label>
@@ -265,7 +265,7 @@
 
                                 </div><!-- ./card-body -->
                                 <div class="card-footer">
-                                    <a href="${pageContext.request.contextPath}/purchaseorder?action=list" class="btn btn-default">
+                                    <a href="${pageContext.request.contextPath}/admin/purchaseorder?action=list" class="btn btn-default">
                                         <i class="fas fa-times"></i> Hủy
                                     </a>
                                     <button type="submit" name="action" value="save" class="btn btn-primary float-right">
@@ -292,7 +292,7 @@
             <div class="modal-header bg-success">
                 <h5 class="modal-tittle"><i class="fas fa-plus-circle"></i> Thêm sản phẩm</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">x</span>
                 </button>
             </div>
 

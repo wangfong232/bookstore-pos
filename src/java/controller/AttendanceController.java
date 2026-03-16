@@ -1,10 +1,10 @@
 /*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
+ * Attendance Controller – xử lý danh sách chấm công và thống kê tháng
  */
 package controller;
 
 import DAO.AttendanceDAO;
+import entity.AttendanceStats;
 import entity.AttendanceView;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -13,13 +13,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- * @author ADMIN
- */
 @WebServlet(urlPatterns = { "/admin/attendance" })
 public class AttendanceController extends HttpServlet {
 
@@ -32,11 +29,16 @@ public class AttendanceController extends HttpServlet {
 
         String action = request.getParameter("action");
 
-        if (action == null || action.equals("list")) {
+        if ("stats".equals(action)) {
+            showStats(request, response);
+        } else {
             listAttendance(request, response);
         }
     }
 
+    // -----------------------------------------------------------------
+    // Danh sách chấm công theo ngày
+    // -----------------------------------------------------------------
     private void listAttendance(HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
@@ -64,6 +66,44 @@ public class AttendanceController extends HttpServlet {
 
         request.getRequestDispatcher(
                 "/AdminLTE-3.2.0/attendance-list.jsp")
+                .forward(request, response);
+    }
+
+    // -----------------------------------------------------------------
+    // Bảng thống kê tổng giờ làm theo tháng
+    // -----------------------------------------------------------------
+    private void showStats(HttpServletRequest request,
+            HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String monthRaw = request.getParameter("month");
+        String yearRaw  = request.getParameter("year");
+        String pageRaw  = request.getParameter("page");
+
+        LocalDate today = LocalDate.now();
+        int month = (monthRaw == null || monthRaw.isEmpty())
+                ? today.getMonthValue()
+                : Integer.parseInt(monthRaw);
+        int year  = (yearRaw == null || yearRaw.isEmpty())
+                ? today.getYear()
+                : Integer.parseInt(yearRaw);
+        int page  = (pageRaw == null || pageRaw.isEmpty()) ? 1 : Integer.parseInt(pageRaw);
+        int pageSize = 10;
+
+        int totalRecords = dao.countMonthlyStats(month, year);
+        int totalPages   = (int) Math.ceil((double) totalRecords / pageSize);
+        if (totalPages < 1) totalPages = 1;
+
+        List<AttendanceStats> statsList = dao.getMonthlyStats(month, year, page, pageSize);
+
+        request.setAttribute("statsList",    statsList);
+        request.setAttribute("month",        month);
+        request.setAttribute("year",         year);
+        request.setAttribute("totalPages",   totalPages);
+        request.setAttribute("currentPage",  page);
+
+        request.getRequestDispatcher(
+                "/AdminLTE-3.2.0/attendance-stats.jsp")
                 .forward(request, response);
     }
 }

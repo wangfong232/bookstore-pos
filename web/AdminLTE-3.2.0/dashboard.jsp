@@ -61,12 +61,14 @@
             </div>
           </div>
 
+          <!-- PHẦN DÀNH CHO ADMIN & MANAGER (Role 1, 2) -->
+          <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
           <!-- Stats Row -->
           <div class="row">
             <div class="col-lg-3 col-6">
               <div class="small-box bg-info">
                 <div class="inner">
-                  <h3>150</h3>
+                  <h3>${totalEmployees != null ? totalEmployees : 0}</h3>
                   <p>Nhân viên</p>
                 </div>
                 <div class="small-box-footer">
@@ -80,7 +82,7 @@
             <div class="col-lg-3 col-6">
               <div class="small-box bg-success">
                 <div class="inner">
-                  <h3>213</h3>
+                  <h3>${totalProducts != null ? totalProducts : 0}</h3>
                   <p>Sản phẩm</p>
                 </div>
                 <div class="small-box-footer">
@@ -94,7 +96,7 @@
             <div class="col-lg-3 col-6">
               <div class="small-box bg-warning">
                 <div class="inner">
-                  <h3>44</h3>
+                  <h3>${totalPOs != null ? totalPOs : 0}</h3>
                   <p>Đơn mua hàng</p>
                 </div>
                 <div class="small-box-footer">
@@ -108,7 +110,7 @@
             <div class="col-lg-3 col-6">
               <div class="small-box bg-danger">
                 <div class="inner">
-                  <h3>65</h3>
+                  <h3>${totalSuppliers != null ? totalSuppliers : 0}</h3>
                   <p>Nhà cung cấp</p>
                 </div>
                 <div class="small-box-footer">
@@ -153,6 +155,57 @@
                 </div>
               </div>
             </div>
+          </c:if>
+
+          <!-- PHẦN DÀNH CHO STAFF & SALER (Role 3, 4, 5) -->
+          <c:if test="${sessionScope.roleId == 3 || sessionScope.roleId == 4 || sessionScope.roleId == 5}">
+          <div class="row">
+            <div class="col-lg-4 col-6">
+              <div class="small-box bg-success">
+                <div class="inner">
+                  <h3>Bán Hàng</h3>
+                  <p>Màn hình POS</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-cash-register"></i>
+                </div>
+                <a href="${pageContext.request.contextPath}/pos" class="small-box-footer">
+                  Tới thu ngân <i class="fas fa-arrow-circle-right"></i>
+                </a>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-6">
+              <div class="small-box bg-info">
+                <div class="inner">
+                  <h3>Chấm Công</h3>
+                  <p>Quản lý giờ làm</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <a href="${pageContext.request.contextPath}/staff/attendance-checkin" class="small-box-footer">
+                  Ra vào ca <i class="fas fa-arrow-circle-right"></i>
+                </a>
+              </div>
+            </div>
+
+            <div class="col-lg-4 col-12">
+              <div class="small-box bg-warning">
+                <div class="inner">
+                  <h3>Đổi Ca</h3>
+                  <p>Xin đổi lịch làm việc</p>
+                </div>
+                <div class="icon">
+                  <i class="fas fa-exchange-alt"></i>
+                </div>
+                <a href="${pageContext.request.contextPath}/staff/swap" class="small-box-footer">
+                  Thực hiện ngay <i class="fas fa-arrow-circle-right"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          </c:if>
 
             <div class="col-md-6">
               <div class="card card-outline card-secondary">

@@ -43,7 +43,7 @@
     <body class="hold-transition login-page">
         <div class="login-box">
             <div class="login-logo" style="color: #ffffff">
-                <a><b>Bookstore</b> Management</a>
+                <a><b>Bookstore</b> Local POS</a>
             </div>
             <!-- /.login-logo -->
             <div class="card">
@@ -96,7 +96,7 @@
                     </form>
 
                     <p class="mb-1">
-                        <a href="forgot-password.html">Quên mật khẩu</a>
+                        <a href="${pageContext.request.contextPath}/forgot-password">Quên mật khẩu</a>
                     </p>
                     <p class="mb-0">
                         <a href="${pageContext.request.contextPath}/register" class="text-center">Đăng ký tài khoản mới</a>

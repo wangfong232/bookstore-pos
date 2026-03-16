@@ -1,6 +1,7 @@
 package DAO;
 
 import entity.AttendanceView;
+import entity.AttendanceStats;
 import java.sql.*;
 import java.util.*;
 import java.sql.Date;
@@ -250,6 +251,83 @@ public class AttendanceDAO extends DBContext {
         }
 
         return false;
+    }
+
+    /**
+     * Lấy danh sách thống kê tổng giờ làm việc của từng nhân viên trong tháng.
+     * Chỉ tính các record có cả CheckIn và CheckOut.
+     */
+    public List<AttendanceStats> getMonthlyStats(int month, int year, int page, int pageSize) {
+        List<AttendanceStats> list = new ArrayList<>();
+
+        String sql = """
+                    SELECT
+                        e.EmployeeID,
+                        e.FullName,
+                        COUNT(DISTINCT CAST(a.WorkDate AS DATE))               AS WorkDays,
+                        SUM(DATEDIFF(MINUTE,
+                                     CAST(a.CheckIn  AS DATETIME),
+                                     CAST(a.CheckOut AS DATETIME)))             AS TotalMinutes
+                    FROM Attendance a
+                    JOIN EmployeeShiftAssignments esa ON a.AssignmentID = esa.AssignmentID
+                    JOIN Employees e                  ON esa.EmployeeID  = e.EmployeeID
+                    WHERE a.CheckIn  IS NOT NULL
+                      AND a.CheckOut IS NOT NULL
+                      AND MONTH(a.WorkDate) = ?
+                      AND YEAR(a.WorkDate)  = ?
+                    GROUP BY e.EmployeeID, e.FullName
+                    ORDER BY TotalMinutes DESC
+                    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+                """;
+
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, month);
+            ps.setInt(2, year);
+            ps.setInt(3, (page - 1) * pageSize);
+            ps.setInt(4, pageSize);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                AttendanceStats s = new AttendanceStats();
+                s.setEmployeeId(rs.getInt("EmployeeID"));
+                s.setFullName(rs.getString("FullName"));
+                s.setWorkDays(rs.getInt("WorkDays"));
+                s.setTotalMinutes(rs.getLong("TotalMinutes"));
+                list.add(s);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    /**
+     * Đếm số nhân viên khác nhau có dữ liệu chấm công (CheckIn + CheckOut) trong tháng.
+     */
+    public int countMonthlyStats(int month, int year) {
+        String sql = """
+                    SELECT COUNT(DISTINCT esa.EmployeeID)
+                    FROM Attendance a
+                    JOIN EmployeeShiftAssignments esa ON a.AssignmentID = esa.AssignmentID
+                    WHERE a.CheckIn  IS NOT NULL
+                      AND a.CheckOut IS NOT NULL
+                      AND MONTH(a.WorkDate) = ?
+                      AND YEAR(a.WorkDate)  = ?
+                """;
+
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, month);
+            ps.setInt(2, year);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
 }

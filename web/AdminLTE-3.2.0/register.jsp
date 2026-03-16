@@ -46,7 +46,7 @@
     <body class="hold-transition register-page">
         <div class="register-box">
             <div class="register-logo">
-                <a><b>Bookstore</b> Management</a>
+                <a><b>Bookstore</b> Local POS</a>
             </div>
 
             <div class="card">
