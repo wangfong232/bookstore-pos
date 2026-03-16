@@ -147,7 +147,7 @@
                                                         <tr class="clickable-row" data-href="${pageContext.request.contextPath}/admin/purchaseorder?action=detail&poNumber=${item.poNumber}"
                                                             style="cursor: pointer">
                                                             <td> <a href="${pageContext.request.contextPath}/admin/purchaseorder?action=detail&poNumber=${item.poNumber}">${item.poNumber}</a></td>
-                                                            <td>${item.createdAt}</td>
+                                                            <td>${item.createdAtFormatted}</td>
                                                             <td>${item.supplierName}</td>
                                                             <td>${item.totalAmount}</td>
                                                             <td>

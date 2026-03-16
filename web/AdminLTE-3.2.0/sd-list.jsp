@@ -126,10 +126,7 @@
                                             </div>
                                         </form>
                                     </div>
-                                </div><!-- /search card -->
-
-                                <!-- List card -->
-                                <div class="card">
+                                </div><div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-list"></i> Danh sách phiếu xuất hủy
@@ -145,7 +142,7 @@
                                                     <thead class="thead-light">
                                                         <tr>
                                                             <th style="width:140px">Mã phiếu</th>
-                                                            <th style="width:110px">Ngày tạo</th>
+                                                            <th style="width:140px">Ngày tạo</th>
                                                             <th>Lý do chung</th>
                                                             <th style="width:80px" class="text-center">Tổng SP</th>
                                                             <th style="width:120px" class="text-right">Giá trị</th>
@@ -159,7 +156,7 @@
                                                             <tr>
                                                                 <td><strong>${item.disposalNumber}</strong></td>
                                                                 <td>
-                                                                    ${item.disposalDate}
+                                                                    ${item.disposalDateFormatted}
                                                                 </td>  
                                                                 <td>
                                                                     <c:choose>
@@ -210,7 +207,6 @@
                                         </c:choose>
                                     </div>
 
-                                    <!-- Pagination -->
                                     <c:if test="${not empty lists && totalPages > 1}">
                                         <div class="card-footer clearfix">
                                             <div class="float-left">
@@ -252,17 +248,13 @@
                                             </ul>
                                         </div>
                                     </c:if>
-                                </div><!-- /list-card -->
-
-
-                            </div><!-- ./col-12 -->
-                        </div><!-- /row -->
-
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </section><!-- ./content -->                  
-            </div><!-- ./content-wp -->
-
+                </section>
+            </div>
             <jsp:include page="include/admin-footer.jsp"/>
-        </div><!-- ./wrapper -->
+        </div>
     </body>
 </html>

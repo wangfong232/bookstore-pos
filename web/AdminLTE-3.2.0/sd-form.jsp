@@ -48,12 +48,10 @@
                             </div>
                         </c:if>
 
-
                         <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" id="disposalForm">
                             <input type="hidden" name="action" value="save">
                             <input type="hidden" name="sdNumber" value="${sdNumber}">
 
-                            <!-- header info -->
                             <div class="card card-danger card-outline">
                                 <div class="card-header">
                                     <h3 class="card-title"><i class="fas fa-info-circle"></i> Thông tin phiếu xuất hủy</h3>
@@ -84,7 +82,6 @@
                                 </div>
                             </div>
 
-                            <!-- product detail -->
                             <div class="card">
                                 <div class="card-header">
                                     <h3 class="card-title"><i class="fas fa-boxes"></i> Chi tiết sản phẩm xuất hủy</h3>
@@ -112,7 +109,7 @@
                                                     <th>Sản phẩm</th>
                                                     <th style="width:120px" class="text-center">Khả dụng / Tồn</th>
                                                     <th style="width:150px" class="text-center">SL xuất hủy</th>
-                                                    <th>Lý do cụ thể</th>
+                                                    <th>Ghi chú SP (Bắt buộc)</th>
                                                     <th style="width:60px" class="text-center">Xóa</th>
                                                 </tr>
                                             </thead>
@@ -127,7 +124,7 @@
 
                                         <div class="mt-2">
                                             <strong>Tổng số lượng xuất hủy: </strong>
-                                            <span id="totalQtyDisplay"  class="text-danger">0</span>
+                                            <span id="totalQtyDisplay"  class="text-danger font-weight-bold">0</span>
                                         </div>
 
                                     </div>
@@ -311,8 +308,8 @@
                             '<td><strong>' + name + '</strong>' +
                             '<input type="hidden" name="pid[]" value="' + id + '"></td>' +
                             '<td class="text-center">' + available + ' / ' + stock + '</td>' +
-                            '<td><input type="number" class="form-control qty-input" name="dispQty[]" value="1" min="1" max="' + maxAvailable + '"></td>' +
-                            '<td><input type="text" class="form-control" name="specificReason[]" placeholder="Lý do..."></td>' +
+                            '<td><input type="number" class="form-control qty-input text-danger font-weight-bold" name="dispQty[]" value="1" min="1" max="' + maxAvailable + '"></td>' +
+                            '<td><input type="text" class="form-control" name="specificReason[]" placeholder="Ghi chú (VD: Rách bìa)..." required></td>' +
                             '<td class="text-center"><button type="button" class="btn btn-danger btn-sm btn-remove"><i class="fas fa-trash"></i></button></td>' +
                             '</tr>';
 

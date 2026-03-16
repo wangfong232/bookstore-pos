@@ -54,9 +54,7 @@
                             </div>
                         </div>
                     </div>
-                </section><!-- /header -->
-
-                <section>
+                </section><section>
                     <div class="container-fluid">
 
                         <c:if test="${not empty msg}">
@@ -79,7 +77,6 @@
                         </c:if>
 
                         <div class="row">
-                            <!--lef: info+ audit+action -->
                             <div class="col-md-4">
                                 <div class="card card-danger card-outline">
                                     <div class="card-header">
@@ -99,7 +96,7 @@
                                                 Ngày tạo
                                             </div>
                                             <div class="col-7">
-                                                ${sd.disposalDate !=null ? sd.disposalDate : ''}
+                                                ${sd.disposalDate !=null ? sd.disposalDateFormatted : ''}
                                             </div>
                                         </div>
                                         <div class="row mb-2">
@@ -117,7 +114,7 @@
                                                     <c:when test="${sd.disposalReason == 'DEFECTIVE'}">
                                                         <span class="badge badge-warning">Lỗi sản phẩm</span>
                                                     </c:when>
-                                                    <c:otherwise>                                                           
+                                                    <c:otherwise>                                                      
                                                         <span class="badge badge-secondary">Khác</span>
                                                     </c:otherwise>
                                                 </c:choose>
@@ -157,7 +154,7 @@
                                                 Tổng gía trị:
                                             </div>
                                             <div class="col-7">
-                                                <fmt:formatNumber value= "${sd.totalValue}" type="number" maxFractionDigits="0"/>
+                                                <fmt:formatNumber value= "${sd.totalValue}" type="number" maxFractionDigits="0"/>đ
                                             </div>
                                         </div>
                                         <c:if test="${not empty sd.notes}">
@@ -169,13 +166,12 @@
                                     </div>
                                 </div>
 
-                                <!-- autdit -->
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="audit-block mb-3">
                                             <div class="font-weight-bold mb-1">Người tạo:</div>
                                             <div>${not empty sd.createdByName ? sd.createdByName : sd.createdBy}</div>
-                                            <small class="text-muted">${sd.createdAt != null ? sd.createdAt : ''}</small>
+                                            <small class="text-muted">${sd.createdAt != null ? sd.createdAtFormatted : ''}</small>
                                         </div>
 
                                         <c:if test="${not empty sd.approvedByName or sd.approvedBy > 0}">
@@ -185,7 +181,7 @@
                                                 </div>
                                                 <div>
                                                     <div>${not empty sd.approvedByName ? sd.approvedByName :  sd.approvedBy }</div>
-                                                    <small class="text-muted">${sd.approvedAt != null ? sd.approvedAt : ''}</small>
+                                                    <small class="text-muted">${sd.approvedAt != null ? sd.approvedAtFormatted : ''}</small>
                                                 </div>
                                                 <c:if test="${not empty sd.rejectionReason}">
                                                     <div class="mt-1"><strong>Lý do:</strong> ${sd.rejectionReason}</div>
@@ -197,14 +193,13 @@
                                             <div class="audit-block completed">
                                                 <div class="font-weight-bold mb-1 text-purple">Người xử lý hủy</div>
                                                 <div>${not empty sd.disposedByName ? sd.disposedByName : sd.disposedBy }</div>
-                                                <small class="text-muted">${sd.disposedAt != null ? sd.disposedAt : ''}</small>
+                                                <small class="text-muted">${sd.disposedAt != null ? sd.disposedAtFormatted : ''}</small>
                                             </div>
 
                                         </c:if>
                                     </div>
                                 </div>
 
-                                <!-- Action-->
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
@@ -228,15 +223,15 @@
                                                             <i class="fas fa-check"></i> Duyệt phiếu
                                                         </button>
                                                     </form>
-                                                    <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" class="mb-3">
+                                                    <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" class="mb-3" id="rejectForm">
                                                         <input type="hidden" name="action" value="reject">
                                                         <input type="hidden" name="number" value="${sd.disposalNumber}">
-                                                        <input type="text" name="rejectionReason" class="form-control mb-2" placeholder="Lý do từ chối *" required>
-                                                        <button type="submit" class="btn btn-danger btn-block" 
-                                                                onclick="return confirm('Xác nhận từ chối phiếu xuất hủy này?')">
+                                                        <input type="hidden" name="rejectionReason" id="hiddenRejectReason">
+                                                        <button type="button" class="btn btn-danger btn-block" onclick="confirmReject()">
                                                             <i class="fas fa-times"></i> Từ chối
                                                         </button>
                                                     </form>
+
                                                 </c:otherwise>
                                             </c:choose>
                                         </c:if>
@@ -285,8 +280,7 @@
                                                         <th class="text-center" style="width:100px">Tồn trước</th>
                                                         <th class="text-center" style="width:100px">SL xuất hủy</th>
                                                         <th class="text-right" style="width:120px">Giá trị</th>
-                                                        <th>Lý do cụ thể</th>
-                                                    </tr>
+                                                        <th>Ghi chú SP</th> </tr>
                                                 </thead>
                                                 <tbody>
                                                     <c:forEach var="d" items="${sd.details}" varStatus="status">
@@ -321,15 +315,11 @@
                                     </c:choose>
                                 </div>
                             </div>
-                        </div><!-- /row -->
-                    </div>
+                        </div></div>
                 </section>
 
-            </div><!-- /c-w -->
-            <jsp:include page="include/admin-footer.jsp"/>
-        </div><!-- /wrapper -->
-
-        <script>
+            </div><jsp:include page="include/admin-footer.jsp"/>
+        </div><script>
             var chk = document.getElementById('chkPhysical');
             var btn = document.getElementById('btnComplete');
             var hdnConfirmed = document.getElementById('physicalConfirmedInput');
@@ -341,6 +331,16 @@
                         hdnConfirmed.value = chk.checked ? 'true' : 'false';
                     }
                 });
+            }
+
+            function confirmReject() {
+                var reason = prompt("Vui lòng nhập lý do từ chối phiếu xuất hủy này:");
+                if (reason != null && reason.trim() !== "") {
+                    document.getElementById("hiddenRejectReason").value = reason;
+                    document.getElementById("rejectForm").submit();
+                } else if (reason != null) {
+                    alert("Lý do từ chối không được để trống!");
+                }
             }
         </script>
     </body>

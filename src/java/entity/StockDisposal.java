@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import util.DateUtil;
 
 /**
  *
@@ -212,6 +213,22 @@ public class StockDisposal {
 
     public String getDisposedByName() { return disposedByName; }
     public void setDisposedByName(String disposedByName) { this.disposedByName = disposedByName; }
+
+    public String getDisposalDateFormatted() {
+        return DateUtil.format(disposalDate);
+    }
+
+    public String getApprovedAtFormatted() {
+        return DateUtil.format(approvedAt);
+    }
+
+    public String getDisposedAtFormatted() {
+        return DateUtil.format(disposedAt);
+    }
+
+    public String getCreatedAtFormatted() {
+        return DateUtil.format(createdAt);
+    }
 
     public void addDetail(StockDisposalDetail detail){
         details.add(detail);
