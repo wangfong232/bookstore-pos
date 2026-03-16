@@ -31,7 +31,7 @@
                             <div class="col-sm-6">
                                 <ol class="breadcrumb float-sm-right">
                                     <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/stockdisposal?action=list">Xuất hủy hàng</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/stockdisposal?action=list">Xuất hủy hàng</a></li>
                                     <li class="breadcrumb-item active">Tạo mới</li>
                                 </ol>
                             </div>
@@ -49,7 +49,7 @@
                         </c:if>
 
 
-                        <form action="${pageContext.request.contextPath}/stockdisposal" method="post" id="disposalForm">
+                        <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" id="disposalForm">
                             <input type="hidden" name="action" value="save">
                             <input type="hidden" name="sdNumber" value="${sdNumber}">
 
@@ -91,21 +91,21 @@
                                 </div>
 
                                 <div class="card-body">
-                                    <div class="row mb-3">
+                                    <div class="row mb-4">
                                         <div class="col-md-6" style="position: relative;">
                                             <label>Tìm và thêm sản phẩm:</label>
                                             <div class="input-group">
                                                 <input type="text" class="form-control" placeholder="Gõ tên hoặc SKU sản phẩm..." id="productSearchInput" >
                                                 <div class="input-group-append">
-                                                    <button type="button" class="btn btn-primary" id="btnAddProduct"><i class="fas fa-plus"></i>Thêm</button>
+                                                    <button type="button" class="btn btn-primary" id="btnAddProduct"><i class="fas fa-plus mr-1"></i>Thêm</button>
                                                 </div>
                                             </div>
-                                            <div id="productDropdown" class="list-group shadow"
+                                            <div id="productDropdown" class="list-group shadow mt-1"
                                                  style="position:absolute; z-index:9999; width:100%; display:none;">
                                             </div>
                                         </div>
 
-                                        <table class="table table-bordered product-table" id="detailTable">
+                                        <table class="table table-bordered product-table table-hover mt-1" id="detailTable">
                                             <thead class="thead-light">
                                                 <tr>
                                                     <th style="width:50px" class="text-center">STT</th>
@@ -141,7 +141,7 @@
                                                       placeholder="Ghi chú thêm về đợt xuất hủy này..."></textarea>
                                         </div>
                                         <div class="d-flex justify-content-end">
-                                            <a href="${pageContext.request.contextPath}/stockdisposal?action=list"
+                                            <a href="${pageContext.request.contextPath}/admin/stockdisposal?action=list"
                                                class="btn btn-default mr-2">
                                                 <i class="fas fa-times"></i> Hủy
                                             </a>

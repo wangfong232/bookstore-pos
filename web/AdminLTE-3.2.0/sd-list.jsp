@@ -68,14 +68,14 @@
                                     <div class="card-header">
                                         <h3 class="card-title"><i class="fas fa-search"></i> Tìm kiếm & Lọc</h3>
                                         <div class="card-tools">
-                                            <a href="${pageContext.request.contextPath}/stockdisposal?action=create"
+                                            <a href="${pageContext.request.contextPath}/admin/stockdisposal?action=create"
                                                class="btn btn-success btn-sm">
                                                 <i class="fas fa-plus"></i> Tạo phiếu xuất hủy mới
                                             </a>
                                         </div>
                                     </div>
                                     <div class="card-body">
-                                        <form action="${pageContext.request.contextPath}/stockdisposal" method="get">
+                                        <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="get">
                                             <input type="hidden" name="action" value="list">
                                             <div class="row">
                                                 <div class="col-md-3 form-group">
@@ -118,7 +118,7 @@
                                                     <button type="submit" class="btn btn-primary mr-2">
                                                         <i class="fas fa-search"></i> Tìm kiếm
                                                     </button>
-                                                    <a href="${pageContext.request.contextPath}/stockdisposal?action=list"
+                                                    <a href="${pageContext.request.contextPath}/admin/stockdisposal?action=list"
                                                        class="btn btn-default">
                                                         <i class="fas fa-redo"></i> Đặt lại
                                                     </a>
@@ -191,7 +191,7 @@
                                                                 </td>
                                                                 <td>${item.createdByName}</td>
                                                                 <td class="text-center">
-                                                                    <a href="${pageContext.request.contextPath}/stockdisposal?action=view&number=${item.disposalNumber}"
+                                                                    <a href="${pageContext.request.contextPath}/admin/stockdisposal?action=view&number=${item.disposalNumber}"
                                                                        class="btn btn-info btn-sm">
                                                                         <i class="fas fa-eye"></i> Xem chi tiết
                                                                     </a>
@@ -222,11 +222,11 @@
                                                 <c:if test="${currentPage > 1}">
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/stockdisposal?action=list&page=1&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">First</a>
+                                                           href="${pageContext.request.contextPath}/admin/stockdisposal?action=list&page=1&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">First</a>
                                                     </li>
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/stockdisposal?action=list&page=${currentPage - 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">«</a>
+                                                           href="${pageContext.request.contextPath}/admin/stockdisposal?action=list&page=${currentPage - 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">«</a>
                                                     </li>
                                                 </c:if>
 
@@ -234,7 +234,7 @@
                                                     <c:if test="${i == currentPage || i == currentPage - 1 || i == currentPage + 1}">
                                                         <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                             <a class="page-link"
-                                                               href="${pageContext.request.contextPath}/stockdisposal?action=list&page=${i}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">${i}</a>
+                                                               href="${pageContext.request.contextPath}/admin/stockdisposal?action=list&page=${i}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">${i}</a>
                                                         </li>
                                                     </c:if>
                                                 </c:forEach>
@@ -242,11 +242,11 @@
                                                 <c:if test="${currentPage < totalPages}">
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/stockdisposal?action=list&page=${currentPage + 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">»</a>
+                                                           href="${pageContext.request.contextPath}/admin/stockdisposal?action=list&page=${currentPage + 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">»</a>
                                                     </li>
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/stockdisposal?action=list&page=${totalPages}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">Last</a>
+                                                           href="${pageContext.request.contextPath}/admin/stockdisposal?action=list&page=${totalPages}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">Last</a>
                                                     </li>
                                                 </c:if>
                                             </ul>

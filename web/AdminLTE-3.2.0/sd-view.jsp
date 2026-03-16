@@ -48,7 +48,7 @@
                             <div class="col-sm-6">
                                 <ol class="breadcrumb float-sm-right">
                                     <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/stockdisposal?action=list">Xuất hủy hàng</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/stockdisposal?action=list">Xuất hủy hàng</a></li>
                                     <li class="breadcrumb-item active">${sd.disposalNumber}</li>
                                 </ol>
                             </div>
@@ -208,33 +208,41 @@
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
-                                            <i class="fas fa-tasks"></i> Thao tác
+                                            <i class="fas fa-tasks"></i> Thao tác</h3>
                                     </div>
-                                    <div class="card-body ">
-                                        <!--PENDING_APPROVAL: approve+ reject-->
-                                        <c:if test="${sd.status=='PENDING_APPROVAL'}">
-                                            <form action="${pageContext.request.contextPath}/stockdisposal" method="post" class="mb-3">
-                                                <input type="hidden" name="action" value="approve">
-                                                <input type="hidden" name="number" value="${sd.disposalNumber}">
-                                                <button type="submit" class="btn btn-success btn-lock" 
-                                                        onclick="return confirm('Xác nhận phiếu xuất hủy này?')">
-                                                    <i class="fas fa-check"></i>Duyệt phiếu
-                                                </button>
-                                            </form>
-                                            <form  action="${pageContext.request.contextPath}/stockdisposal" method="post">
-                                                <input type="hidden" name="action" value="reject">
-                                                <input type="hidden" name="number" value="${sd.disposalNumber}">
-                                                <input type="text" name="rejectionReason" class="form-control" placeholder="Lý do từ chối *" required>
-                                                <button type="submit" class="btn btn-danger btn-lock" 
-                                                        onclick="return confirm('Xác nhận phiếu xuất hủy này?')">
-                                                    <i class="fas fa-check"></i>Từ chối
-                                                </button>
-                                            </form>
+                                    <div class="card-body">
+                                        <c:if test="${sd.status == 'PENDING_APPROVAL' && (sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Store Manager' || sessionScope.roleName == 'Admin')}">
+
+                                            <c:choose>
+                                                <c:when test="${sessionScope.employeeId == sd.createdBy && sessionScope.roleName != 'Admin'}">
+                                                    <div class="alert alert-info text-center">
+                                                        <i class="fas fa-info-circle"></i> Phiếu xuất hủy đang chờ một Quản lý khác duyệt. Bạn không thể tự duyệt phiếu do mình tạo.
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" class="mb-3">
+                                                        <input type="hidden" name="action" value="approve">
+                                                        <input type="hidden" name="number" value="${sd.disposalNumber}">
+                                                        <button type="submit" class="btn btn-success btn-block" 
+                                                                onclick="return confirm('Xác nhận duyệt phiếu xuất hủy này?')">
+                                                            <i class="fas fa-check"></i> Duyệt phiếu
+                                                        </button>
+                                                    </form>
+                                                    <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" class="mb-3">
+                                                        <input type="hidden" name="action" value="reject">
+                                                        <input type="hidden" name="number" value="${sd.disposalNumber}">
+                                                        <input type="text" name="rejectionReason" class="form-control mb-2" placeholder="Lý do từ chối *" required>
+                                                        <button type="submit" class="btn btn-danger btn-block" 
+                                                                onclick="return confirm('Xác nhận từ chối phiếu xuất hủy này?')">
+                                                            <i class="fas fa-times"></i> Từ chối
+                                                        </button>
+                                                    </form>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </c:if>
 
-                                        <!-- approve -->
-                                        <c:if test="${sd.status=='APPROVED'}">
-                                            <form action="${pageContext.request.contextPath}/stockdisposal" method="post" id="completeForm">
+                                        <c:if test="${sd.status == 'APPROVED' && (sessionScope.roleName == 'Manager' || sessionScope.roleName == 'Store Manager' || sessionScope.roleName == 'Admin')}">
+                                            <form action="${pageContext.request.contextPath}/admin/stockdisposal" method="post" id="completeForm" class="mb-3">
                                                 <input type="hidden" name="action" value="complete">
                                                 <input type="hidden" name="number" value="${sd.disposalNumber}">
                                                 <input type="hidden" name="physicalConfirmed" id="physicalConfirmedInput" value="false">
@@ -249,13 +257,14 @@
                                                 </button>
                                             </form>
                                         </c:if>
-                                        <a href="${pageContext.request.contextPath}/stockdisposal?action=list"
-                                           class="btn btn-default btn-block">
+
+                                        <a href="${pageContext.request.contextPath}/admin/stockdisposal?action=list" class="btn btn-default btn-block">
                                             <i class="fas fa-arrow-left"></i> Quay lại danh sách
                                         </a>
                                     </div>
                                 </div>
                             </div>
+
 
                             <div class="col-md-8">
                                 <div class="card-header">

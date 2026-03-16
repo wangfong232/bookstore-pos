@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author qp
  */
-@WebServlet(name = "StockDisposalController", urlPatterns = {"/stockdisposal"})
+@WebServlet(name = "StockDisposalController", urlPatterns = {"/admin/stockdisposal"})
 public class StockDisposalController extends HttpServlet {
 
     private final StockDisposalDAO sdDAO = new StockDisposalDAO();
@@ -61,21 +61,34 @@ public class StockDisposalController extends HttpServlet {
         if (action == null) {
             action = "";
         }
+
+        String redirectUrl = request.getContextPath() + "/admin/stockdisposal?action=list";
+
         switch (action) {
             case "save":
                 saveDisposal(request, response);
                 break;
             case "approve":
+                if (!isManagerOrAdmin(request)) {
+                    request.getSession().setAttribute("msg", "access_denied");
+                    response.sendRedirect(redirectUrl);
+                    return;
+                }
                 approve(request, response);
                 break;
             case "reject":
+                if (!isManagerOrAdmin(request)) {
+                    request.getSession().setAttribute("msg", "access_denied");
+                    response.sendRedirect(redirectUrl);
+                    return;
+                }
                 reject(request, response);
                 break;
             case "complete":
                 complete(request, response);
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+                response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=list");
         }
     }
 
@@ -110,14 +123,14 @@ public class StockDisposalController extends HttpServlet {
             throws ServletException, IOException {
         String number = request.getParameter("number");
         if (number == null || number.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=list");
             return;
         }
 
         StockDisposal sd = sdDAO.getSDByNumber(number);
         if (sd == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=list");
             return;
         }
         request.setAttribute("sd", sd);
@@ -147,19 +160,19 @@ public class StockDisposalController extends HttpServlet {
         StockDisposal sd = sdDAO.getSDByNumber(number);
         if (sd == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=list");
             return;
         }
 
         if (sd.getCreatedBy() != null && sd.getCreatedBy() == employeeId) {
             request.getSession().setAttribute("msg", "fail_self_approve");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?aciton=view&number=" + number);
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?aciton=view&number=" + number);
             return;
         }
 
         boolean ok = sdDAO.approveDisposal(sd.getId(), employeeId);
         request.getSession().setAttribute("msg", ok ? "success_approve" : "fail_approve");
-        response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
+        response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=view&number=" + number);
     }
 
     private void reject(HttpServletRequest request, HttpServletResponse response)
@@ -170,20 +183,20 @@ public class StockDisposalController extends HttpServlet {
 
         if (reason == null || reason.trim().isEmpty()) {
             request.getSession().setAttribute("msg", "fail_reject_reason");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?aciton=view&number=" + number);
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?aciton=view&number=" + number);
             return;
         }
 
         StockDisposal sd = sdDAO.getSDByNumber(number);
         if (sd == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=list");
             return;
         }
 
         boolean ok = sdDAO.rejectDisposal(sd.getId(), employeeId, reason.trim());
         request.getSession().setAttribute("msg", ok ? "success_reject" : "fail_reject");
-        response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
+        response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=view&number=" + number);
     }
 
     private void complete(HttpServletRequest request, HttpServletResponse response)
@@ -194,31 +207,31 @@ public class StockDisposalController extends HttpServlet {
 
         if (!"true".equals(confirmed)) {
             request.getSession().setAttribute("msg", "fail_no_physical_confirm");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=view&number=" + number);
             return;
         }
 
         StockDisposal sd = sdDAO.getSDByNumber(number);
         if (sd == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=list");
             return;
         }
         boolean ok = sdDAO.completeDisposal(sd.getId(), employeeId);
         request.getSession().setAttribute("msg", ok ? "success_complete" : "fail_complete");
-        response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + number);
+        response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=view&number=" + number);
     }
 
-     private void saveDisposal(HttpServletRequest request, HttpServletResponse response)
+    private void saveDisposal(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        int createdBy       = getLoggedInEmployeeId(request);
-        String sdNumber     = request.getParameter("sdNumber");
+        int createdBy = getLoggedInEmployeeId(request);
+        String sdNumber = request.getParameter("sdNumber");
         String disposalReason = request.getParameter("disposalReason");
-        String notes        = request.getParameter("notes");
+        String notes = request.getParameter("notes");
 
         if (disposalReason == null || disposalReason.isBlank()) {
             request.getSession().setAttribute("msg", "fail_noreason");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=create");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=create");
             return;
         }
 
@@ -228,13 +241,13 @@ public class StockDisposalController extends HttpServlet {
             productMap.put(p.getId(), p);
         }
 
-        String[] pids          = request.getParameterValues("pid[]");
-        String[] dispQtys      = request.getParameterValues("dispQty[]");
+        String[] pids = request.getParameterValues("pid[]");
+        String[] dispQtys = request.getParameterValues("dispQty[]");
         String[] specificReasons = request.getParameterValues("specificReason[]");
 
         if (pids == null || pids.length == 0) {
             request.getSession().setAttribute("msg", "fail_noproduct");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=create");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=create");
             return;
         }
 
@@ -246,19 +259,19 @@ public class StockDisposalController extends HttpServlet {
             int productId = parseIntSafe(pids[i]);
             Product p = productMap.get(productId);
             if (p == null) {
-                continue; 
+                continue;
             }
 
             int qty = parseIntSafe(dispQtys != null && i < dispQtys.length ? dispQtys[i] : "0");
             if (qty <= 0) {
                 request.getSession().setAttribute("msg", "fail_invalid_qty");
-                response.sendRedirect(request.getContextPath() + "/stockdisposal?action=create");
+                response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=create");
                 return;
             }
             int availableStock = p.getAvailableStock();
             if (qty > availableStock) {
                 request.getSession().setAttribute("msg", "fail_exceed_stock:" + p.getProductName());
-                response.sendRedirect(request.getContextPath() + "/stockdisposal?action=create");
+                response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=create");
                 return;
             }
 
@@ -278,7 +291,7 @@ public class StockDisposalController extends HttpServlet {
 
         if (sd.getDetails().isEmpty()) {
             request.getSession().setAttribute("msg", "fail_noproduct");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=create");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=create");
             return;
         }
 
@@ -287,13 +300,12 @@ public class StockDisposalController extends HttpServlet {
         boolean ok = sdDAO.createDisposalWithDetails(sd);
         if (ok) {
             request.getSession().setAttribute("msg", "success_save");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=view&number=" + sdNumber);
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=view&number=" + sdNumber);
         } else {
             request.getSession().setAttribute("msg", "fail_save");
-            response.sendRedirect(request.getContextPath() + "/stockdisposal?action=create");
+            response.sendRedirect(request.getContextPath() + "/admin/stockdisposal?action=create");
         }
     }
-
 
     private int getLoggedInEmployeeId(HttpServletRequest request) {
         Object emp = request.getSession().getAttribute("employeeId");
@@ -324,5 +336,10 @@ public class StockDisposalController extends HttpServlet {
         } catch (Exception ignored) {
         }
         return 0;
+    }
+
+    private boolean isManagerOrAdmin(HttpServletRequest request) {
+        String role = (String) request.getSession().getAttribute("roleName");
+        return "Manager".equals(role) || "Store Manager".equals(role) || "Admin".equals(role);
     }
 }

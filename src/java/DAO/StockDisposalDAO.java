@@ -324,11 +324,11 @@ public class StockDisposalDAO extends DBContext {
                            select ProductID, Quantity, UnitCost from StockDisposalDetails where DisposalID = ?
                            """;
         String sqlUpdateStock = """
-                            update Products
-                            set Stock = Stock - ? , ReservedStock = ReservedStock - ?
-                            OUTPUT deleted.Stock AS StockBefore, inserted.Stock AS StockAfter
-                            where ProductID = ? AND Stock >= ? AND StockReserved >= ?
-                            """;
+             update Products
+             set Stock = Stock - ? , ReservedStock = ReservedStock - ?
+             OUTPUT deleted.Stock AS StockBefore, inserted.Stock AS StockAfter
+             where ProductID = ? AND Stock >= ? AND ReservedStock >= ?
+             """;
         String sqlInsertTx = """
                          insert into InventoryTransactions
                          (ProductID, TransactionType, ReferenceType, ReferenceID, ReferenceCode, 
@@ -383,7 +383,7 @@ public class StockDisposalDAO extends DBContext {
                         stmStock.setInt(3, productId);
                         stmStock.setInt(4, qty);
                         stmStock.setInt(5, qty);
-                        
+
                         int stockBefore, stockAfter;
                         try (ResultSet out = stmStock.executeQuery()) {
                             if (!out.next()) {

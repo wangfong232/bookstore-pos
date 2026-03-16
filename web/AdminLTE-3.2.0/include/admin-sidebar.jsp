@@ -117,12 +117,6 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/employees" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Tồn kho</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/admin/purchaseorder" class="nav-link">
                                 <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Nhập hàng</p>
@@ -134,9 +128,10 @@
                                 <p>Kiểm kho</p>
                             </a>
                         </li>
+
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
+                            <a href="${pageContext.request.contextPath}/admin/stockdisposal" class="nav-link">
+                                <i class="fa-solid fa-trash-can nav-icon"></i>
                                 <p>Xuất hủy</p>
                             </a>
                         </li>
