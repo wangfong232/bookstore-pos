@@ -31,15 +31,11 @@
                             </div>
                             <div class="col-sm-6">
                                 <ol class="breadcrumb float-sm-right">
-                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/dashboard">Home</a></li>
+                                    <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/admin/dashboard">Home</a></li>
                                     <li class="breadcrumb-item active">Phiếu nhập kho</li>
                                 </ol>
                             </div>
-                        </div><!-- ./row -->
-                    </div><!-- ./container-fluid -->
-                </section><!-- ./content-header -->
-
-                <section class="content">
+                        </div></div></section><section class="content">
                     <div class="container-fluid">
                         <c:if test="${not empty msg}">
                             <div class="alert ${msg.contains('success') ? 'alert-success' : 'alert-danger'} alert-dismissible fade show">
@@ -50,8 +46,16 @@
                                     <c:when test="${msg == 'success_complete'}">Hoàn tất phiếu nhập kho thành công! Kho đã được cập nhật.</c:when>
                                     <c:when test="${msg == 'success_cancel'}">Hủy phiếu nhập kho thành công!</c:when>
                                     <c:when test="${msg == 'fail_notfound'}">Không tìm thấy phiếu nhập kho.</c:when>
+                                    <c:when test="${msg == 'access_denied'}">Bạn không có quyền thực hiện thao tác này!</c:when>
                                     <c:otherwise>Có lỗi xảy ra. Vui lòng thử lại!</c:otherwise>
                                 </c:choose>
+                            </div>
+                        </c:if>
+
+                        <c:if test="${not empty error}">
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                <i class="icon fas fa-ban"></i> ${error}
                             </div>
                         </c:if>
 
@@ -61,14 +65,14 @@
                                     <div class="card-header">
                                         <h3 class="card-title"><i class="fas fa-search"></i> Tìm kiếm &amp; Lọc</h3>
                                         <div class="card-tools">
-                                            <a href="${pageContext.request.contextPath}/goodsreceipt?action=create"
+                                            <a href="${pageContext.request.contextPath}/admin/goodsreceipt?action=create"
                                                class="btn btn-success btn-sm">
-                                                <i class="fas fa-plus"></i>Tạo phiếu nhập từ ĐĐH
+                                                <i class="fas fa-plus"></i> Tạo phiếu nhập từ ĐĐH
                                             </a>
                                         </div>
                                     </div>
                                     <div class="card-body">
-                                        <form action="${pageContext.request.contextPath}/goodsreceipt" method="get">
+                                        <form action="${pageContext.request.contextPath}/admin/goodsreceipt" method="get">
                                             <input type="hidden" name="action" value="list">
                                             <div class="row">
                                                 <div class="col-md-3 form-group">
@@ -97,7 +101,7 @@
                                                     <button type="submit" class="btn btn-primary mr-2">
                                                         <i class="fas fa-search"></i> Tìm kiếm
                                                     </button>
-                                                    <a href="${pageContext.request.contextPath}/goodsreceipt?action=list"
+                                                    <a href="${pageContext.request.contextPath}/admin/goodsreceipt?action=list"
                                                        class="btn btn-default">
                                                         <i class="fas fa-redo"></i> Đặt lại
                                                     </a>
@@ -105,10 +109,7 @@
                                             </div>
                                         </form>
                                     </div>
-                                </div><!-- /search card -->
-
-                                <!-- List card -->
-                                <div class="card">
+                                </div><div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-list"></i> Danh sách phiếu nhập kho
@@ -160,7 +161,7 @@
                                                                     </c:choose>
                                                                 </td>
                                                                 <td>
-                                                                    <a href="${pageContext.request.contextPath}/goodsreceipt?action=detail&receiptNumber=${item.receiptNumber}"
+                                                                    <a href="${pageContext.request.contextPath}/admin/goodsreceipt?action=detail&receiptNumber=${item.receiptNumber}"
                                                                        class="btn btn-sm btn-outline-primary">
                                                                         <i class="fas fa-eye"></i> Xem chi tiết
                                                                     </a>
@@ -176,10 +177,7 @@
                                                 </div>
                                             </c:otherwise>
                                         </c:choose>
-                                    </div><!-- ./card-body -->
-
-                                    <!-- Pagination -->
-                                    <c:if test="${not empty lists && totalPages > 1}">
+                                    </div><c:if test="${not empty lists && totalPages > 1}">
                                         <div class="card-footer clearfix">
                                             <div class="float-left">
                                                 <p class="text-muted">
@@ -190,11 +188,11 @@
                                                 <c:if test="${currentPage > 1}">
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/goodsreceipt?action=list&page=1&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">First</a>
+                                                           href="${pageContext.request.contextPath}/admin/goodsreceipt?action=list&page=1&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">First</a>
                                                     </li>
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/goodsreceipt?action=list&page=${currentPage - 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">«</a>
+                                                           href="${pageContext.request.contextPath}/admin/goodsreceipt?action=list&page=${currentPage - 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">«</a>
                                                     </li>
                                                 </c:if>
 
@@ -202,7 +200,7 @@
                                                     <c:if test="${i == currentPage || i == currentPage - 1 || i == currentPage + 1}">
                                                         <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                             <a class="page-link"
-                                                               href="${pageContext.request.contextPath}/goodsreceipt?action=list&page=${i}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">${i}</a>
+                                                               href="${pageContext.request.contextPath}/admin/goodsreceipt?action=list&page=${i}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">${i}</a>
                                                         </li>
                                                     </c:if>
                                                 </c:forEach>
@@ -210,35 +208,23 @@
                                                 <c:if test="${currentPage < totalPages}">
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/goodsreceipt?action=list&page=${currentPage + 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">»</a>
+                                                           href="${pageContext.request.contextPath}/admin/goodsreceipt?action=list&page=${currentPage + 1}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">»</a>
                                                     </li>
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/goodsreceipt?action=list&page=${totalPages}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">Last</a>
+                                                           href="${pageContext.request.contextPath}/admin/goodsreceipt?action=list&page=${totalPages}&key=${param.key}&status=${param.status}&from=${param.from}&to=${param.to}">Last</a>
                                                     </li>
                                                 </c:if>
                                             </ul>
                                         </div>
                                     </c:if>
-
-                                </div><!-- ./card -->
-
-                            </div><!-- ./col-12 -->
-                        </div><!-- ./row -->
-                    </div><!-- ./container-fluid -->
-                </section><!-- ./content -->
-
-            </div><!-- ./content-wrapper -->
-
-         <jsp:include page="include/admin-footer.jsp" />
-
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <jsp:include page="include/admin-footer.jsp" />
         </div>
-        <!-- jQuery -->
-        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/jquery/jquery.min.js"></script>
-        <!-- Bootstrap 4 -->
-        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-        <!-- AdminLTE -->
-        <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>
-
     </body>
 </html>

@@ -358,7 +358,6 @@ public class GoodsReceiptDAO extends DBContext {
         String sqlUpdateStock = """
                                 update Products 
                                 set Stock = Stock + ?, CostPrice = ?, UpdatedDate = GETDATE()
-                                OUTPUT deleted.Stock AS StockBefore, inserted.Stock AS StockAfter
                                 where ProductID = ?
                                 """;
 
@@ -366,7 +365,7 @@ public class GoodsReceiptDAO extends DBContext {
                              insert into InventoryTransactions 
                              (ProductID, TransactionType, ReferenceType, ReferenceID, ReferenceCode,
                               QuantityChange, StockBefore, StockAfter, UnitCost, Notes, CreatedBy)
-                             values (?, 'IN', 'RECEIPT', ?, ?, ?, ?, ?, ?, ?, ?)
+                             values (?, 'IN', 'GOODS_RECEIPT', ?, ?, ?, ?, ?, ?, ?, ?)
                              """;
 
         Connection connection = null;
@@ -389,8 +388,7 @@ public class GoodsReceiptDAO extends DBContext {
                 return false;
             }
 
-            try (PreparedStatement stmStock = connection.prepareStatement(sqlUpdateStock);
-                 PreparedStatement stmTx = connection.prepareStatement(sqlInsertTx)) {
+            try (PreparedStatement stmStock = connection.prepareStatement(sqlUpdateStock); PreparedStatement stmTx = connection.prepareStatement(sqlInsertTx)) {
 
                 //for each detail, update product stock, cal MAC, and update the row with MAC snapshot
                 for (GoodsReceiptDetail detail : details) {
@@ -400,17 +398,20 @@ public class GoodsReceiptDAO extends DBContext {
                     detail.setMACSnapshot(oldQty, oldCost);
                     detail.calculateNewAvgCost();
 
+                    int stockBefore = oldQty;
+                    int stockAfter = oldQty + detail.getQuantityReceived();
+
                     stmStock.setInt(1, detail.getQuantityReceived());
                     stmStock.setBigDecimal(2, detail.getNewAvgCost());
                     stmStock.setInt(3, detail.getProductId());
-                    
-                    int stockBefore = 0, stockAfter = 0;
-                    try (ResultSet out = stmStock.executeQuery()) {
-                        if (out.next()) {
-                            stockBefore = out.getInt("StockBefore");
-                            stockAfter = out.getInt("StockAfter");
-                        }
-                    }
+                    stmStock.addBatch();
+//                    int stockBefore = 0, stockAfter = 0;
+//                    try (ResultSet out = stmStock.executeQuery()) {
+//                        if (out.next()) {
+//                            stockBefore = out.getInt("StockBefore");
+//                            stockAfter = out.getInt("StockAfter");
+//                        }
+//                    }
 
                     stmTx.setInt(1, detail.getProductId());
                     stmTx.setLong(2, gr.getId());
@@ -426,6 +427,7 @@ public class GoodsReceiptDAO extends DBContext {
                     updatePOItemReceived(connection, detail.getPoLineItemId(), detail.getQuantityReceived());
                     updateGRDetailMAC(connection, detail.getId(), detail.getOldQty(), detail.getOldCost(), detail.getNewAvgCost());
                 }
+                stmStock.executeBatch();
                 stmTx.executeBatch();
             }
 
@@ -604,7 +606,7 @@ public class GoodsReceiptDAO extends DBContext {
                     gr.setPoId(rs.getLong("POID"));
                     gr.setStatus(rs.getString("Status"));
                     gr.setReceiptDate(getLocalDateTime(rs, "ReceiptDate"));
-                    gr.setReceivedBy(rs.getInt("ReceivedBy")); 
+                    gr.setReceivedBy(rs.getInt("ReceivedBy"));
                     return gr;
                 }
             }

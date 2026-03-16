@@ -24,7 +24,7 @@ import util.Validation;
  *
  * @author qp
  */
-@WebServlet(name = "GoodsReceiptController", urlPatterns = {"/goodsreceipt"})
+@WebServlet(name = "GoodsReceiptController", urlPatterns = {"/admin/goodsreceipt"})
 public class GoodsReceiptController extends HttpServlet {
 
     private final GoodsReceiptDAO grDAO = new GoodsReceiptDAO();
@@ -59,23 +59,36 @@ public class GoodsReceiptController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
         }
+
+        String redirectUrl = request.getContextPath() + "/admin/goodsreceipt?action=list";
 
         switch (action) {
             case "save":
                 saveGR(request, response);
                 break;
             case "complete":
+                if (!isManagerOrAdmin(request)) {
+                    request.getSession().setAttribute("msg", "access_denied");
+                    response.sendRedirect(redirectUrl);
+                    return;
+                }
                 completeGR(request, response);
                 break;
             case "cancel":
+                if (!isManagerOrAdmin(request)) {
+                    request.getSession().setAttribute("msg", "access_denied");
+                    response.sendRedirect(redirectUrl);
+                    return;
+                }
                 cancelGR(request, response);
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+                response.sendRedirect(redirectUrl);
         }
     }
 
@@ -112,11 +125,7 @@ public class GoodsReceiptController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalRecords", totalRecords);
 
-        String msg = (String) request.getSession().getAttribute("msg");
-        if (msg != null) {
-            request.setAttribute("msg", msg);
-            request.getSession().removeAttribute("msg");
-        }
+        resetSessionMsg(request);
         request.getRequestDispatcher("/AdminLTE-3.2.0/gr-list.jsp").forward(request, response);
     }
 
@@ -152,13 +161,8 @@ public class GoodsReceiptController extends HttpServlet {
             request.getSession().removeAttribute("error");
         }
 
-        Object accountObj = request.getSession().getAttribute("account");
-        String currentUserName;
-        if (accountObj != null) {
-            currentUserName = accountObj.toString();
-        } else {
-            currentUserName = "Staff A"; //thay bang ten taht tu sesssion sau khi tich hop auth 
-        }
+        String currentUserName = (String) request.getSession().getAttribute("fullName");
+        request.setAttribute("currentUserName", currentUserName != null ? currentUserName : "Unknown User");
 
         request.setAttribute("currentUserName", currentUserName);
         request.setAttribute("mode", "create");
@@ -169,15 +173,15 @@ public class GoodsReceiptController extends HttpServlet {
             throws ServletException, IOException {
         String receiptNumber = request.getParameter("receiptNumber");
         if (receiptNumber == null || receiptNumber.trim().isEmpty()) {
-            request.setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+            request.getSession().setAttribute("msg", "fail_notfound");
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=list");
             return;
         }
 
         GoodsReceipt gr = grDAO.getGRByNumber(receiptNumber);
         if (gr == null) {
             request.getSession().setAttribute("msg", "fail_notfound");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=list");
             return;
         }
 
@@ -188,11 +192,13 @@ public class GoodsReceiptController extends HttpServlet {
         request.setAttribute("items", items);
 
         request.setAttribute("mode", GoodsReceipt.STATUS_COMPLETED.equals(gr.getStatus()) ? "view" : "pending");
+
         String error = (String) request.getSession().getAttribute("error");
         if (error != null) {
             request.setAttribute("error", error);
             request.getSession().removeAttribute("error");
         }
+        resetSessionMsg(request);
 
         request.getRequestDispatcher("/AdminLTE-3.2.0/gr-form.jsp").forward(request, response);
     }
@@ -202,17 +208,17 @@ public class GoodsReceiptController extends HttpServlet {
         String receiptNumber = request.getParameter("receiptNumber");
         if (receiptNumber == null || receiptNumber.trim().isEmpty()) {
             request.getSession().setAttribute("msg", "fail");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=list");
             return;
         }
 
         boolean success = grDAO.completeGR(receiptNumber);
         if (success) {
             request.getSession().setAttribute("msg", "success_complete");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=detail&receiptNumber=" + receiptNumber);
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=detail&receiptNumber=" + receiptNumber);
         } else {
             request.getSession().setAttribute("error", "Không thể hoàn tất phiếu nhập. Phiếu có thể đã hoàn tất hoặc không tồn tại.");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=detail&receiptNumber=" + receiptNumber);
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=detail&receiptNumber=" + receiptNumber);
         }
     }
 
@@ -221,7 +227,6 @@ public class GoodsReceiptController extends HttpServlet {
         String poIdParam = request.getParameter("poId");
         String receiptDateParam = request.getParameter("receiptDate");
         String notesParam = request.getParameter("notes");
-        String receivedByParam = request.getParameter("receivedBy");
         String[] poLineIds = request.getParameterValues("poLineItemId");
         String[] productIds = request.getParameterValues("productId");
         String[] quantitiesReceived = request.getParameterValues("quantityReceived");
@@ -289,23 +294,18 @@ public class GoodsReceiptController extends HttpServlet {
 
         if (!valid.isValid()) {
             request.getSession().setAttribute("error", valid.getFirstError());
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=create&poId=" + poIdParam);
             return;
         }
 
-        //bulid gr
+        //build gr
         GoodsReceipt gr = new GoodsReceipt();
         gr.setReceiptNumber(grDAO.generateNextGRNumber());
         gr.setPoId(poId);
         gr.setNotes(notesParam);
         gr.setReceiptDate(receiptDate != null ? receiptDate : LocalDateTime.now());
 
-        // Fake current user id = 1
-        int receivedBy = 1;
-        if (receivedByParam != null && !receivedByParam.trim().isEmpty()) {
-            receivedBy = parseIntSafe(receivedByParam);
-        }
-
+        int receivedBy = getLoggedInEmployeeId(request);
         gr.setReceivedBy(receivedBy);
 
         for (int i = 0; i < poLineIds.length; i++) {
@@ -322,7 +322,7 @@ public class GoodsReceiptController extends HttpServlet {
             BigDecimal cost = parseBigDecimalSafe(unitCosts != null && i < unitCosts.length ? unitCosts[i] : "0");
             if (cost.compareTo(BigDecimal.ZERO) <= 0) {
                 request.getSession().setAttribute("error", "Đơn giá sản phẩm phải lớn hơn 0.");
-                response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
+                response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=create&poId=" + poIdParam);
                 return;
             }
             d.setUnitCost(cost);
@@ -337,10 +337,10 @@ public class GoodsReceiptController extends HttpServlet {
 
         if (success) {
             request.getSession().setAttribute("msg", "success_create");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=detail&receiptNumber=" + gr.getReceiptNumber());
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=detail&receiptNumber=" + gr.getReceiptNumber());
         } else {
             request.getSession().setAttribute("error", "Lỗi khi tạo phiếu nhập kho. Vui lòng thử lại.");
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=create&poId=" + poIdParam);
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=create&poId=" + poIdParam);
         }
     }
 
@@ -348,7 +348,7 @@ public class GoodsReceiptController extends HttpServlet {
             throws ServletException, IOException {
         String receiptNumber = request.getParameter("receiptNumber");
         if (receiptNumber == null || receiptNumber.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=list");
             return;
         }
         boolean success = grDAO.cancelGR(receiptNumber);
@@ -357,10 +357,28 @@ public class GoodsReceiptController extends HttpServlet {
         } else {
             request.getSession().setAttribute("error", "Không thể hủy phiếu. Phiếu phải ở trạng thái 'Đang nhập'.");
         }
-        response.sendRedirect(request.getContextPath() + "/goodsreceipt?action=list");
+        response.sendRedirect(request.getContextPath() + "/admin/goodsreceipt?action=list");
     }
 
-//helper
+    private int getLoggedInEmployeeId(HttpServletRequest request) {
+        Object emp = request.getSession().getAttribute("employeeId");
+        return (emp instanceof Integer) ? (Integer) emp : 1;
+    }
+
+    private boolean isManagerOrAdmin(HttpServletRequest request) {
+        String role = (String) request.getSession().getAttribute("roleName");
+        return "Manager".equals(role) || "Store Manager".equals(role) || "Admin".equals(role);
+    }
+
+    private void resetSessionMsg(HttpServletRequest request) {
+        String msg = (String) request.getSession().getAttribute("msg");
+        if (msg != null) {
+            request.setAttribute("msg", msg);
+            request.getSession().removeAttribute("msg");
+        }
+    }
+
+    // --- Format Helpers ---
     private void loadPoItemsJson(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
