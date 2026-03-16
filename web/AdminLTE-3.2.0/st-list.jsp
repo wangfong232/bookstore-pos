@@ -53,11 +53,13 @@
                                     <c:when test="${msg == 'success_submit'}">Gửi duyệt thành công!</c:when>
                                     <c:when test="${msg == 'success_approve'}">Duyệt phiếu kiểm kê thành công!</c:when>
                                     <c:when test="${msg == 'success_recount'}">Yêu cầu kiểm kê lại thành công!</c:when>
+                                    <c:when test="${msg == 'success_cancel'}">Hủy phiếu kiểm kê thành công!</c:when>
                                     <c:when test="${msg == 'fail_notfound'}">Không tìm thấy phiếu kiểm kê.</c:when>
                                     <c:when test="${msg == 'fail_self_approve'}">Người tạo không được tự duyệt!</c:when>
                                     <c:when test="${msg == 'fail_date'}">Ngày kiểm kê không hợp lệ. Chỉ được tạo phiếu vào ngày hôm nay.</c:when>
                                     <c:when test="${msg == 'fail_invalid_qty'}">Số lượng thực tế không hợp lệ (phải >= 0).</c:when>
                                     <c:when test="${msg == 'fail_save'}">Lưu phiếu kiểm kê thất bại. Vui lòng thử lại.</c:when>
+                                    <c:when test="${msg == 'fail_cancel'}">Hủy phiếu kiểm kê thất bại. Vui lòng thử lại.</c:when>
                                     <c:otherwise>${msg}</c:otherwise>
                                 </c:choose>
                             </div>
@@ -94,6 +96,7 @@
                                                         <option value="IN_PROGRESS"       ${param.status == 'IN_PROGRESS'       ? 'selected' : ''}>Đang thực hiện</option>
                                                         <option value="PENDING_APPROVAL"  ${param.status == 'PENDING_APPROVAL'  ? 'selected' : ''}>Chờ duyệt</option>
                                                         <option value="COMPLETED"         ${param.status == 'COMPLETED'         ? 'selected' : ''}>Đã hoàn thành</option>
+                                                        <option value="CANCELLED"         ${param.status == 'CANCELLED'         ? 'selected' : ''}>Đã hủy</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2 form-group">
@@ -172,6 +175,10 @@
 
                                                                         <c:when test="${item.status=='PENDING_APPROVAL'}">
                                                                             <span class="badge badge-info">Chờ duyệt</span>
+                                                                        </c:when>
+
+                                                                        <c:when test="${item.status=='CANCELLED'}">
+                                                                            <span class="badge badge-danger">Đã hủy</span>
                                                                         </c:when>
 
                                                                         <c:when test="${item.status=='COMPLETED'}">

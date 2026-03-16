@@ -88,6 +88,9 @@ public class StockTakeController extends HttpServlet {
                 }
                 requestRecount(request, response);
                 break;
+            case "cancel":
+                cancel(request, response);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
         }
@@ -192,7 +195,7 @@ public class StockTakeController extends HttpServlet {
             if (existingST != null && "IN_PROGRESS".equals(existingST.getStatus())) {
                 request.setAttribute("productList", allProducts);
                 request.setAttribute("categoryList", new CategoryDAO().getAllCategories());
-                
+
                 request.setAttribute("st", existingST);
                 request.setAttribute("selectedProducts", existingST.getDetails());
                 request.setAttribute("stNumber", existingST.getStockTakeNumber());
@@ -236,8 +239,8 @@ public class StockTakeController extends HttpServlet {
         String notes = request.getParameter("notes");
 
         LocalDate date = parseLocalDate(dateStr);
-        if (date == null || !date.equals(LocalDate.now())) {
-            request.getSession().setAttribute("msg", "fail_date");
+        if (date == null || date.isAfter(LocalDate.now())) {
+            request.getSession().setAttribute("error", "Ngày kiểm kê không hợp lệ (không được chọn ngày tương lai).");
             response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
             return;
         }
@@ -389,6 +392,23 @@ public class StockTakeController extends HttpServlet {
         boolean ok = stDAO.requestRecountST(st.getId(), employeeId, reason);
         request.getSession().setAttribute("msg", ok ? "success_recount" : "fail_recount");
         response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=view&number=" + number);
+    }
+
+    private void cancel(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String number = request.getParameter("number");
+        int employeeId = getLoggedInEmployeeId(request);
+
+        StockTake st = stDAO.getSTByNumber(number);
+        if (st == null) {
+            request.getSession().setAttribute("msg", "fail_notfound");
+            response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
+            return;
+        }
+
+        boolean ok = stDAO.cancelST(st.getId(), employeeId);
+        request.getSession().setAttribute("msg", ok ? "success_cancel" : "fail_cancel");
+        response.sendRedirect(request.getContextPath() + "/admin/stocktake?action=list");
     }
 
     private int getLoggedInEmployeeId(HttpServletRequest request) {

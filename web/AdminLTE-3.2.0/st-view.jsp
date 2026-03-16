@@ -250,7 +250,7 @@
                                                     <i class="fas fa-paper-plane"></i> Gửi duyệt
                                                 </button>
                                             </form>
-                                                
+
                                             <a href="${pageContext.request.contextPath}/admin/stocktake?action=step2&stNumber=${st.stockTakeNumber}" 
                                                class="btn btn-info btn-block mb-2">
                                                 <i class="fas fa-edit"></i> Thực hiện kiểm kê lại
@@ -273,6 +273,17 @@
                                                     <i class="fas fa-redo"></i> Yêu cầu kiểm lại
                                                 </button>
                                             </c:if>
+                                        </c:if>
+                                        <!-- Cancel button for IN_PROGRESS or PENDING_APPROVAL -->
+                                        <c:if test="${st.status == 'IN_PROGRESS' || st.status == 'PENDING_APPROVAL'}">
+                                            <form action="${pageContext.request.contextPath}/admin/stocktake" method="post" style="display:inline">
+                                                <input type="hidden" name="action" value="cancel">
+                                                <input type="hidden" name="number" value="${st.stockTakeNumber}">
+                                                <button type="submit" class="btn btn-danger btn-block mb-2"
+                                                        onclick="return confirm('Xác nhận HỦY phiếu kiểm kê này? Khóa kiểm kê sẽ được giải phóng.')">
+                                                    <i class="fas fa-trash-alt"></i> Hủy bỏ phiếu
+                                                </button>
+                                            </form>
                                         </c:if>
 
                                         <a href="${pageContext.request.contextPath}/admin/stocktake?action=list"

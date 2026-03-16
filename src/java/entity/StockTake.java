@@ -19,6 +19,7 @@ public class StockTake {
     public static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
     public static final String STATUS_PENDING_APPROVAL = "PENDING_APPROVAL";
     public static final String STATUS_COMPLETED = "COMPLETED";
+    public static final String STATUS_CANCELLED = "CANCELLED";
 
     public static final String SCOPE_ALL = "ALL";
     public static final String SCOPE_CATEGORY = "CATEGORY";

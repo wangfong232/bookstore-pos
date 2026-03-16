@@ -535,6 +535,26 @@ public class StockTakeDAO extends DBContext {
         }
         return false;
     }
+    
+    
+   public boolean cancelST(long id, int cancelledBy) {
+        String sql = """
+                update StockTakes
+                set Status = 'CANCELLED',
+                    Notes = CASE
+                        WHEN Notes IS NULL OR Notes = '' THEN '(Đã bị hủy)'
+                        ELSE CONCAT(Notes, ' (Đã bị hủy)')
+                    END
+                where StockTakeID = ? AND Status IN ('IN_PROGRESS', 'PENDING_APPROVAL')
+                """;
+        try (Connection connection = getConnection(); PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setLong(1, id);
+            return stm.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: cancelST: " + e.getMessage());
+        }
+        return false;
+    }
 
     private void appendFilters(StringBuilder sql, String keyword, String status,
             LocalDate from, LocalDate to) {
