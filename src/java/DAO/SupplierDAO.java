@@ -190,76 +190,6 @@ public class SupplierDAO extends DBContext {
         return false;
     }
 
-    //filter
-//    //filter by status
-//    public List<Supplier> getSuppliersByStatus(boolean isActive) {
-//        List<Supplier> lists = new ArrayList<>();
-//        String sql = "select * from Suppliers where IsActive=? order by SupplierID desc";
-//        try {
-//            stm = connection.prepareStatement(sql);
-//            stm.setBoolean(1, isActive);
-//            rs = stm.executeQuery();
-//            while (rs.next()) {
-//                lists.add(extractSupplierFromResultSet(rs));
-//            }
-//        } catch (Exception e) {
-//            System.out.println("ERR: getSuppliersByStatus: " + e.getMessage());
-//        }
-//        return lists;
-//    }
-//
-//    //filter by keyword:  code, name, contactperson
-//    public List<Supplier> searchSuppliers(String keyword) {
-//        List<Supplier> lists = new ArrayList<>();
-//        String sql = """
-//                      select * from Suppliers where
-//                      SupplierCode like ? OR 
-//                      SupplierName like ? OR
-//                      ContactPerson like ?
-//                      order by SupplierID desc
-//                      """;
-//        try {
-//            stm = connection.prepareStatement(sql);
-//            String searchPattern = "%" + keyword + "%";
-//            stm.setString(1, searchPattern);
-//            stm.setString(2, searchPattern);
-//            stm.setString(3, searchPattern);
-//            rs = stm.executeQuery();
-//            while (rs.next()) {
-//                lists.add(extractSupplierFromResultSet(rs));
-//            }
-//        } catch (Exception e) {
-//            System.out.println("ERR: searchSuppliers: " + e.getMessage());
-//        }
-//        return lists;
-//    }
-//
-//    //filter by keyword:  code, name, contactperson + status
-//    public List<Supplier> searchSuppliers(String keyword, boolean isActive) {
-//        List<Supplier> lists = new ArrayList<>();
-//        String sql = """
-//                      select * from Suppliers where
-//                     IsActive = 
-//                      SupplierCode like ? OR 
-//                      SupplierName like ? OR
-//                      ContactPerson like ?
-//                      order by SupplierID desc
-//                      """;
-//        try {
-//            stm = connection.prepareStatement(sql);
-//            String searchPattern = "%" + keyword + "%";
-//            stm.setString(1, searchPattern);
-//            stm.setString(2, searchPattern);
-//            stm.setString(3, searchPattern);
-//            rs = stm.executeQuery();
-//            while (rs.next()) {
-//                lists.add(extractSupplierFromResultSet(rs));
-//            }
-//        } catch (Exception e) {
-//            System.out.println("ERR: searchSuppliers: " + e.getMessage());
-//        }
-//        return lists;
-//    }
     public List<Supplier> searchSuppliers(String keyword, Boolean isActive) {
         List<Supplier> lists = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
@@ -431,6 +361,50 @@ public class SupplierDAO extends DBContext {
         return "SUP-001";
     }
 
+    //BR
+    public boolean canDeleteSupplier(String supplierCode) {
+        String sql = """
+                SELECT COUNT(*) FROM PurchaseOrders po
+                JOIN Suppliers s ON po.SupplierID = s.SupplierID
+                WHERE s.SupplierCode = ?
+                """;
+        try (Connection conn = getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setString(1, supplierCode);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) == 0;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: canDeleteSupplier: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean canLockSupplier(String supplierCode) {
+        return getBlockingOrdersCount(supplierCode) == 0;
+    }
+    
+    public int getBlockingOrdersCount(String supplierCode) {
+        String sql = """
+                SELECT COUNT(*) FROM PurchaseOrders po
+                JOIN Suppliers s ON po.SupplierID = s.SupplierID
+                WHERE s.SupplierCode = ?
+                AND po.Status IN ('PENDING_APPROVAL', 'APPROVED', 'PARTIAL_RECEIVED')
+                """;
+        try (Connection conn = getConnection(); PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setString(1, supplierCode);
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getBlockingOrdersCount: " + e.getMessage());
+        }
+        return 0;
+    }
+    
     private Supplier extractSupplierFromResultSet(ResultSet rs) throws Exception {
         Supplier sup = new Supplier();
         sup.setId(rs.getInt("SupplierID"));
