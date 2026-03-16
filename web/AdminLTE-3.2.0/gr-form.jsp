@@ -403,7 +403,6 @@
                                             <i class="fas fa-arrow-left"></i> Quay lại
                                         </a>
 
-                                        <c:if test="${isManagerOrAdmin}">
                                             <form method="post" action="${pageContext.request.contextPath}/admin/goodsreceipt"
                                                   style="display:inline"
                                                   onsubmit="return confirm('Xác nhận HỦY phiếu ${gr.receiptNumber}? Phiếu sẽ bị xóa vĩnh viễn và không thể khôi phục.')">
@@ -422,7 +421,6 @@
                                                     <i class="fas fa-check"></i> Hoàn tất nhập kho
                                                 </button>                                                
                                             </form>
-                                        </c:if>
                                     </c:if>
 
                                     <c:if test="${mode == 'view'}">

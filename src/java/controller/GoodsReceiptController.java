@@ -72,19 +72,9 @@ public class GoodsReceiptController extends HttpServlet {
                 saveGR(request, response);
                 break;
             case "complete":
-                if (!isManagerOrAdmin(request)) {
-                    request.getSession().setAttribute("msg", "access_denied");
-                    response.sendRedirect(redirectUrl);
-                    return;
-                }
                 completeGR(request, response);
                 break;
             case "cancel":
-                if (!isManagerOrAdmin(request)) {
-                    request.getSession().setAttribute("msg", "access_denied");
-                    response.sendRedirect(redirectUrl);
-                    return;
-                }
                 cancelGR(request, response);
                 break;
             default:
