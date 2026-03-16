@@ -140,6 +140,12 @@
                                 <p>Xuất hủy</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="${pageContext.request.contextPath}/admin/inventorytransaction" class="nav-link">
+                                <i class="fas fa-history nav-icon"></i>
+                                <p>Lịch sử giao dịch</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
