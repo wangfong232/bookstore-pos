@@ -15,13 +15,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- *
- * @author qp
- */
-@WebServlet(name = "InventoryTransactionController", urlPatterns = {"/inventorytransaction"})
+@WebServlet(name = "InventoryTransactionController", urlPatterns = {"/admin/inventorytransaction"})
 public class InventoryTransactionController extends HttpServlet {
- private final InventoryTransactionDAO itDAO = new InventoryTransactionDAO();
+    private final InventoryTransactionDAO itDAO = new InventoryTransactionDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -39,7 +35,7 @@ public class InventoryTransactionController extends HttpServlet {
                 showList(request, response);
         }
     }
-      private void showList(HttpServletRequest request, HttpServletResponse response)
+    private void showList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String keyword     = request.getParameter("key");
         String txType      = request.getParameter("txType");
@@ -50,7 +46,7 @@ public class InventoryTransactionController extends HttpServlet {
         if (page <= 0) {
             page = 1;
         }
-        int pageSize = 10;
+        int pageSize = 20;
 
         int total      = itDAO.count(keyword, txType, null, from, to);
         int totalPages = Math.max(1, (int) Math.ceil((double) total / pageSize));
@@ -61,10 +57,10 @@ public class InventoryTransactionController extends HttpServlet {
         List<InventoryTransaction> list = itDAO.searchTransactionWithPaginated(keyword, txType, null, from, to, page, pageSize);
 
         String ctx = request.getContextPath();
-          for (InventoryTransaction tx : list) {
-              tx.setReferenceUrl(buildReferenceUrl(ctx, tx.getReferenceType(), tx.getReferenceCode()));
-          }
-        
+        for (InventoryTransaction tx : list) {
+            tx.setReferenceUrl(buildReferenceUrl(ctx, tx.getReferenceType(), tx.getReferenceCode()));
+        }
+
         request.setAttribute("lists", list);
         request.setAttribute("totalRecords", total);
         request.setAttribute("totalPages", totalPages);
@@ -73,24 +69,24 @@ public class InventoryTransactionController extends HttpServlet {
         request.getRequestDispatcher("/AdminLTE-3.2.0/it-list.jsp").forward(request, response);
     }
 
-      private String buildReferenceUrl(String ctx, String refType, String refCode) {
-          if(refCode ==null || refCode.isBlank() || refType == null){
-              return "";
-          }
-           switch (refType) {
+    private String buildReferenceUrl(String ctx, String refType, String refCode) {
+        if (refCode == null || refCode.isBlank() || refType == null) {
+            return "";
+        }
+        switch (refType) {
             case InventoryTransaction.REF_DISPOSAL:
-                return ctx + "/stockdisposal?action=view&number=" + refCode;
+                return ctx + "/admin/stockdisposal?action=view&number=" + refCode;
             case InventoryTransaction.REF_STOCK_TAKE:
-                return ctx + "/stocktake?action=view&number=" + refCode;
+                return ctx + "/admin/stocktake?action=view&number=" + refCode;
             case InventoryTransaction.REF_GOODS_RECEIPT:
-                return ctx + "/goodsreceipt?action=view&number=" + refCode;
+                return ctx + "/admin/goodsreceipt?action=view&number=" + refCode;
 //            case InventoryTransaction.REF_SALE:
 //                return ctx + "/pos?action=view&number=" + refCode;
-            default:  
+            default: 
                 return "";
         }
-      }
-      
+    }
+
     private void resetSessionMsg(HttpServletRequest request) {
         String msg = (String) request.getSession().getAttribute("msg");
         if (msg != null) {

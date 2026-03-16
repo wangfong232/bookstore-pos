@@ -8,6 +8,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
+<%@page import="util.DateUtil"%> 
 <!DOCTYPE html>
 <html>
     <head>
@@ -46,7 +47,7 @@
 
                         <c:if test="${not empty msg}">
                             <div class="alert ${fn:startsWith(msg,'success') ? 'alert-success' : 'alert-danger'} alert-dismissible fade show">
-                                <button type="button" class="close" data-dismiss="alert">x</button>
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
                                 <i class="icon fas ${fn:startsWith(msg,'success') ? 'fa-check' : 'fa-ban'}"></i>
                                 ${msg}
                             </div>
@@ -60,7 +61,7 @@
                                         <h3 class="card-title"><i class="fas fa-search"></i> Tìm kiếm & Lọc</h3>
                                     </div>
                                     <div class="card-body">
-                                        <form action="${pageContext.request.contextPath}/inventorytransaction" method="get">
+                                        <form action="${pageContext.request.contextPath}/admin/inventorytransaction" method="get">
                                             <input type="hidden" name="action" value="list">
                                             <div class="row">
                                                 <div class="col-md-4 form-group">
@@ -92,7 +93,7 @@
                                                     <button type="submit" class="btn btn-primary mr-2">
                                                         <i class="fas fa-search"></i> Tìm kiếm
                                                     </button>
-                                                    <a href="${pageContext.request.contextPath}/inventorytransaction?action=list"
+                                                    <a href="${pageContext.request.contextPath}/admin/inventorytransaction?action=list"
                                                        class="btn btn-default">
                                                         <i class="fas fa-redo"></i> Đặt lại
                                                     </a>
@@ -132,8 +133,7 @@
                                                     <tbody>
                                                         <c:forEach var="item" items="${lists}">
                                                             <tr>
-                                                                <td>${item.transactionDate}</td>
-                                                                <td class="text-center">
+                                                                <td>${DateUtil.format(item.transactionDate)}</td>                                                                <td class="text-center">
                                                                     <c:choose>
                                                                         <c:when test="${item.transactionType == 'IN'}">
                                                                             <span class="badge badge-success">IN</span>
@@ -160,7 +160,7 @@
                                                                     </c:choose>
                                                                 </td>
                                                                 <td>
-                                                                  <c:choose>
+                                                                    <c:choose>
                                                                         <c:when test="${not empty item.referenceUrl}">
                                                                             <a href="${item.referenceUrl}">${item.referenceCode}</a>
                                                                         </c:when>
@@ -212,11 +212,11 @@
                                                 <c:if test="${currentPage > 1}">
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/inventorytransaction?action=list&page=1&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">First</a>
+                                                           href="${pageContext.request.contextPath}/admin/inventorytransaction?action=list&page=1&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">First</a>
                                                     </li>
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/inventorytransaction?action=list&page=${currentPage - 1}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">«</a>
+                                                           href="${pageContext.request.contextPath}/admin/inventorytransaction?action=list&page=${currentPage - 1}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">«</a>
                                                     </li>
                                                 </c:if>
 
@@ -224,7 +224,7 @@
                                                     <c:if test="${i == currentPage || i == currentPage - 1 || i == currentPage + 1}">
                                                         <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                             <a class="page-link"
-                                                               href="${pageContext.request.contextPath}/inventorytransaction?action=list&page=${i}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">${i}</a>
+                                                               href="${pageContext.request.contextPath}/admin/inventorytransaction?action=list&page=${i}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">${i}</a>
                                                         </li>
                                                     </c:if>
                                                 </c:forEach>
@@ -232,11 +232,11 @@
                                                 <c:if test="${currentPage < totalPages}">
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/inventorytransaction?action=list&page=${currentPage + 1}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">»</a>
+                                                           href="${pageContext.request.contextPath}/admin/inventorytransaction?action=list&page=${currentPage + 1}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">»</a>
                                                     </li>
                                                     <li class="page-item">
                                                         <a class="page-link"
-                                                           href="${pageContext.request.contextPath}/inventorytransaction?action=list&page=${totalPages}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">Last</a>
+                                                           href="${pageContext.request.contextPath}/admin/inventorytransaction?action=list&page=${totalPages}&key=${param.key}&txType=${param.txType}&from=${param.from}&to=${param.to}">Last</a>
                                                     </li>
                                                 </c:if>
                                             </ul>
