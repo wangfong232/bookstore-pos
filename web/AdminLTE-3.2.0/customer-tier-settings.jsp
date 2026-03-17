@@ -7,7 +7,7 @@
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>Cài Đặt Hạng & Tích Điểm Khách Hàng</title>
+                <title>Cài Đặt Cấp Bậc & Tích Điểm Khách Hàng</title>
 
                 <!-- Google Font: Source Sans Pro -->
                 <link rel="stylesheet"
@@ -35,7 +35,7 @@
                             <div class="container-fluid">
                                 <div class="row mb-2">
                                     <div class="col-sm-6">
-                                        <h1><i class="fas fa-trophy"></i> HẠNG & TÍCH ĐIỂM KHÁCH HÀNG</h1>
+                                        <h1><i class="fas fa-trophy"></i> CẤP BẬC & TÍCH ĐIỂM KHÁCH HÀNG</h1>
                                     </div>
                                 </div>
                             </div>
@@ -49,11 +49,11 @@
                                 <div class="card">
                                     <div class="card-header bg-light">
                                         <h3 class="card-title text-bold text-uppercase" style="margin-top: 5px;">Quy Tắc
-                                            Phân Loại Hạng</h3>
+                                            Phân Loại Cấp Bậc</h3>
                                         <div class="card-tools">
                                             <a href="<%= request.getContextPath() %>/admin/customer-tiers"
                                                 class="btn btn-success btn-sm">
-                                                <i class="fas fa-plus"></i> Thêm Hạng
+                                                <i class="fas fa-plus"></i> Thêm Cấp Bậc
                                             </a>
                                         </div>
                                     </div>
@@ -62,9 +62,8 @@
                                         <table class="table table-bordered table-hover">
                                             <thead class="bg-light">
                                                 <tr>
-                                                    <th>Tên Hạng</th>
-                                                    <th>Chi Tiêu Tối Thiểu</th>
-                                                    <th>Hệ Số Điểm</th>
+                                                    <th>Tên Cấp Bậc</th>
+                                                    <th>Điểm Tối Thiểu</th>
                                                     <th>Giảm Giá %</th>
                                                     <th>Thao Tác</th>
                                                 </tr>
@@ -74,7 +73,7 @@
                                                     <c:when test="${empty tiers}">
                                                         <tr>
                                                             <td colspan="5" class="text-center text-muted py-4">
-                                                                Chưa có hạng nào. Hãy thêm hạng mới.
+                                                                Chưa có cấp bậc nào. Hãy thêm cấp bậc mới.
                                                             </td>
                                                         </tr>
                                                     </c:when>
@@ -108,10 +107,9 @@
                                                                     </c:choose>
                                                                 </td>
                                                                 <td>
-                                                                    <fmt:formatNumber value="${tier.minTotalSpent}"
-                                                                        type="number" groupingUsed="true" /> ₫
+                                                                    <fmt:formatNumber value="${tier.minPoint}"
+                                                                        type="number" groupingUsed="true" />
                                                                 </td>
-                                                                <td>x ${tier.pointRate}</td>
                                                                 <td>${tier.discountRate}%</td>
                                                                 <td>
                                                                     <a
@@ -155,7 +153,7 @@
                                         <div class="card-body">
                                             <!-- Tier Name -->
                                             <div class="form-group row">
-                                                <label for="tierName" class="col-sm-2 col-form-label">Tên Hạng:</label>
+                                                <label for="tierName" class="col-sm-2 col-form-label">Tên Bậc:</label>
                                                 <div class="col-sm-10">
                                                     <input type="text" class="form-control" id="tierName"
                                                         name="tierName" value="${selectedTier.tierName}" required>
@@ -167,72 +165,37 @@
                                                 <label for="spendingRequirement" class="col-sm-2 col-form-label">Điều
                                                     Kiện:</label>
                                                 <div class="col-sm-10 d-flex align-items-center">
-                                                    <span class="mr-2">Chi tiêu</span>
+                                                    <span class="mr-2">Tối thiểu</span>
                                                     <c:if test="${not empty selectedTier}">
-                                                        <fmt:formatNumber value="${selectedTier.minTotalSpent}"
-                                                            type="number" groupingUsed="false"
-                                                            var="formattedMinSpent" />
+                                                        <fmt:formatNumber value="${selectedTier.minPoint}" type="number"
+                                                            groupingUsed="false" var="formattedMinPoint" />
                                                     </c:if>
                                                     <input type="text" class="form-control" id="spendingRequirement"
-                                                        name="minTotalSpent" value="${formattedMinSpent}"
+                                                        name="minPoint" value="${formattedMinPoint}"
                                                         style="width: 150px;" required>
-                                                    <span class="ml-2">VND để đạt hạng này</span>
+                                                    <span class="ml-2">điểm</span>
                                                 </div>
                                             </div>
 
-                                            <!-- Points Multiplier -->
-                                            <div class="form-group row">
-                                                <label for="pointsMultiplier" class="col-sm-2 col-form-label">Hệ Số
-                                                    Điểm:</label>
-                                                <div class="col-sm-10">
-                                                    <input type="text" class="form-control" id="pointsMultiplier"
-                                                        name="pointRate"
-                                                        value="${selectedTier.pointRate != null ? selectedTier.pointRate : 1.0}"
-                                                        style="width: 150px;" required>
-                                                </div>
-                                            </div>
 
                                             <!-- Discount Rate -->
                                             <div class="form-group row">
                                                 <label for="discountRate" class="col-sm-2 col-form-label">Tỷ Lệ Giảm
                                                     Giá:</label>
                                                 <div class="col-sm-10">
-                                                    <input type="text" class="form-control" id="discountRate"
-                                                        name="discountRate"
-                                                        value="${selectedTier.discountRate != null ? selectedTier.discountRate : 0}"
-                                                        style="width: 150px;" required>
+                                                    <div class="input-group" style="width: 150px;">
+                                                        <input type="text" class="form-control" id="discountRate"
+                                                            name="discountRate"
+                                                            value="${selectedTier.discountRate != null ? selectedTier.discountRate : 0}"
+                                                            required>
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Benefits -->
-                                            <div class="form-group row">
-                                                <label
-                                                    class="col-sm-2 col-form-label text-uppercase text-danger text-bold">Quyền
-                                                    Lợi:</label>
-                                                <div class="col-sm-10">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input class="custom-control-input" type="checkbox"
-                                                            id="benefit1" checked>
-                                                        <label for="benefit1"
-                                                            class="custom-control-label font-weight-normal">Quà Sinh
-                                                            Nhật (Voucher 50k)</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox mt-2">
-                                                        <input class="custom-control-input" type="checkbox"
-                                                            id="benefit2" checked>
-                                                        <label for="benefit2"
-                                                            class="custom-control-label font-weight-normal">Bọc Sách
-                                                            Miễn Phí</label>
-                                                    </div>
-                                                    <div class="custom-control custom-checkbox mt-2">
-                                                        <input class="custom-control-input" type="checkbox"
-                                                            id="benefit3">
-                                                        <label for="benefit3"
-                                                            class="custom-control-label font-weight-normal">Ưu Tiên Mua
-                                                            Sách Mới</label>
-                                                    </div>
-                                                </div>
-                                            </div>
+
                                         </div>
 
                                         <div class="card-footer bg-transparent border-top-0 d-flex justify-content-end">

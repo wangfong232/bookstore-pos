@@ -5,7 +5,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.*;
-import java.io.*;
+
 /*
 *
 *
@@ -15,16 +15,15 @@ public class CustomerTierDAO extends DBContext {
 
     public void insert(CustomerTier t) {
         String sql = """
-                    INSERT INTO CustomerTiers(TierName, MinTotalSpent, PointRate, DiscountRate)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO CustomerTiers(TierName, MinPoint, DiscountRate)
+                    VALUES (?, ?, ?)
                 """;
         try (Connection con = getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, t.getTierName());
-            ps.setDouble(2, t.getMinTotalSpent());
-            ps.setDouble(3, t.getPointRate());
-            ps.setDouble(4, t.getDiscountRate());
+            ps.setDouble(2, t.getMinPoint());
+            ps.setDouble(3, t.getDiscountRate());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -41,8 +40,7 @@ public class CustomerTierDAO extends DBContext {
                 CustomerTier t = new CustomerTier();
                 t.setTierID(rs.getInt("TierID"));
                 t.setTierName(rs.getString("TierName"));
-                t.setMinTotalSpent(rs.getDouble("MinTotalSpent"));
-                t.setPointRate(rs.getDouble("PointRate"));
+                t.setMinPoint(rs.getDouble("MinPoint"));
                 t.setDiscountRate(rs.getDouble("DiscountRate"));
                 list.add(t);
             }
@@ -67,17 +65,16 @@ public class CustomerTierDAO extends DBContext {
     public void update(CustomerTier t) {
         String sql = """
                     UPDATE CustomerTiers
-                    SET TierName = ?, MinTotalSpent = ?, PointRate = ?, DiscountRate = ?
+                    SET TierName = ?, MinPoint = ?, DiscountRate = ?
                     WHERE TierID = ?
                 """;
         try (Connection con = getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, t.getTierName());
-            ps.setDouble(2, t.getMinTotalSpent());
-            ps.setDouble(3, t.getPointRate());
-            ps.setDouble(4, t.getDiscountRate());
-            ps.setInt(5, t.getTierID());
+            ps.setDouble(2, t.getMinPoint());
+            ps.setDouble(3, t.getDiscountRate());
+            ps.setInt(4, t.getTierID());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -95,8 +92,7 @@ public class CustomerTierDAO extends DBContext {
                     CustomerTier t = new CustomerTier();
                     t.setTierID(rs.getInt("TierID"));
                     t.setTierName(rs.getString("TierName"));
-                    t.setMinTotalSpent(rs.getDouble("MinTotalSpent"));
-                    t.setPointRate(rs.getDouble("PointRate"));
+                    t.setMinPoint(rs.getDouble("MinPoint"));
                     t.setDiscountRate(rs.getDouble("DiscountRate"));
                     return t;
                 }
