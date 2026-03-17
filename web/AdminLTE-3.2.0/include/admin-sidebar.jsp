@@ -116,13 +116,13 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="categories" class="nav-link">
+                            <a href="admin/categories" class="nav-link">
                                 <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Danh mục</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="brands" class="nav-link">
+                            <a href="admin/brands" class="nav-link">
                                 <i class="far fa-dot-circle nav-icon"></i>
                                 <p>Thương hiệu</p>
                             </a>
