@@ -264,7 +264,7 @@ public class PosController extends HttpServlet {
                 // Email/mã mới chưa có trong hệ thống -> tự động tạo khách hàng (coi input là email)
                 Customer newCustomer = new Customer();
                 newCustomer.setCustomerID(customerDAO.getNextCustomerId());
-                newCustomer.setFullName("");
+                newCustomer.setCustomerName("");
                 newCustomer.setEmail(trimmed);
                 newCustomer.setBirthday(java.time.LocalDate.of(1990, 1, 1));
                 newCustomer.setStatus("ACTIVE");
