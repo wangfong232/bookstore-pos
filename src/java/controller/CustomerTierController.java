@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "CustomerTierController", urlPatterns = { "/admin/customer-tiers" })
+@WebServlet(name = "CustomerTierController", urlPatterns = { "/customer-tiers" })
 public class CustomerTierController extends HttpServlet {
 
     private final CustomerTierDAO tierDAO = new CustomerTierDAO();
@@ -105,7 +105,7 @@ public class CustomerTierController extends HttpServlet {
 
         tierDAO.update(tier);
         response.sendRedirect(
-                request.getContextPath() + "/admin/customer-tiers?msg=update_success&action=edit&id=" + id);
+                request.getContextPath() + "/customer-tiers?msg=update_success&action=edit&id=" + id);
     }
 
     private void deleteTier(HttpServletRequest request, HttpServletResponse response)
