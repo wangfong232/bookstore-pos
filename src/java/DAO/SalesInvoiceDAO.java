@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,21 +27,15 @@ public class SalesInvoiceDAO extends DBContext {
         lastErrorMessage = message;
     }
 
-    /**
-     * Tạo hóa đơn bán hàng và chi tiết từ giỏ hàng.
-     *
-     * @param customerId     mã khách hàng (có thể null / rỗng)
-     * @param cart           danh sách CartItem
-     * @param staffId        ID nhân viên thu ngân
-     * @param shiftId        ID ca làm (có thể null)
-     * @param note           ghi chú hóa đơn (có thể null)
-     * @param discountPercent giảm giá theo % (0–100)
-     * @param paymentMethod  CASH hoặc TRANSFER
-     * @return mã hóa đơn (InvoiceCode) nếu thành công, null nếu thất bại
-     */
-    public String createInvoice(String customerId, List<CartItem> cart, int staffId, Integer shiftId,
-                                String note, double discountPercent, String paymentMethod) {
+    public String createInvoice(String customerId,
+                                List<CartItem> cart,
+                                int staffId,
+                                Integer shiftId,
+                                String note,
+                                double discountPercent,
+                                String paymentMethod) {
         setLastErrorMessage(null);
+
         if (cart == null || cart.isEmpty()) {
             setLastErrorMessage("Giỏ hàng trống.");
             return null;
@@ -54,8 +49,14 @@ public class SalesInvoiceDAO extends DBContext {
         double totalAmount = cart.stream()
                 .mapToDouble(CartItem::getLineTotal)
                 .sum();
-        if (discountPercent < 0) discountPercent = 0;
-        if (discountPercent > 100) discountPercent = 100;
+
+        if (discountPercent < 0) {
+            discountPercent = 0;
+        }
+        if (discountPercent > 100) {
+            discountPercent = 100;
+        }
+
         double discountAmount = totalAmount * discountPercent / 100.0;
         double vatAmount = calculateVatAmount(cart);
         double finalAmount = totalAmount - discountAmount + vatAmount;
@@ -99,12 +100,12 @@ public class SalesInvoiceDAO extends DBContext {
             if (customerId != null && !customerId.trim().isEmpty()) {
                 invoiceStm.setString(3, customerId.trim());
             } else {
-                invoiceStm.setNull(3, java.sql.Types.NVARCHAR);
+                invoiceStm.setNull(3, Types.NVARCHAR);
             }
             if (shiftId != null) {
                 invoiceStm.setInt(4, shiftId);
             } else {
-                invoiceStm.setNull(4, java.sql.Types.INTEGER);
+                invoiceStm.setNull(4, Types.INTEGER);
             }
             invoiceStm.setDouble(5, totalAmount);
             invoiceStm.setDouble(6, discountAmount);
@@ -124,7 +125,6 @@ public class SalesInvoiceDAO extends DBContext {
             if (rs.next()) {
                 invoiceId = rs.getLong(1);
             } else {
-                // Fallback: một số driver SQL Server không trả về generated keys
                 try (PreparedStatement findIdStm = conn.prepareStatement(
                         "SELECT TOP 1 InvoiceID FROM SalesInvoice WHERE InvoiceCode = ?")) {
                     findIdStm.setString(1, invoiceCode);
@@ -164,8 +164,7 @@ public class SalesInvoiceDAO extends DBContext {
             if (conn != null) {
                 try {
                     conn.rollback();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             setLastErrorMessage(ex.getMessage());
@@ -175,100 +174,124 @@ public class SalesInvoiceDAO extends DBContext {
             if (rs != null) {
                 try {
                     rs.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (invoiceStm != null) {
                 try {
                     invoiceStm.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (detailStm != null) {
                 try {
                     detailStm.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (paymentStm != null) {
                 try {
                     paymentStm.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
         }
     }
 
-    /**
-     * Tính tổng tiền thuế VAT cho giỏ hàng dựa trên loại sách.
-     * Các nhóm sách sau được áp dụng 0% VAT:
-     * - Sách giáo khoa
-     * - Sách chính trị
-     * - Sách pháp luật
-     * - Sách khoa học kỹ thuật
-     * Các loại sách thông thường khác áp dụng 5% VAT.
-     */
     private double calculateVatAmount(List<CartItem> cart) {
         if (cart == null || cart.isEmpty()) {
             return 0;
         }
+
+        List<Integer> categoryIds = new ArrayList<>();
+        for (CartItem item : cart) {
+            Product p = item.getProduct();
+            if (p == null) {
+                continue;
+            }
+            int catId = p.getCategoryID();
+            if (!categoryIds.contains(catId)) {
+                categoryIds.add(catId);
+            }
+        }
+
+        Map<Integer, String> categoryNames = fetchCategoryNames(categoryIds);
+
         double vat = 0;
         for (CartItem item : cart) {
             Product p = item.getProduct();
             if (p == null) {
                 continue;
             }
-            String name = null;
-            double rate = getVatRateFromCategoryName(name);
+            String categoryName = categoryNames.get(p.getCategoryID());
+            double rate = getVatRateFromCategoryName(categoryName);
             vat += item.getLineTotal() * rate;
         }
         return vat;
     }
 
+    private Map<Integer, String> fetchCategoryNames(List<Integer> categoryIds) {
+        Map<Integer, String> map = new HashMap<>();
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return map;
+        }
+
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < categoryIds.size(); i++) {
+            if (i > 0) placeholders.append(",");
+            placeholders.append("?");
+        }
+
+        String sql = "SELECT CategoryID, CategoryName FROM Categories WHERE CategoryID IN (" + placeholders + ")";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 1;
+            for (Integer id : categoryIds) {
+                ps.setInt(idx++, id);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    map.put(rs.getInt("CategoryID"), rs.getString("CategoryName"));
+                }
+            }
+        } catch (SQLException ignored) {
+        }
+
+        return map;
+    }
+
     private double getVatRateFromCategoryName(String categoryName) {
         if (categoryName == null) {
-            return 0.05; // mặc định 5% cho sách thông thường
+            return 0.05;
         }
         String name = categoryName.trim().toLowerCase();
-
-        // 0% VAT cho:
-        // - "Sách giáo khoa"
-        // - "Sách khoa học" (coi như sách khoa học kỹ thuật)
         if (name.equals("sách giáo khoa")
                 || name.equals("sach giao khoa")
                 || name.equals("sách khoa học")
-                || name.equals("sach khoa hoc")) {
+                || name.equals("sach khoa hoc")
+                || name.equals("sách chính trị")
+                || name.equals("sach chinh tri")
+                || name.equals("sách pháp luật")
+                || name.equals("sach phap luat")
+                || name.equals("sách khoa học kỹ thuật")
+                || name.equals("sach khoa hoc ky thuat")) {
             return 0.0;
         }
-
-        // Các loại còn lại trong hệ thống hiện tại:
-        // Văn học Việt Nam, Văn học nước ngoài, Sách thiếu nhi,
-        // Sách kỹ năng, Sách kinh tế, Văn phòng phẩm -> 5% VAT
         return 0.05;
     }
 
-    /**
-     * Lấy danh sách hóa đơn với filter ngày và từ khóa.
-     *
-     * @param fromDate ngày bắt đầu (có thể null)
-     * @param toDate   ngày kết thúc (có thể null)
-     * @param keyword  từ khóa tìm kiếm (mã HĐ, khách, nhân viên) (có thể null/rỗng)
-     * @param limit    số bản ghi tối đa
-     */
-    public List<Map<String, Object>> searchInvoices(java.sql.Date fromDate, java.sql.Date toDate,
-                                                    String keyword, int limit) {
+    public List<Map<String, Object>> searchInvoices(java.sql.Date fromDate,
+                                                    java.sql.Date toDate,
+                                                    String keyword,
+                                                    int limit) {
         List<Map<String, Object>> list = new ArrayList<>();
         if (limit <= 0) {
             limit = 100;
@@ -353,3 +376,4 @@ public class SalesInvoiceDAO extends DBContext {
         return list;
     }
 }
+
