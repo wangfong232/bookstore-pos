@@ -723,6 +723,8 @@
                                             <label for="pos-cash" class="mb-1"><small>Tiền khách đưa</small></label>
                                             <input type="number"
                                                    id="pos-cash"
+                                                   name="cashReceived"
+                                                   form="checkout-form"
                                                    min="0"
                                                    step="1000"
                                                    class="form-control form-control-sm pos-note"
@@ -773,6 +775,8 @@
                                                         </button>
                                                 </form>
                                             </div>
+                                            <input type="hidden" id="pos-subtotal-value" value="${totalAmount}">
+                                            <input type="hidden" id="pos-vat-value" value="${vatAmount}">
                                         </div>
                                     </div>
                                 </div>
@@ -787,8 +791,8 @@
         <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>
         <script>
-                                                                            var posSubtotal = ${totalAmount};
-                                                                            var posVat = ${vatAmount != null ? vatAmount : 0};
+                                                                            var posSubtotal = parseFloat(document.getElementById('pos-subtotal-value')?.value) || 0;
+                                                                            var posVat = parseFloat(document.getElementById('pos-vat-value')?.value) || 0;
                                                                             function posUpdateSummary() {
                                                                                 var pct = parseFloat($('#pos-discount').val()) || 0;
                                                                                 if (pct < 0)

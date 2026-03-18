@@ -301,6 +301,7 @@ public class PosController extends HttpServlet {
         String note = request.getParameter("note");
         String discountPercentStr = request.getParameter("discountPercent");
         String paymentMethod = request.getParameter("paymentMethod");
+        String cashReceivedStr = request.getParameter("cashReceived");
 
         double discountPercent = 0;
         if (discountPercentStr != null && !discountPercentStr.trim().isEmpty()) {
@@ -312,6 +313,41 @@ public class PosController extends HttpServlet {
         }
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             paymentMethod = "CASH";
+        }
+
+        // Tính tổng tiền phải trả để validate tiền khách đưa (CASH)
+        double totalAmount = cart.stream()
+                .mapToDouble(CartItem::getLineTotal)
+                .sum();
+        if (discountPercent < 0) {
+            discountPercent = 0;
+        }
+        if (discountPercent > 100) {
+            discountPercent = 100;
+        }
+        double discountAmount = totalAmount * discountPercent / 100.0;
+        double vatAmount = calculateVatAmount(cart, categoryDAO.getAllActiveCategories());
+        double finalAmount = totalAmount - discountAmount + vatAmount;
+        if (finalAmount < 0) {
+            finalAmount = 0;
+        }
+
+        if ("CASH".equalsIgnoreCase(paymentMethod)) {
+            double cashReceived = 0;
+            if (cashReceivedStr != null && !cashReceivedStr.trim().isEmpty()) {
+                try {
+                    cashReceived = Double.parseDouble(cashReceivedStr.trim());
+                } catch (NumberFormatException ignored) {
+                    cashReceived = 0;
+                }
+            }
+            if (cashReceived + 0.000001 < finalAmount) {
+                session.setAttribute("error",
+                        "Tiền khách đưa phải lớn hơn hoặc bằng số tiền cần thanh toán ("
+                        + String.format("%,.0f", finalAmount) + " đ).");
+                response.sendRedirect("pos");
+                return;
+            }
         }
 
         // Resolve customer: nhập mã KH (KH001...) hoặc số điện thoại; nếu SĐT mới chưa có thì tự tạo khách hàng
@@ -354,20 +390,6 @@ public class PosController extends HttpServlet {
 
         // Nếu chọn thanh toán chuyển khoản thì chuyển sang VNPAY sandbox
         if ("TRANSFER".equalsIgnoreCase(paymentMethod)) {
-            // Tính lại tổng tiền và giảm giá tương tự như trong SalesInvoiceDAO
-            double totalAmount = cart.stream()
-                    .mapToDouble(CartItem::getLineTotal)
-                    .sum();
-            if (discountPercent < 0) {
-                discountPercent = 0;
-            }
-            if (discountPercent > 100) {
-                discountPercent = 100;
-            }
-            double discountAmount = totalAmount * discountPercent / 100.0;
-            double vatAmount = calculateVatAmount(cart, categoryDAO.getAllActiveCategories());
-            double finalAmount = totalAmount - discountAmount + vatAmount;
-
             // Lưu thông tin đơn hàng tạm thời để xử lý sau khi VNPAY callback
             session.setAttribute("pendingCart", new ArrayList<>(cart));
             session.setAttribute("pendingNote", note);
