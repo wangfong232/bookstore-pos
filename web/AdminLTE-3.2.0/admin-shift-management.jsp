@@ -281,10 +281,7 @@
                                                             <i class="fas fa-exchange-alt mr-2 text-primary"></i>
                                                             Xem đơn đổi ca
                                                         </a>
-                                                        <a class="dropdown-item" href="ot-approval">
-                                                            <i class="fas fa-clock mr-2 text-success"></i>
-                                                            Xem đơn OT
-                                                        </a>
+                                                        
                                                     </div>
 
                                                 </div>
