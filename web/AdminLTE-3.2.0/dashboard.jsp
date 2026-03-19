@@ -23,6 +23,17 @@
 
     <div class="content-wrapper">
 
+      <!-- Unauthorized access alert -->
+      <c:if test="${param.error == 'unauthorized'}">
+        <div class="alert alert-danger alert-dismissible fade show mx-3 mt-3" role="alert">
+          <i class="fas fa-ban mr-2"></i>
+          <strong>Truy cập bị từ chối!</strong> Bạn không có quyền truy cập trang đó với vai trò hiện tại (<strong>${sessionScope.roleName}</strong>).
+          <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+          </button>
+        </div>
+      </c:if>
+
       <!-- Content Header -->
       <section class="content-header">
         <div class="container-fluid">
