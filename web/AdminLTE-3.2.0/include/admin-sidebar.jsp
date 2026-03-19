@@ -446,14 +446,7 @@
                         </ul>
                     </li>
 
-                    <%-- Nhật ký HR --%>
-                    <li class="nav-item">
-                        <a href="${pageContext.request.contextPath}/admin/hr-audit-log"
-                           class="nav-link ${pageContext.request.requestURI.contains('/admin/hr-audit-log') ? 'active' : ''}">
-                            <i class="nav-icon fas fa-clipboard-list"></i>
-                            <p>Nhật ký HR</p>
-                        </a>
-                    </li>
+                   
 
                     <%-- Báo cáo --%>
                     <li class="nav-item">
