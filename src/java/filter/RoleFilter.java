@@ -13,15 +13,44 @@ import java.util.*;
  *   AuthFilter  → kiểm tra đã đăng nhập chưa
  *   RoleFilter  → kiểm tra role có được phép truy cập URL này không
  *
- * Mapping mặc định:
- *   /admin/*               → roleId 1, 2  (Manager, Store Manager)
- *   /admin/attendance*     → roleId 1, 2  (chấm công / thống kê)
- *   /admin/hr-audit-log*   → roleId 1     (chỉ Manager)
- *   /staff/*               → roleId 1, 2, 3, 4, 5 (tất cả nhân viên đã đăng nhập)
+ * Roles:
+ *   1 = Manager        – quản lý toàn bộ hệ thống
+ *   2 = Store Manager  – quản lý kho, nhà cung cấp, chấm công
+ *   3 = Staff           – POS, chấm công, ca làm việc
+ *   5 = Saler           – POS, khách hàng, khuyến mãi
+ *
+ * Mapping dựa trên admin-sidebar.jsp:
+ *   /pos                           → 3, 5
+ *   /staff/attendance-checkin      → 2, 3, 5
+ *   /admin/shift-management        → 1, 2, 3, 5
+ *   /staff/swap                    → 1, 2, 3, 5
+ *   /admin/products                → 1
+ *   /admin/categories              → 1
+ *   /admin/brands                  → 1
+ *   /admin/purchaseorder           → 1, 2, 3, 5  (quản lý kho – không giới hạn role)
+ *   /admin/goodsreceipt            → 1, 2, 3, 5
+ *   /admin/stocktake               → 1, 2, 3, 5
+ *   /admin/stockdisposal           → 1, 2, 3, 5
+ *   /admin/inventorytransaction    → 1, 2, 3, 5
+ *   /admin/supplier                → 1, 2, 3, 5
+ *   /admin/customers               → 2, 5
+ *   /admin/customer-tiers          → 2, 5
+ *   /admin/promotions              → 5
+ *   /admin/employees               → 1
+ *   /admin/attendance              → 1, 2
+ *   /admin/hr-audit-log            → 1
+ *   /admin/swap-approval           → 1, 2
+ *   /purchaseorder                 → 2
+ *   /supplier                      → 1, 2
+ *   /customer-tiers                → 1
+ *   /promotions                    → 1
+ *   /staff/*                       → 1, 2, 3, 5
+ *   /admin/*  (fallback)           → 1, 2
  *
  * Nếu không có quyền → redirect về /dashboard?error=unauthorized
  */
-@WebFilter(urlPatterns = {"/admin/*", "/staff/*", "/supplier", "/purchaseorder", "/promotions", "/customer-tiers", "/pos"})
+@WebFilter(urlPatterns = {"/admin/*", "/staff/*", "/supplier", "/purchaseorder",
+                          "/pos", "/customer-tiers", "/promotions"})
 public class RoleFilter implements Filter {
 
     /**
@@ -31,34 +60,47 @@ public class RoleFilter implements Filter {
     private static final LinkedHashMap<String, Set<Integer>> ROLE_MAP = new LinkedHashMap<>();
 
     static {
-        // ── Trang dành riêng cho Manager (roleId=1) ──
-        ROLE_MAP.put("/admin/hr-audit-log", roleSet(1));
-        ROLE_MAP.put("/admin/employees", roleSet(1));
-        ROLE_MAP.put("/admin/products", roleSet(1));
-        ROLE_MAP.put("/admin/categories", roleSet(1));
-        ROLE_MAP.put("/admin/brands", roleSet(1));
-
-        // ── Trang dành cho Manager + Store Manager ──
+        // ── Manager + Store Manager ──
+        ROLE_MAP.put("/admin/hr-audit-log", roleSet(1, 2));
+        ROLE_MAP.put("/admin/employees", roleSet(1, 2));
+        ROLE_MAP.put("/admin/products", roleSet(1, 2));
+        ROLE_MAP.put("/admin/categories", roleSet(1, 2));
+        ROLE_MAP.put("/admin/brands", roleSet(1, 2));
         ROLE_MAP.put("/admin/attendance", roleSet(1, 2));
         ROLE_MAP.put("/admin/swap-approval", roleSet(1, 2));
-        ROLE_MAP.put("/supplier", roleSet(1, 2));
-        ROLE_MAP.put("/purchaseorder", roleSet(1, 2));
-        ROLE_MAP.put("/customer-tiers", roleSet(1, 2));
 
-        // ── Trang dành cho Sales (Saler + Manager) ──
-        ROLE_MAP.put("/promotions", roleSet(1, 5));
+        // ── Quản lý kho – tất cả roles ──
+        ROLE_MAP.put("/admin/purchaseorder", roleSet(1, 2, 3, 5));
+        ROLE_MAP.put("/admin/goodsreceipt", roleSet(1, 2, 3, 5));
+        ROLE_MAP.put("/admin/stocktake", roleSet(1, 2, 3, 5));
+        ROLE_MAP.put("/admin/stockdisposal", roleSet(1, 2, 3, 5));
+        ROLE_MAP.put("/admin/inventorytransaction", roleSet(1, 2, 3, 5));
+        ROLE_MAP.put("/admin/supplier", roleSet(1, 2, 3, 5));
 
-        // ── Trang dành cho POS (Staff + Saler) ──
-        ROLE_MAP.put("/pos", roleSet(3, 5));
+        // ── Khách hàng – Store Manager + Saler ──
+        ROLE_MAP.put("/admin/customers", roleSet(2, 5));
+        ROLE_MAP.put("/admin/customer-tiers", roleSet(2, 5));
 
-        // ── Ca làm việc (Manager, Store Manager, Staff, Saler) ──
+        // ── Khuyến mãi – Store Manager + Saler ──
+        ROLE_MAP.put("/admin/promotions", roleSet(2, 5));
+
+        // ── Ca làm việc – Tất cả roles ──
         ROLE_MAP.put("/admin/shift-management", roleSet(1, 2, 3, 5));
 
         // ── Toàn bộ /admin/* còn lại → Manager + Store Manager ──
         ROLE_MAP.put("/admin/", roleSet(1, 2));
 
         // ── /staff/* → mọi nhân viên đã đăng nhập ──
-        ROLE_MAP.put("/staff/", roleSet(1, 2, 3, 4, 5));
+        ROLE_MAP.put("/staff/", roleSet(1, 2, 3, 5));
+
+        // ── POS – Store Manager + Staff + Saler ──
+        ROLE_MAP.put("/pos", roleSet(2, 3, 5));
+
+        // ── Trang không có prefix /admin/ nhưng cần phân quyền ──
+        ROLE_MAP.put("/supplier", roleSet(1, 2));
+        ROLE_MAP.put("/purchaseorder", roleSet(1, 2));
+        ROLE_MAP.put("/customer-tiers", roleSet(1, 2));
+        ROLE_MAP.put("/promotions", roleSet(1, 2));
     }
 
     @Override
@@ -121,3 +163,4 @@ public class RoleFilter implements Filter {
     @Override
     public void destroy() {}
 }
+

@@ -100,36 +100,36 @@
                 </c:if>
                 <!-- ======================== MANAGER & STORE MANAGER MENU ======================== -->
                 <!-- Quản lý sản phẩm -->
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-book"></i>
-                        <p>
-                            Quản lý sản phẩm
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/products" class="nav-link">
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>Danh sách sản phẩm</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="categories" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Danh mục</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="brands" class="nav-link">
-                                <i class="far fa-dot-circle nav-icon"></i>
-                                <p>Thương hiệu</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                <c:if test="${sessionScope.roleId == 1}">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-book"></i>
+                            <p>
+                                Quản lý sản phẩm
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/products" class="nav-link">
+                                    <i class="nav-icon fas fa-boxes"></i> <p>Danh sách sản phẩm</p>
+                                </a>
+                            </li>
 
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/categories" class="nav-link">
+                                    <i class="nav-icon fas fa-th-list"></i> <p>Danh mục</p>
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/brands" class="nav-link">
+                                    <i class="nav-icon fas fa-tag"></i> <p>Thương hiệu</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
                 <!-- Quản lý kho -->
                 <li class="nav-item">
                     <a href="#" class="nav-link">
@@ -192,15 +192,15 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/admin/customers" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Danh sách khách hàng</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/admin/customer-tiers" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Điểm tích lũy</p>
+                                    <p>Cấp bậc khách hàng</p>
                                 </a>
                             </li>
                         </ul>
@@ -210,7 +210,7 @@
                 <%-- ===== KHUYẾN MÃI – Saler (xem & tạo thông báo KM) ===== --%>
                 <c:if test="${sessionScope.roleId == 5}">
                     <li class="nav-item">
-                        <a href="${pageContext.request.contextPath}/promotions" class="nav-link">
+                        <a href="${pageContext.request.contextPath}/admin/promotions" class="nav-link">
                             <i class="nav-icon fas fa-tags"></i>
                             <p>Khuyến mãi</p>
                         </a>
@@ -223,41 +223,7 @@
                 <c:if test="${sessionScope.roleId == 2}">
 
                     <%-- Quản lý kho --%>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-warehouse"></i>
-                            <p>
-                                Quản lý kho
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Tồn kho</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/purchaseorder" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Nhập hàng</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Kiểm kho</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Xuất hủy</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+
 
                     <%-- Đơn mua hàng + Nhà cung cấp --%>
                     <li class="nav-item">
@@ -320,21 +286,15 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/admin/customers" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Danh sách khách hàng</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/admin/customer-tiers" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Điểm tích lũy</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/customer-tiers" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Hạng thành viên</p>
+                                    <p>Cấp bậc khách hàng</p>
                                 </a>
                             </li>
                         </ul>
@@ -381,36 +341,7 @@
                 <%-- ======================================================= --%>
                 <c:if test="${sessionScope.roleId == 1}">
 
-                    <%-- Quản lý sản phẩm --%>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-book"></i>
-                            <p>
-                                Quản lý sản phẩm
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/admin/products" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Danh sách sản phẩm</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/admin/categories" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Danh mục</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/admin/brands" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Thương hiệu</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                    
 
                     <%-- Đơn mua hàng --%>
                     <li class="nav-item">
