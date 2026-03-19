@@ -16,7 +16,8 @@ public class AttendanceDAO extends DBContext {
         List<AttendanceView> list = new ArrayList<>();
 
         String sql = """
-                    SELECT e.FullName,
+                    SELECT esa.AssignmentID,
+                           e.FullName,
                            s.ShiftName,
                            s.StartTime,
                            s.EndTime,
@@ -43,6 +44,7 @@ public class AttendanceDAO extends DBContext {
             while (rs.next()) {
                 AttendanceView v = new AttendanceView();
 
+                v.setAttendanceId(rs.getInt("AssignmentID"));
                 v.setFullName(rs.getString("FullName"));
                 v.setShiftName(rs.getString("ShiftName"));
                 v.setStartTime(rs.getTime("StartTime"));

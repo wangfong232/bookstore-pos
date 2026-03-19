@@ -201,40 +201,70 @@ public class EmployeeDAO extends DBContext {
 // ==========================
     public boolean deleteEmployee(int id, int performedBy) {
 
-        String sql = """
-        UPDATE Employees
-        SET Status = 'INACTIVE'
-        WHERE EmployeeID = ?
-    """;
+        String deleteAttendanceSql = """
+            DELETE a FROM Attendance a
+            JOIN EmployeeShiftAssignments esa ON a.AssignmentID = esa.AssignmentID
+            WHERE esa.EmployeeID = ?
+        """;
 
-        String auditSql = """
-        INSERT INTO HRAuditLogs
-        (EmployeeID, Action, PerformedBy)
-        VALUES (?, 'DELETE', ?)
-    """;
+        String deleteAssignmentsSql = "DELETE FROM EmployeeShiftAssignments WHERE EmployeeID = ?";
+        
+        String deleteAuditLogsAsSubjectSql = "DELETE FROM HRAuditLogs WHERE EmployeeID = ?";
+        
+        String updateAuditLogsAsPerformerSql = "UPDATE HRAuditLogs SET PerformedBy = NULL WHERE PerformedBy = ?";
+
+        String deleteEmployeeSql = "DELETE FROM Employees WHERE EmployeeID = ?";
 
         try (Connection conn = getConnection()) {
-
             conn.setAutoCommit(false);
 
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
+            try {
+                // 1. Delete Attendance
+                try (PreparedStatement ps = conn.prepareStatement(deleteAttendanceSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                // 2. Delete Assignments
+                try (PreparedStatement ps = conn.prepareStatement(deleteAssignmentsSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                // 3. Delete Audit Logs where this employee is the subject
+                try (PreparedStatement ps = conn.prepareStatement(deleteAuditLogsAsSubjectSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                // 4. Update Audit Logs where this employee is the performer (set to NULL)
+                try (PreparedStatement ps = conn.prepareStatement(updateAuditLogsAsPerformerSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+
+                // 5. Delete the Employee record
+                int rowsDeleted = 0;
+                try (PreparedStatement ps = conn.prepareStatement(deleteEmployeeSql)) {
+                    ps.setInt(1, id);
+                    rowsDeleted = ps.executeUpdate();
+                }
+
+                if (rowsDeleted > 0) {
+                    conn.commit();
+                    return true;
+                } else {
+                    conn.rollback();
+                    return false;
+                }
+
+            } catch (SQLException ex) {
+                conn.rollback();
+                ex.printStackTrace();
             }
-
-            try (PreparedStatement ps = conn.prepareStatement(auditSql)) {
-                ps.setInt(1, id);
-                ps.setInt(2, performedBy);
-                ps.executeUpdate();
-            }
-
-            conn.commit();
-            return true;
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
         return false;
     }
 

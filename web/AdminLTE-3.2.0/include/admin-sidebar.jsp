@@ -303,19 +303,21 @@
                                     <p>Ca làm việc</p>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/admin/swap-approval"
-                                   class="nav-link ${pageContext.request.requestURI.contains('/admin/swap-approval') ? 'active' : ''}">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Phê duyệt đổi ca</p>
-                                </a>
-                            </li>
+                            
                         </ul>
                     </li>
                 </c:if>
 
-                <%-- ===== BÁO CÁO – Manager only ===== --%>
-                <c:if test="${sessionScope.roleId == 1}">
+                    <%-- Nhật ký HR --%>
+                    <li class="nav-item">
+                        <a href="${pageContext.request.contextPath}/admin/hr-audit-log"
+                           class="nav-link ${pageContext.request.requestURI.contains('/admin/hr-audit-log') ? 'active' : ''}">
+                            <i class="nav-icon fas fa-clipboard-list"></i>
+                            <p>Nhật ký HR</p>
+                        </a>
+                    </li>
+
+                    <%-- Báo cáo --%>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-chart-line"></i>

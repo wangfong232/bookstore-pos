@@ -34,12 +34,17 @@ public class LoginController extends HttpServlet {
 
         // Validation
         if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Email is required");
+            request.setAttribute("error", "Email là bắt buộc");
+            doGet(request, response);
+            return;
+        }
+        if (email.contains(" ")) {
+            request.setAttribute("error", "Email không được chứa khoảng trắng");
             doGet(request, response);
             return;
         }
         if (password == null || password.trim().isEmpty()) {
-            request.setAttribute("error", "Password is required");
+            request.setAttribute("error", "Mật khẩu là bắt buộc");
             doGet(request, response);
             return;
         }

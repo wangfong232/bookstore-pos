@@ -97,7 +97,10 @@
                                                 <input type="text" class="form-control"
                                                        name="fullName"
                                                        value="${employee != null ? employee.fullName : ''}"
-                                                       placeholder="Nhập họ và tên" required>
+                                                       placeholder="Nhập họ và tên" 
+                                                       pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$"
+                                                       title="Họ và tên chỉ được chứa chữ cái và khoảng trắng"
+                                                       required>
                                             </div>
 
                                             <!-- Email -->
@@ -106,6 +109,7 @@
                                                 <input type="email" class="form-control"
                                                        name="email"
                                                        value="${employee.email}"
+                                                       id="emailInput"
                                                        placeholder="example@email.com" required>
                                             </div>
 
@@ -220,5 +224,19 @@
             <jsp:include page="include/admin-footer.jsp"/>
         </div>
         
+        <script>
+            // Ngăn chặn khoảng trắng trong email
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput) {
+                emailInput.addEventListener('keydown', function (e) {
+                    if (e.which === 32)
+                        e.preventDefault();
+                });
+
+                emailInput.addEventListener('input', function (e) {
+                    this.value = this.value.replace(/\s/g, '');
+                });
+            }
+        </script>
     </body>
 </html>

@@ -239,6 +239,31 @@ public class ShiftSwapDAO extends DBContext {
     }
 
     /**
+     * Kiểm tra xem có đơn đổi ca trùng lặp đang chờ duyệt hay không.
+     * Trùng lặp = cùng Ca đi, cùng Ca đến, cùng Lý do và đang PENDING.
+     */
+    public boolean hasDuplicatePendingRequest(int fromAssignID, int toAssignID, String reason) {
+        String sql = "SELECT COUNT(*) FROM ShiftSwapRequests "
+                + "WHERE FromAssignmentID = ? AND ToAssignmentID = ? "
+                + "AND Reason = ? AND Status = 'PENDING'";
+        
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, fromAssignID);
+            ps.setInt(2, toAssignID);
+            ps.setString(3, reason != null ? reason.trim() : "");
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Lấy danh sách lịch sử đơn đổi ca của một nhân viên cụ thể.
      * @param employeeID ID của nhân viên cần xem lịch sử.
      * @return Danh sách các đơn đổi ca do nhân viên này tạo.

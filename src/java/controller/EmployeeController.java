@@ -156,11 +156,30 @@ public class EmployeeController extends HttpServlet {
         }
 
         try {
-            Employee e = new Employee();
+            String fullName = request.getParameter("fullName");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
 
-            e.setFullName(request.getParameter("fullName"));
-            e.setEmail(request.getParameter("email"));
-            e.setPhone(request.getParameter("phone"));
+            if (fullName == null || fullName.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=Name is required");
+                return;
+            }
+
+            String nameRegex = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\\s]+$";
+            if (!fullName.matches(nameRegex)) {
+                response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=Name contains special characters");
+                return;
+            }
+
+            if (email == null || email.contains(" ")) {
+                response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=Email cannot contain spaces");
+                return;
+            }
+
+            Employee e = new Employee();
+            e.setFullName(fullName);
+            e.setEmail(email);
+            e.setPhone(phone);
 
             String hireDate = request.getParameter("hireDate");
             if (hireDate != null && !hireDate.isEmpty()) {
@@ -245,14 +264,32 @@ public class EmployeeController extends HttpServlet {
         }
 
         try {
+            int employeeId = Integer.parseInt(request.getParameter("employeeId"));
+            String fullName = request.getParameter("fullName");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+
+            if (fullName == null || fullName.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=Name is required");
+                return;
+            }
+
+            String nameRegex = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\\s]+$";
+            if (!fullName.matches(nameRegex)) {
+                response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=Name contains special characters");
+                return;
+            }
+
+            if (email == null || email.contains(" ")) {
+                response.sendRedirect(request.getContextPath() + "/admin/employees?action=list&error=Email cannot contain spaces");
+                return;
+            }
+
             Employee e = new Employee();
-
-            e.setEmployeeId(
-                    Integer.parseInt(request.getParameter("employeeId")));
-
-            e.setFullName(request.getParameter("fullName"));
-            e.setEmail(request.getParameter("email"));
-            e.setPhone(request.getParameter("phone"));
+            e.setEmployeeId(employeeId);
+            e.setFullName(fullName);
+            e.setEmail(email);
+            e.setPhone(phone);
 
             String hireDate = request.getParameter("hireDate");
             if (hireDate != null && !hireDate.isEmpty()) {

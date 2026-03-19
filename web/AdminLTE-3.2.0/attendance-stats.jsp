@@ -112,9 +112,7 @@
                                             <c:when test="${not empty statsList}">
                                                 <c:forEach items="${statsList}" var="s" varStatus="loop">
                                                     <tr>
-                                                        <td>
-                                                            ${(currentPage - 1) * 10 + loop.index + 1}
-                                                        </td>
+                                                        <td>${(currentPage - 1) * 10 + loop.index + 1}</td>
 
                                                         <td>
                                                             <i class="fas fa-user-circle text-muted mr-1"></i>
@@ -122,9 +120,7 @@
                                                         </td>
 
                                                         <td class="text-center">
-                                                            <span class="badge badge-info">
-                                                                ${s.workDays} ngày
-                                                            </span>
+                                                            <span class="badge badge-info">${s.workDays} ngày</span>
                                                         </td>
 
                                                         <td class="text-center">
@@ -156,7 +152,7 @@
                                         <%-- Nút Previous --%>
                                         <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
                                             <a class="page-link"
-                                               href="?action=stats&month=${month}&year=${year}&page=${currentPage - 1}">
+                                               href="?action=stats&amp;month=${month}&amp;year=${year}&amp;page=${currentPage - 1}">
                                                 &laquo;
                                             </a>
                                         </li>
@@ -164,7 +160,7 @@
                                         <c:forEach begin="1" end="${totalPages}" var="i">
                                             <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                 <a class="page-link"
-                                                   href="?action=stats&month=${month}&year=${year}&page=${i}">
+                                                   href="?action=stats&amp;month=${month}&amp;year=${year}&amp;page=${i}">
                                                     ${i}
                                                 </a>
                                             </li>
@@ -173,7 +169,7 @@
                                         <%-- Nút Next --%>
                                         <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
                                             <a class="page-link"
-                                               href="?action=stats&month=${month}&year=${year}&page=${currentPage + 1}">
+                                               href="?action=stats&amp;month=${month}&amp;year=${year}&amp;page=${currentPage + 1}">
                                                 &raquo;
                                             </a>
                                         </li>
@@ -190,6 +186,8 @@
 
             <jsp:include page="include/admin-footer.jsp"/>
         </div>
+
+        
 
     </body>
 </html>

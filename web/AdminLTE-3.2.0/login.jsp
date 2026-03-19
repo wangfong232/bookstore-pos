@@ -125,10 +125,19 @@
                                             eye.classList.add("fa-eye-slash");
                                         } else {
                                             input.type = "password";
-                                            eye.classList.remove("fa-eye-slash");
                                             eye.classList.add("fa-eye");
                                         }
                                     }
+
+                                    // Ngăn chặn khoảng trắng trong email
+                                    document.querySelector('input[name="email"]').addEventListener('keydown', function (e) {
+                                        if (e.which === 32)
+                                            e.preventDefault();
+                                    });
+
+                                    document.querySelector('input[name="email"]').addEventListener('input', function (e) {
+                                        this.value = this.value.replace(/\s/g, '');
+                                    });
     </script>
 </html>
 

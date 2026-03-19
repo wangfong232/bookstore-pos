@@ -62,7 +62,10 @@
 
                     <form action="${pageContext.request.contextPath}/register" method="post">
                         <div class="input-group mb-3">
-                            <input type="text" name="fullName" class="form-control" placeholder="Họ và tên" required>
+                            <input type="text" name="fullName" class="form-control" placeholder="Họ và tên" 
+                                   pattern="^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\s]+$"
+                                   title="Họ và tên chỉ được chứa chữ cái và khoảng trắng"
+                                   required>
                             <div class="input-group-append">
                                 <div class="input-group-text">
                                     <span class="fas fa-user"></span>
@@ -179,9 +182,18 @@
                                             eye.classList.add("fa-eye-slash");
                                         } else {
                                             input.type = "password";
-                                            eye.classList.remove("fa-eye-slash");
                                             eye.classList.add("fa-eye");
                                         }
                                     }
+
+                                    // Ngăn chặn khoảng trắng trong email
+                                    document.querySelector('input[name="email"]').addEventListener('keydown', function (e) {
+                                        if (e.which === 32)
+                                            e.preventDefault();
+                                    });
+
+                                    document.querySelector('input[name="email"]').addEventListener('input', function (e) {
+                                        this.value = this.value.replace(/\s/g, '');
+                                    });
     </script>
 </html>
