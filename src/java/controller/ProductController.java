@@ -252,9 +252,28 @@ public class ProductController extends HttpServlet {
                 product.setSupplierId(Integer.parseInt(supplierIdParam));
             }
             
-            // Set default values for price and stock (will be managed elsewhere)
-            product.setCostPrice(0.0);
-            product.setSellingPrice(0.0);
+            // Parse price fields from form
+            String costPriceParam = request.getParameter("costPrice");
+            if (costPriceParam != null && !costPriceParam.isEmpty()) {
+                product.setCostPrice(Double.parseDouble(costPriceParam));
+            } else {
+                product.setCostPrice(0.0);
+            }
+            
+            String sellingPriceParam = request.getParameter("sellingPrice");
+            if (sellingPriceParam != null && !sellingPriceParam.isEmpty()) {
+                product.setSellingPrice(Double.parseDouble(sellingPriceParam));
+            } else {
+                product.setSellingPrice(0.0);
+            }
+            
+            String compareAtPriceParam = request.getParameter("compareAtPrice");
+            if (compareAtPriceParam != null && !compareAtPriceParam.isEmpty()) {
+                product.setCompareAtPrice(Double.parseDouble(compareAtPriceParam));
+            } else {
+                product.setCompareAtPrice(null);
+            }
+            
             product.setStock(0);
             product.setReorderLevel(10);
             
@@ -330,10 +349,23 @@ public class ProductController extends HttpServlet {
                 product.setSupplierId(null);
             }
             
-            // Keep existing price and stock values (managed elsewhere)
-            // product.setCostPrice() - not changed
-            // product.setSellingPrice() - not changed
-            // product.setCompareAtPrice() - not changed
+            // Parse price fields from form
+            String costPriceParam = request.getParameter("costPrice");
+            if (costPriceParam != null && !costPriceParam.isEmpty()) {
+                product.setCostPrice(Double.parseDouble(costPriceParam));
+            }
+            
+            String sellingPriceParam = request.getParameter("sellingPrice");
+            if (sellingPriceParam != null && !sellingPriceParam.isEmpty()) {
+                product.setSellingPrice(Double.parseDouble(sellingPriceParam));
+            }
+            
+            String compareAtPriceParam = request.getParameter("compareAtPrice");
+            if (compareAtPriceParam != null && !compareAtPriceParam.isEmpty()) {
+                product.setCompareAtPrice(Double.parseDouble(compareAtPriceParam));
+            } else {
+                product.setCompareAtPrice(null);
+            }
             // product.setStock() - not changed
             // product.setReorderLevel() - not changed
             
@@ -506,9 +538,28 @@ public class ProductController extends HttpServlet {
             product.setSupplierId(Integer.parseInt(supplierIdParam));
         }
         
-        // Set default values for price and stock
-        product.setCostPrice(0.0);
-        product.setSellingPrice(0.0);
+        // Parse price fields from form
+        String costPriceParam = request.getParameter("costPrice");
+        if (costPriceParam != null && !costPriceParam.isEmpty()) {
+            product.setCostPrice(Double.parseDouble(costPriceParam));
+        } else {
+            product.setCostPrice(0.0);
+        }
+        
+        String sellingPriceParam = request.getParameter("sellingPrice");
+        if (sellingPriceParam != null && !sellingPriceParam.isEmpty()) {
+            product.setSellingPrice(Double.parseDouble(sellingPriceParam));
+        } else {
+            product.setSellingPrice(0.0);
+        }
+        
+        String compareAtPriceParam = request.getParameter("compareAtPrice");
+        if (compareAtPriceParam != null && !compareAtPriceParam.isEmpty()) {
+            product.setCompareAtPrice(Double.parseDouble(compareAtPriceParam));
+        } else {
+            product.setCompareAtPrice(null);
+        }
+        
         product.setStock(0);
         product.setReorderLevel(10);
         

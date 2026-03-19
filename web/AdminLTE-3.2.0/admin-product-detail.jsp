@@ -189,6 +189,35 @@
                                         <textarea class="form-control" id="specifications" name="specifications" rows="3" 
                                                   placeholder="Nhập thông số kỹ thuật...">${product != null ? product.specifications : ''}</textarea>
                                     </div>
+
+                                    <!-- Pricing -->
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="costPrice">Giá nhập (VNĐ)</label>
+                                                <input type="number" class="form-control" id="costPrice" name="costPrice"
+                                                       value="${product != null ? product.costPrice : '0'}"
+                                                       min="0" step="1000" placeholder="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="sellingPrice">Giá bán (VNĐ) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control" id="sellingPrice" name="sellingPrice"
+                                                       value="${product != null ? product.sellingPrice : '0'}"
+                                                       min="0" step="1000" placeholder="0" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="compareAtPrice">Giá so sánh (VNĐ)</label>
+                                                <input type="number" class="form-control" id="compareAtPrice" name="compareAtPrice"
+                                                       value="${product != null ? product.compareAtPrice : ''}"
+                                                       min="0" step="1000" placeholder="Giá gốc trước KM">
+                                                <small class="form-text text-muted">Để trống nếu không có khuyến mãi</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div class="card-footer">
@@ -353,6 +382,23 @@
             alert('Vui lòng chọn danh mục!');
             document.getElementById('categoryId').focus();
             return false;
+        }
+        
+        // So sánh giá nhập và giá bán
+        const costPrice = parseFloat(document.getElementById('costPrice').value) || 0;
+        const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
+        
+        if (costPrice > sellingPrice) {
+            const confirmed = confirm(
+                'Giá nhập (' + costPrice.toLocaleString('vi-VN') + ' VNĐ) đang lớn hơn Giá bán (' 
+                + sellingPrice.toLocaleString('vi-VN') + ' VNĐ).\n\n'
+                + 'Bạn có chắc chắn muốn tiếp tục không?'
+            );
+            if (!confirmed) {
+                e.preventDefault();
+                document.getElementById('costPrice').focus();
+                return false;
+            }
         }
         
         return true;
