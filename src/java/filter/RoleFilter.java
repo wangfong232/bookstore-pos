@@ -77,12 +77,12 @@ public class RoleFilter implements Filter {
         ROLE_MAP.put("/admin/inventorytransaction", roleSet(1, 2, 3, 5));
         ROLE_MAP.put("/admin/supplier", roleSet(1, 2, 3, 5));
 
-        // ── Khách hàng – Store Manager + Saler ──
-        ROLE_MAP.put("/admin/customers", roleSet(2, 5));
-        ROLE_MAP.put("/admin/customer-tiers", roleSet(2, 5));
+        // ── Khách hàng – Manager, Store Manager, Saler ──
+        ROLE_MAP.put("/admin/customers", roleSet(1, 2, 5));
+        ROLE_MAP.put("/admin/customer-tiers", roleSet(1, 2, 5));
 
-        // ── Khuyến mãi – Store Manager + Saler ──
-        ROLE_MAP.put("/admin/promotions", roleSet(2, 5));
+        // ── Khuyến mãi – Manager, Store Manager, Saler ──
+        ROLE_MAP.put("/admin/promotions", roleSet(1, 2, 5));
 
         // ── Ca làm việc – Tất cả roles ──
         ROLE_MAP.put("/admin/shift-management", roleSet(1, 2, 3, 5));
