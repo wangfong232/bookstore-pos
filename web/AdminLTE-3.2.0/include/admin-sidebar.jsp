@@ -348,7 +348,7 @@
                             <p>Cài đặt hệ thống</p>
                         </a>
                     </li>
-                </c:if>
+                
 
                 <%-- ===== THÔNG BÁO – Tất cả roles ===== --%>
                 <li class="nav-item">
