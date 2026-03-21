@@ -71,7 +71,7 @@
                                             <a href="${pageContext.request.contextPath}/admin/stockdisposal?action=create"
                                                class="btn btn-success btn-sm">
                                                 <i class="fas fa-plus"></i> Tạo phiếu xuất hủy mới
-                                            </a>
+                                            </a>                                      
                                         </div>
                                     </div>
                                     <div class="card-body">
