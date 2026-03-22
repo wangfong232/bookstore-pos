@@ -871,21 +871,47 @@
                                                                             });
                                                                             $(document).ready(function () {
 
-                                                                                // Focus vào ô SKU khi load trang
-                                                                                $('#sku').focus();
-
-                                                                                // Khi submit form thêm sản phẩm
-                                                                                $('form').on('submit', function () {
-                                                                                    var action = $(this).find('input[name="action"]').val();
-                                                                                    if (action === 'addItem') {
-                                                                                        setTimeout(function () {
-                                                                                            $('#sku').focus();
-                                                                                            $('#sku').select(); // chọn lại text để scan tiếp
-                                                                                        }, 100);
+                                                                                function focusSKU() {
+                                                                                    var $sku = $('#sku');
+                                                                                    if ($sku.length) {
+                                                                                        $sku.focus();
+                                                                                        $sku.select();
                                                                                     }
+                                                                                }
 
+                                                                                // Khi load trang → luôn focus
+                                                                                focusSKU();
+
+                                                                                // Khi click vào product card → focus ngay (trước khi submit)
+                                                                                $(document).on('click', '.pos-product-card', function () {
+                                                                                    setTimeout(focusSKU, 50);
                                                                                 });
-                                                                                posUpdateSummary();
+
+                                                                                // Khi submit addItem → focus lại
+                                                                                $(document).on('submit', 'form', function () {
+                                                                                    var action = $(this).find('input[name="action"]').val();
+
+                                                                                    if (action === 'addItem') {
+                                                                                        setTimeout(focusSKU, 100);
+                                                                                    }
+                                                                                });
+
+                                                                            });
+                                                                            // Luôn giữ focus ở SKU khi click ra ngoài
+                                                                            $(document).on('click', function (e) {
+
+                                                                                var $target = $(e.target);
+
+                                                                                // Nếu KHÔNG phải click vào input / textarea / select / button
+                                                                                if (
+                                                                                        !$target.is('input, textarea, select') &&
+                                                                                        $target.closest('input, textarea, select').length === 0
+                                                                                        ) {
+                                                                                    setTimeout(function () {
+                                                                                        $('#sku').focus();
+                                                                                    }, 50);
+                                                                                }
+
                                                                             });
         </script>
     </body>
