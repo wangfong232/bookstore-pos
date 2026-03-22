@@ -28,6 +28,7 @@ public class Product {
     private Date lastLowStockAlertAt;
 
     private boolean isActive;
+    private boolean isCombo;
     private Date createdDate;
     private Date updatedDate;
 
@@ -324,5 +325,13 @@ public class Product {
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public boolean isIsCombo() {
+        return isCombo;
+    }
+
+    public void setIsCombo(boolean isCombo) {
+        this.isCombo = isCombo;
     }
 }

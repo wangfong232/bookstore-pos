@@ -128,6 +128,12 @@
                                     <p>Thương hiệu</p>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/combos" class="nav-link">
+                                    <i class="nav-icon fas fa-object-group"></i>
+                                    <p>Quản lý Combo</p>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </c:if>

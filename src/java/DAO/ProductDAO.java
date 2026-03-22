@@ -120,6 +120,7 @@ public class ProductDAO extends DBContext {
         p.setStock(rs.getInt("Stock"));
         p.setReorderLevel(rs.getInt("ReorderLevel"));
         p.setActive(rs.getBoolean("IsActive"));
+        p.setIsCombo(rs.getBoolean("IsCombo"));
         p.setCreatedDate(rs.getTimestamp("CreatedDate"));
         p.setUpdatedDate(rs.getTimestamp("UpdatedDate"));
         return p;
@@ -397,8 +398,8 @@ public class ProductDAO extends DBContext {
     // Insert new product
     public boolean insertProduct(Product product) {
         String sql = "INSERT INTO Products (ProductName, CategoryID, BrandID, SupplierID, SKU, Description, " +
-                     "Specifications, ImageURL, CostPrice, SellingPrice, CompareAtPrice, Stock, ReorderLevel, IsActive) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     "Specifications, ImageURL, CostPrice, SellingPrice, CompareAtPrice, Stock, ReorderLevel, IsActive, IsCombo) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, product.getProductName());
@@ -438,6 +439,7 @@ public class ProductDAO extends DBContext {
             ps.setInt(12, product.getStock());
             ps.setInt(13, product.getReorderLevel());
             ps.setBoolean(14, product.isIsActive());
+            ps.setBoolean(15, product.isIsCombo());
             
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -451,7 +453,7 @@ public class ProductDAO extends DBContext {
     public boolean updateProduct(Product product) {
         String sql = "UPDATE Products SET ProductName = ?, CategoryID = ?, BrandID = ?, SupplierID = ?, " +
                      "SKU = ?, Description = ?, Specifications = ?, ImageURL = ?, CostPrice = ?, " +
-                     "SellingPrice = ?, CompareAtPrice = ?, Stock = ?, ReorderLevel = ?, IsActive = ? " +
+                     "SellingPrice = ?, CompareAtPrice = ?, Stock = ?, ReorderLevel = ?, IsActive = ?, IsCombo = ? " +
                      "WHERE ProductID = ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -492,7 +494,8 @@ public class ProductDAO extends DBContext {
             ps.setInt(12, product.getStock());
             ps.setInt(13, product.getReorderLevel());
             ps.setBoolean(14, product.isIsActive());
-            ps.setInt(15, product.getId());
+            ps.setBoolean(15, product.isIsCombo());
+            ps.setInt(16, product.getId());
             
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -527,5 +530,59 @@ public class ProductDAO extends DBContext {
             System.out.println("ERR: isSkuExists: " + e.getMessage());
         }
         return false;
+    }
+
+    // Decrease stock for a product (used when creating/adjusting combos)
+    public boolean decreaseStock(int productID, int quantity) {
+        String sql = "UPDATE Products SET Stock = Stock - ? WHERE ProductID = ? AND Stock >= ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, productID);
+            ps.setInt(3, quantity);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: decreaseStock: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // Increase stock for a product (used when decomposing combos)
+    public boolean increaseStock(int productID, int quantity) {
+        String sql = "UPDATE Products SET Stock = Stock + ? WHERE ProductID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, productID);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("ERR: increaseStock: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // Get all active non-combo products (for combo product selection dropdown)
+    public List<Product> getAllActiveNonComboProducts() {
+        List<Product> products = new ArrayList<>();
+        String sql = "SELECT ProductID, ProductName, SKU, SellingPrice, Stock " +
+                     "FROM Products WHERE IsActive = 1 AND (IsCombo = 0 OR IsCombo IS NULL) " +
+                     "ORDER BY ProductName";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Product p = new Product();
+                p.setId(rs.getInt("ProductID"));
+                p.setProductName(rs.getString("ProductName"));
+                p.setSku(rs.getString("SKU"));
+                p.setSellingPrice(rs.getDouble("SellingPrice"));
+                p.setStock(rs.getInt("Stock"));
+                products.add(p);
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getAllActiveNonComboProducts: " + e.getMessage());
+        }
+        return products;
     }
 }

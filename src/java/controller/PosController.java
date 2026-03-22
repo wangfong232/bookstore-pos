@@ -8,6 +8,7 @@ import DAO.ProductDAO;
 import DAO.CustomerDAO;
 import DAO.SalesInvoiceDAO;
 import DAO.EmployeeDAO;
+import DAO.ComboProductDAO;
 import entity.Customer;
 import entity.CartItem;
 import entity.Category;
@@ -32,6 +33,7 @@ public class PosController extends HttpServlet {
     private final SalesInvoiceDAO salesInvoiceDAO = new SalesInvoiceDAO();
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
+    private final ComboProductDAO comboProductDAO = new ComboProductDAO();
     // Tạm thời hard-code nhân viên & ca làm để dev POS nhanh
     private static final int DEFAULT_STAFF_ID = 5; // cashiers sample data
     private static final Integer DEFAULT_SHIFT_ID = 1;
@@ -346,6 +348,14 @@ public class PosController extends HttpServlet {
             }
             response.sendRedirect("pos");
             return;
+        }
+
+        // Deduct combo quantities for combo products in the cart
+        for (CartItem item : cart) {
+            if (item.getProduct().isIsCombo()) {
+                comboProductDAO.decreaseComboQuantity(
+                    item.getProduct().getProductID(), item.getQuantity());
+            }
         }
 
         session.removeAttribute("cart");

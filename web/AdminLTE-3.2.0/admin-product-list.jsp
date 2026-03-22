@@ -194,6 +194,9 @@
                                             </td>
                                             <td>
                                                 <strong>${product.productName}</strong>
+                                                <c:if test="${product.isCombo}">
+                                                    <span class="badge badge-info ml-1">COMBO</span>
+                                                </c:if>
                                                 <c:if test="${not empty product.description}">
                                                     <br><small class="text-muted">${product.description.length() > 50 ? product.description.substring(0, 50).concat('...') : product.description}</small>
                                                 </c:if>
