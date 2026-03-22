@@ -247,13 +247,13 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/admin/customers" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/customers" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Danh sách khách hàng</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="${pageContext.request.contextPath}/admin/customer-tiers" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/customer-tiers" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Cấp bậc khách hàng</p>
                                 </a>
@@ -265,7 +265,7 @@
                 <%-- ===== KHUYẾN MÃI – Manager, Store Manager, Saler ===== --%>
                 <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2 || sessionScope.roleId == 5}">
                     <li class="nav-item">
-                        <a href="${pageContext.request.contextPath}/admin/promotions" class="nav-link">
+                        <a href="${pageContext.request.contextPath}/promotions" class="nav-link">
                             <i class="nav-icon fas fa-tags"></i>
                             <p>Khuyến mãi</p>
                         </a>
