@@ -71,10 +71,25 @@ public class CustomerTierController extends HttpServlet {
     }
 
     private void addTier(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws IOException, ServletException {
         String name = request.getParameter("tierName");
         double minPoint = Double.parseDouble(request.getParameter("minPoint").replace(",", ""));
         double discountRate = Double.parseDouble(request.getParameter("discountRate").replace("%", "").trim());
+
+        // Validate >= 0
+        if (minPoint < 0 || discountRate < 0) {
+            request.setAttribute("errorMessage", "Điểm tối thiểu và tỷ lệ giảm giá không được nhỏ hơn 0.");
+            listTiers(request, response);
+            return;
+        }
+
+        // Validate tên không trùng
+        CustomerTier existing = tierDAO.getByName(name);
+        if (existing != null) {
+            request.setAttribute("errorMessage", "Tên bậc \"" + name + "\" đã tồn tại. Vui lòng chọn tên khác.");
+            listTiers(request, response);
+            return;
+        }
 
         CustomerTier tier = new CustomerTier();
         tier.setTierName(name);
@@ -82,7 +97,7 @@ public class CustomerTierController extends HttpServlet {
         tier.setDiscountRate(discountRate);
 
         tierDAO.insert(tier);
-        response.sendRedirect(request.getContextPath() + "/admin/customer-tiers?msg=add_success");
+        response.sendRedirect(request.getContextPath() + "/customer-tiers?msg=add_success");
     }
 
     private void updateTier(HttpServletRequest request, HttpServletResponse response)
@@ -108,6 +123,6 @@ public class CustomerTierController extends HttpServlet {
             throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         tierDAO.delete(id);
-        response.sendRedirect(request.getContextPath() + "/admin/customer-tiers?msg=delete_success");
+        response.sendRedirect(request.getContextPath() + "/customer-tiers?msg=delete_success");
     }
 }
