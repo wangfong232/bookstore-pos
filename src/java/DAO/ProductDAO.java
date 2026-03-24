@@ -589,7 +589,7 @@ public class ProductDAO extends DBContext {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Products WHERE IsActive = 1");
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (ProductName LIKE ? OR SKU LIKE ?)");
-        }
+}
         if (categoryId != null) {
             sql.append(" AND CategoryID = ?");
         }

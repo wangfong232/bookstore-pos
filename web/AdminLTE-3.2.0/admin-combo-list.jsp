@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -85,11 +86,51 @@
                     </div>
 
                     <div class="card-body">
+                        <!-- Filter Form -->
+                        <form method="get" action="<%= request.getContextPath() %>/admin/combos" class="mb-3">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <input type="text" name="search" value="${search}" class="form-control" 
+                                           placeholder="Tìm theo tên, SKU...">
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="categoryId" class="form-control">
+                                        <option value="">-- Danh mục --</option>
+                                        <c:forEach var="cat" items="${categories}">
+                                            <option value="${cat.categoryID}" ${categoryId == cat.categoryID ? 'selected' : ''}>
+                                                ${cat.categoryName}
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select name="status" class="form-control">
+                                        <option value="">-- Trạng thái --</option>
+                                        <option value="active" ${status == 'active' ? 'selected' : ''}>Active (SP Con đang bán)</option>
+                                        <option value="inactive" ${status == 'inactive' ? 'selected' : ''}>Inactive (SP Con ngừng bán)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="pageSize" class="form-control" onchange="this.form.submit()">
+                                        <option value="10" ${pageSize == 10 ? 'selected' : ''}>10 dòng</option>
+                                        <option value="20" ${pageSize == 20 ? 'selected' : ''}>20 dòng</option>
+                                        <option value="50" ${pageSize == 50 ? 'selected' : ''}>50 dòng</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-search"></i> Tìm
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
                                         <th style="width: 60px;">ID</th>
+                                        <th style="width: 80px;">Ảnh</th>
                                         <th>Tên Combo</th>
                                         <th style="width: 120px;">Mã SKU</th>
                                         <th style="width: 130px;">Giá bán</th>
@@ -102,6 +143,19 @@
                                     <c:forEach var="combo" items="${combos}">
                                         <tr>
                                             <td><strong>#${combo.comboID}</strong></td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${not empty combo.imageURL}">
+                                                        <img src="${combo.imageURL}" alt="${combo.productName}" 
+                                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div class="text-center text-muted">
+                                                            <i class="fas fa-image fa-2x"></i>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
                                             <td>
                                                 <strong>${combo.productName}</strong>
                                                 <span class="badge badge-info ml-1">COMBO</span>
@@ -152,8 +206,10 @@
                                                     </button>
                                                 </form>
 
-                                                <button type="button" class="btn btn-outline-primary btn-sm"
-                                                        onclick="showAdjustModal(${combo.comboID}, '${combo.productName}', ${combo.comboQuantity})"
+                                                <button type="button" class="btn btn-outline-primary btn-sm btn-adjust"
+                                                        data-id="${combo.comboID}" 
+                                                        data-name="${fn:escapeXml(combo.productName)}" 
+                                                        data-quantity="${combo.comboQuantity}"
                                                         title="Điều chỉnh số lượng">
                                                     <i class="fas fa-sliders-h"></i>
                                                 </button>
@@ -180,9 +236,9 @@
 
                                     <c:if test="${empty combos}">
                                         <tr>
-                                            <td colspan="7" class="text-center py-4">
+                                            <td colspan="8" class="text-center py-4">
                                                 <i class="fas fa-boxes fa-3x text-muted mb-3"></i>
-                                                <p class="text-muted">Chưa có combo nào. <a href="<%= request.getContextPath() %>/admin/combos?action=add">Tạo combo mới</a></p>
+                                                <p class="text-muted">Không tìm thấy combo nào khớp với bộ lọc.</p>
                                             </td>
                                         </tr>
                                     </c:if>
@@ -190,6 +246,43 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- Paging -->
+                    <c:if test="${totalPages > 0}">
+                        <div class="card-footer clearfix">
+                            <div class="row">
+                                <div class="col-sm-12 col-md-5">
+                                    <div class="dataTables_info" role="status" aria-live="polite">
+                                        Hiển thị <strong>${totalRecords > 0 ? (currentPage-1)*pageSize + 1 : 0}</strong> đến 
+                                        <strong>${currentPage*pageSize > totalRecords ? totalRecords : currentPage*pageSize}</strong> 
+                                        của <strong>${totalRecords}</strong> combo
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-7">
+                                    <ul class="pagination pagination-sm m-0 float-right">
+                                        <!-- Previous -->
+                                        <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                                            <a class="page-link" href="?page=${currentPage - 1}&search=${search}&status=${status}&categoryId=${categoryId}&pageSize=${pageSize}">&laquo; Trước</a>
+                                        </li>
+
+                                        <!-- Page numbers -->
+                                        <c:forEach begin="1" end="${totalPages}" var="i">
+                                            <c:if test="${i >= currentPage - 2 && i <= currentPage + 2}">
+                                                <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                    <a class="page-link" href="?page=${i}&search=${search}&status=${status}&categoryId=${categoryId}&pageSize=${pageSize}">${i}</a>
+                                                </li>
+                                            </c:if>
+                                        </c:forEach>
+
+                                        <!-- Next -->
+                                        <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                                            <a class="page-link" href="?page=${currentPage + 1}&search=${search}&status=${status}&categoryId=${categoryId}&pageSize=${pageSize}">Sau &raquo;</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </c:if>
                 </div>
             </div>
         </section>
@@ -241,6 +334,13 @@ function showAdjustModal(comboID, comboName, currentQty) {
     $('#adjustDelta').val(1);
     $('#adjustModal').modal('show');
 }
+
+$(document).on('click', '.btn-adjust', function() {
+    var id = $(this).data('id');
+    var name = $(this).data('name');
+    var qty = $(this).data('quantity');
+    showAdjustModal(id, name, qty);
+});
 
 setTimeout(function() {
     $('.alert').fadeOut('slow');

@@ -128,6 +128,12 @@
                                     <p>Thương hiệu</p>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/combos" class="nav-link">
+                                    <i class="nav-icon fas fa-object-group"></i>
+                                    <p>Quản lý Combo</p>
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </c:if>
@@ -303,12 +309,12 @@
                                     <p>Ca làm việc</p>
                                 </a>
                             </li>
-                            
+
                         </ul>
                     </li>
                 </c:if>
 
-                   
+
 
                     <%-- Báo cáo --%>
                     <li class="nav-item">
@@ -382,5 +388,39 @@
         <!-- /.sidebar-menu -->
     </div>
     <!-- /.sidebar -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
+            const currentUrl = window.location.href;
+
+            document.querySelectorAll(".nav-sidebar a.nav-link").forEach(function (link) {
+
+                let href = link.getAttribute("href");
+                if (!href || href === "#")
+                    return;
+
+                // bỏ query string
+                let cleanHref = href.split('?')[0];
+
+                if (currentUrl.includes(cleanHref)) {
+                    link.classList.add("active");
+
+                    // mở submenu cha
+                    let parentTree = link.closest(".nav-treeview");
+                    if (parentTree) {
+                        let parentItem = parentTree.closest(".nav-item");
+                        if (parentItem) {
+                            parentItem.classList.add("menu-open");
+
+                            let parentLink = parentItem.querySelector("> .nav-link");
+                            if (parentLink) {
+                                parentLink.classList.add("active");
+                            }
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
 </aside>

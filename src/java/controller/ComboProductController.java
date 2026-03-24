@@ -79,8 +79,76 @@ public class ComboProductController extends HttpServlet {
 
     private void listCombos(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<ComboProduct> combos = comboDAO.getAllCombos();
+        // Get parameters
+        String search = request.getParameter("search");
+        String statusParam = request.getParameter("status");
+        String categoryParam = request.getParameter("categoryId");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+        String pageParam = request.getParameter("page");
+        String pageSizeParam = request.getParameter("pageSize");
+
+        // Default values
+        int page = 1;
+        int pageSize = 10;
+        Boolean isActive = null;
+        Integer categoryId = null;
+
+        // Parse parameters
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+        }
+
+        if (pageSizeParam != null && !pageSizeParam.isEmpty()) {
+            try {
+                pageSize = Integer.parseInt(pageSizeParam);
+            } catch (NumberFormatException e) {
+                pageSize = 10;
+            }
+        }
+
+        if ("active".equals(statusParam)) {
+            isActive = true;
+        } else if ("inactive".equals(statusParam)) {
+            isActive = false;
+        }
+
+        if (categoryParam != null && !categoryParam.isEmpty()) {
+            try {
+                categoryId = Integer.parseInt(categoryParam);
+            } catch (NumberFormatException e) {
+                categoryId = null;
+            }
+        }
+
+        // Get data
+        int totalRecords = comboDAO.countCombos(search, isActive, categoryId);
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+        if (page > totalPages && totalPages > 0) page = totalPages;
+        if (page < 1) page = 1;
+
+        List<ComboProduct> combos = comboDAO.getCombosPaged(search, isActive, categoryId, sortBy, sortOrder, page, pageSize);
+
+        // Get categories for filter dropdown
+        DAO.CategoryDAO categoryDAO = new DAO.CategoryDAO();
+        request.setAttribute("categories", categoryDAO.getAllActiveCategories());
+
+        // Set attributes for JSP
         request.setAttribute("combos", combos);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("totalRecords", totalRecords);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("search", search);
+        request.setAttribute("status", statusParam);
+        request.setAttribute("categoryId", categoryId);
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+
         request.getRequestDispatcher("/AdminLTE-3.2.0/admin-combo-list.jsp").forward(request, response);
     }
 

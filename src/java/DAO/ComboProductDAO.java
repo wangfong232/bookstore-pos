@@ -13,10 +13,129 @@ public class ComboProductDAO extends DBContext {
     /**
      * Get all combos with product info (for list page)
      */
+    /**
+     * Count total combos with filters (for paging)
+     */
+    public int countCombos(String search, Boolean isActive, Integer categoryId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM ComboProducts cp JOIN Products p ON cp.ProductID = p.ProductID WHERE 1=1");
+        
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (p.ProductName LIKE ? OR p.SKU LIKE ?)");
+        }
+        if (isActive != null) {
+            sql.append(" AND p.IsActive = ?");
+        }
+        if (categoryId != null) {
+            sql.append(" AND p.CategoryID = ?");
+        }
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (search != null && !search.trim().isEmpty()) {
+                String pattern = "%" + search.trim() + "%";
+                ps.setString(idx++, pattern);
+                ps.setString(idx++, pattern);
+            }
+            if (isActive != null) {
+                ps.setBoolean(idx++, isActive);
+            }
+            if (categoryId != null) {
+                ps.setInt(idx++, categoryId);
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println("ERR: countCombos: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    /**
+     * Get combos with paging, filtering and sorting
+     */
+    public List<ComboProduct> getCombosPaged(String search, Boolean isActive, Integer categoryId, 
+                                             String sortBy, String sortOrder, int page, int pageSize) {
+        List<ComboProduct> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive AS ComboIsActive,
+                   cp.CreatedDate, cp.UpdatedDate,
+                   p.ProductName, p.SKU, p.SellingPrice, p.ImageURL, p.IsActive AS ProductIsActive
+            FROM ComboProducts cp
+            JOIN Products p ON cp.ProductID = p.ProductID
+            WHERE 1=1
+        """);
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (p.ProductName LIKE ? OR p.SKU LIKE ?)");
+        }
+        if (isActive != null) {
+            sql.append(" AND p.IsActive = ?");
+        }
+        if (categoryId != null) {
+            sql.append(" AND p.CategoryID = ?");
+        }
+
+        // Sorting
+        if (sortBy != null && !sortBy.isEmpty()) {
+            // Validate sortBy to prevent SQL Injection if needed, 
+            // but here we trust the controller or use simple mapping
+            String column = "cp.CreatedDate";
+            if ("name".equals(sortBy)) column = "p.ProductName";
+            else if ("price".equals(sortBy)) column = "p.SellingPrice";
+            else if ("quantity".equals(sortBy)) column = "cp.ComboQuantity";
+            
+            sql.append(" ORDER BY ").append(column);
+            if ("DESC".equalsIgnoreCase(sortOrder)) {
+                sql.append(" DESC");
+            } else {
+                sql.append(" ASC");
+            }
+        } else {
+            sql.append(" ORDER BY cp.CreatedDate DESC");
+        }
+
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (search != null && !search.trim().isEmpty()) {
+                String pattern = "%" + search.trim() + "%";
+                ps.setString(idx++, pattern);
+                ps.setString(idx++, pattern);
+            }
+            if (isActive != null) {
+                ps.setBoolean(idx++, isActive);
+            }
+            if (categoryId != null) {
+                ps.setInt(idx++, categoryId);
+            }
+            ps.setInt(idx++, (page - 1) * pageSize);
+            ps.setInt(idx++, pageSize);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ComboProduct combo = extractComboFromResultSet(rs);
+                combo.setComboItems(getComboItems(combo.getComboID()));
+                list.add(combo);
+            }
+        } catch (SQLException e) {
+            System.out.println("ERR: getCombosPaged: " + e.getMessage());
+        }
+        return list;
+    }
+
+    /**
+     * Get all combos (no paging, kept for backward compatibility)
+     */
     public List<ComboProduct> getAllCombos() {
         List<ComboProduct> list = new ArrayList<>();
         String sql = """
-            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive,
+            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive AS ComboIsActive,
                    cp.CreatedDate, cp.UpdatedDate,
                    p.ProductName, p.SKU, p.SellingPrice, p.ImageURL
             FROM ComboProducts cp
@@ -42,7 +161,7 @@ public class ComboProductDAO extends DBContext {
      */
     public ComboProduct getComboByID(int comboID) {
         String sql = """
-            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive,
+            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive AS ComboIsActive,
                    cp.CreatedDate, cp.UpdatedDate,
                    p.ProductName, p.SKU, p.SellingPrice, p.ImageURL
             FROM ComboProducts cp
@@ -69,7 +188,7 @@ public class ComboProductDAO extends DBContext {
      */
     public ComboProduct getComboByProductID(int productID) {
         String sql = """
-            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive,
+            SELECT cp.ComboID, cp.ProductID, cp.ComboQuantity, cp.IsActive AS ComboIsActive,
                    cp.CreatedDate, cp.UpdatedDate,
                    p.ProductName, p.SKU, p.SellingPrice, p.ImageURL
             FROM ComboProducts cp
@@ -105,7 +224,6 @@ public class ComboProductDAO extends DBContext {
             WHERE ci.ComboID = ?
             ORDER BY ci.ComboItemID
         """;
-
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, comboID);
@@ -528,7 +646,7 @@ public class ComboProductDAO extends DBContext {
         combo.setComboID(rs.getInt("ComboID"));
         combo.setProductID(rs.getInt("ProductID"));
         combo.setComboQuantity(rs.getInt("ComboQuantity"));
-        combo.setIsActive(rs.getBoolean("IsActive"));
+        combo.setIsActive(rs.getBoolean("ComboIsActive"));
         combo.setCreatedDate(rs.getTimestamp("CreatedDate"));
         combo.setUpdatedDate(rs.getTimestamp("UpdatedDate"));
         combo.setProductName(rs.getString("ProductName"));
