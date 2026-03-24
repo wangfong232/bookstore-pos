@@ -9,6 +9,7 @@ import DAO.CustomerDAO;
 import DAO.SalesInvoiceDAO;
 import DAO.EmployeeDAO;
 import DAO.CustomerPointDAO;
+import DAO.ComboProductDAO;
 import entity.Customer;
 import entity.CartItem;
 import entity.Category;
@@ -40,6 +41,8 @@ public class PosController extends HttpServlet {
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
     private final CustomerPointDAO customerPointDAO = new CustomerPointDAO();
     private final PromotionService promotionService = new PromotionService();
+    private final ComboProductDAO comboProductDAO = new ComboProductDAO();
+
     
     // Tạm thời hard-code nhân viên & ca làm để dev POS nhanh
     private static final int DEFAULT_STAFF_ID = 5; // cashiers sample data
@@ -401,6 +404,14 @@ public class PosController extends HttpServlet {
             return;
         }
 
+        // Deduct combo quantities for combo products in the cart
+        for (CartItem item : cart) {
+            if (item.getProduct().isIsCombo()) {
+                comboProductDAO.decreaseComboQuantity(
+                    item.getProduct().getProductID(), item.getQuantity());
+            }
+        }
+
         session.removeAttribute("cart");
 
         // 7. Tích điểm & Thông báo simplified (My Logic)
@@ -412,12 +423,8 @@ public class PosController extends HttpServlet {
         }
 
         StringBuilder msg = new StringBuilder("Thanh toán thành công. Mã: " + invoiceCode);
-        if (totalDiscount > 0) {
-            msg.append(" (-").append(String.format("%,.0f", totalDiscount)).append("đ)");
-        }
-        if (pointsAdded > 0) {
-            msg.append(". Được cộng ").append(pointsAdded).append(" điểm.");
-        }
+
+
         session.setAttribute("msg", msg.toString());
         response.sendRedirect("pos");
     }

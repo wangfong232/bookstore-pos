@@ -66,6 +66,7 @@ public class RoleFilter implements Filter {
         ROLE_MAP.put("/admin/products", roleSet(1, 2));
         ROLE_MAP.put("/admin/categories", roleSet(1, 2));
         ROLE_MAP.put("/admin/brands", roleSet(1, 2));
+        ROLE_MAP.put("/admin/combos", roleSet(1, 2));
         ROLE_MAP.put("/admin/attendance", roleSet(1, 2));
         ROLE_MAP.put("/admin/swap-approval", roleSet(1, 2));
 

@@ -106,20 +106,15 @@ public class VnPayReturnController extends HttpServlet {
 
             StringBuilder msg = new StringBuilder();
             msg.append("Thanh toán VNPAY thành công. Mã hóa đơn: ").append(invoiceCode);
-            if (promotionDiscount > 0) {
-                msg.append(" (-").append(String.format("%,.0f", promotionDiscount)).append("đ)");
-            }
+
             if (pointsAdded > 0) {
                 customerPointDAO.addPoints(resolvedCustomerId, pointsAdded);
-                msg.append(". Bạn được cộng ").append(pointsAdded).append(" điểm.");
             }
             session.setAttribute("msg", msg.toString());
         } else {
             StringBuilder msg = new StringBuilder();
             msg.append("Thanh toán VNPAY thành công. Mã hóa đơn: ").append(invoiceCode);
-            if (promotionDiscount > 0) {
-                msg.append(" (-").append(String.format("%,.0f", promotionDiscount)).append("đ)");
-            }
+
             session.setAttribute("msg", msg.toString());
         }
 
