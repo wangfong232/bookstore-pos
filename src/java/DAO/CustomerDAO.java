@@ -13,28 +13,10 @@ import java.lang.*;
 public class CustomerDAO extends DBContext {
 
     /**
-     * Sinh mã khách hàng tiếp theo dạng KH001, KH002, ...
+     * Không còn sử dụng mã KH tự sinh nếu SĐT là ID.
      */
     public String getNextCustomerId() {
-        String sql = "SELECT MAX(CustomerID) FROM Customers WHERE CustomerID LIKE 'KH%'";
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                String maxId = rs.getString(1);
-                if (maxId == null || maxId.isEmpty()) return "KH001";
-                String numPart = maxId.length() > 2 ? maxId.substring(2) : "0";
-                try {
-                    int n = Integer.parseInt(numPart);
-                    return String.format("KH%03d", n + 1);
-                } catch (NumberFormatException e) {
-                    return "KH001";
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return "KH001";
+        return null;
     }
     // CREATE
     public void insert(Customer c) {
@@ -45,7 +27,7 @@ public class CustomerDAO extends DBContext {
         try (Connection con = getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, c.getCustomerID());
+            ps.setString(1, c.getCustomerID()); // This is the phone number now
             ps.setString(2, c.getCustomerName());
             ps.setString(3, c.getEmail());
             ps.setDate(4, c.getBirthday() != null ? Date.valueOf(c.getBirthday()) : null);
@@ -101,6 +83,11 @@ public class CustomerDAO extends DBContext {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // READ by Phone (Phone is ID)
+    public Customer getByPhone(String phone) {
+        return getById(phone);
     }
 
     // READ ALL
@@ -215,6 +202,7 @@ public class CustomerDAO extends DBContext {
 
         c.setStatus(rs.getString("Status"));
         c.setNote(rs.getString("Note"));
+        c.setPhoneNumber(rs.getString("CustomerID"));
 
         // Handle Points from JOIN
         try {

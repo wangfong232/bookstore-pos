@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet(name = "CustomerController", urlPatterns = { "/admin/customers" })
+@WebServlet(name = "CustomerController", urlPatterns = { "/customers" })
 public class CustomerController extends HttpServlet {
 
     private final CustomerDAO customerDAO = new CustomerDAO();
@@ -57,7 +57,7 @@ public class CustomerController extends HttpServlet {
         } else if ("add".equals(action)) {
             addCustomer(request, response);
         } else {
-            response.sendRedirect(request.getContextPath() + "/admin/customers");
+            response.sendRedirect(request.getContextPath() + "/customers");
         }
     }
 
@@ -105,7 +105,7 @@ public class CustomerController extends HttpServlet {
         c.setNote(note);
 
         customerDAO.insert(c);
-        response.sendRedirect(request.getContextPath() + "/admin/customers?msg=add_success");
+        response.sendRedirect(request.getContextPath() + "/customers?msg=add_success");
     }
 
     private void updateCustomer(HttpServletRequest request, HttpServletResponse response)
@@ -135,9 +135,9 @@ public class CustomerController extends HttpServlet {
             }
 
             customerDAO.update(c);
-            response.sendRedirect(request.getContextPath() + "/admin/customers?msg=update_success");
+            response.sendRedirect(request.getContextPath() + "/customers?msg=update_success");
         } else {
-            response.sendRedirect(request.getContextPath() + "/admin/customers?msg=not_found");
+            response.sendRedirect(request.getContextPath() + "/customers?msg=not_found");
         }
     }
 
@@ -145,7 +145,7 @@ public class CustomerController extends HttpServlet {
             throws IOException {
         String id = request.getParameter("id");
         customerDAO.delete(id);
-        response.sendRedirect(request.getContextPath() + "/admin/customers?msg=delete_success");
+        response.sendRedirect(request.getContextPath() + "/customers?msg=delete_success");
     }
 
     private void calculateAndSetTiers(List<Customer> customers) {

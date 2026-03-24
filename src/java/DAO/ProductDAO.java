@@ -585,4 +585,63 @@ public class ProductDAO extends DBContext {
         }
         return products;
     }
+    public int countProductsForPos(String keyword, Integer categoryId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Products WHERE IsActive = 1");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (ProductName LIKE ? OR SKU LIKE ?)");
+}
+        if (categoryId != null) {
+            sql.append(" AND CategoryID = ?");
+        }
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String pattern = "%" + keyword.trim() + "%";
+                ps.setString(idx++, pattern);
+                ps.setString(idx++, pattern);
+            }
+            if (categoryId != null) {
+                ps.setInt(idx++, categoryId);
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) {
+            System.out.println("ERR: countProductsForPos: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public List<Product> getProductsForPos(String keyword, Integer categoryId, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM Products WHERE IsActive = 1");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (ProductName LIKE ? OR SKU LIKE ?)");
+        }
+        if (categoryId != null) {
+            sql.append(" AND CategoryID = ?");
+        }
+        sql.append(" ORDER BY ProductID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String pattern = "%" + keyword.trim() + "%";
+                ps.setString(idx++, pattern);
+                ps.setString(idx++, pattern);
+            }
+            if (categoryId != null) {
+                ps.setInt(idx++, categoryId);
+            }
+            ps.setInt(idx++, (page - 1) * pageSize);
+            ps.setInt(idx++, pageSize);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(extractProductFromResultSet(rs));
+            }
+        } catch (Exception e) {
+            System.out.println("ERR: getProductsForPos: " + e.getMessage());
+        }
+        return list;
+    }
 }

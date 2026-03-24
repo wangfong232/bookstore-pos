@@ -198,7 +198,7 @@
                                 <!-- Search bar -->
                                 <div class="row mb-3">
                                     <div class="col-md-12">
-                                        <form action="<%= request.getContextPath() %>/admin/customers" method="get"
+                                        <form action="<%= request.getContextPath() %>/customers" method="get"
                                             class="form-inline" id="searchForm">
                                             <input type="hidden" name="action" value="search">
 
@@ -371,7 +371,7 @@
                                                     <!-- EDIT MODE -->
                                                     <div id="editMode" style="display:none;">
                                                         <form id="customerDetailForm"
-                                                            action="<%= request.getContextPath() %>/admin/customers"
+                                                            action="<%= request.getContextPath() %>/customers"
                                                             method="post">
                                                             <input type="hidden" name="action" value="update">
                                                             <input type="hidden" name="customerID" id="detailID"

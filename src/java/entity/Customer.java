@@ -21,6 +21,7 @@ public class Customer {
     private String note;
     private int points;
     private String tierName;
+    private String phoneNumber;
 
     public Customer() {
     }
@@ -109,7 +110,18 @@ public class Customer {
     }
 
     public String getPhone() {
-        return customerID;
+        return phoneNumber;
     }
 
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 }

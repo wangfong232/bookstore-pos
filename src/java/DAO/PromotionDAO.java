@@ -166,6 +166,21 @@ public class PromotionDAO extends DBContext {
         }
     }
 
+    public Promotion getPromotionByCode(String code) {
+        String sql = "SELECT * FROM Promotions WHERE PromotionCode = ?";
+        try (Connection con = getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, code);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return mapRow(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     // ── helper ──────────────────────────────────────────────────────────────
     private Promotion mapRow(ResultSet rs) throws SQLException {
         Promotion p = new Promotion();

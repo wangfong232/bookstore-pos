@@ -102,4 +102,25 @@ public class CustomerTierDAO extends DBContext {
         }
         return null;
     }
+    public CustomerTier getByName(String name) {
+        String sql = "SELECT * FROM CustomerTiers WHERE TierName = ?";
+        try (Connection con = getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    CustomerTier t = new CustomerTier();
+                    t.setTierID(rs.getInt("TierID"));
+                    t.setTierName(rs.getString("TierName"));
+                    t.setMinPoint(rs.getDouble("MinPoint"));
+                    t.setDiscountRate(rs.getDouble("DiscountRate"));
+                    return t;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

@@ -263,7 +263,7 @@
                                         <ol class="breadcrumb float-sm-right">
                                             <li class="breadcrumb-item"><a href="#">Home</a></li>
                                             <li class="breadcrumb-item">
-                                                <a href="<%= request.getContextPath() %>/admin/promotions">Chiến Dịch
+                                                <a href="<%= request.getContextPath() %>/promotions">Chiến Dịch
                                                     Khuyến Mãi</a>
                                             </li>
                                             <li class="breadcrumb-item active">Tạo Mới</li>
@@ -295,7 +295,7 @@
                                         <!-- Card Header -->
                                         <div class="promo-card-header">
                                             <h5>Tạo Chiến Dịch Khuyến Mãi Mới</h5>
-                                            <a href="<%= request.getContextPath() %>/admin/promotions" class="close-btn"
+                                            <a href="<%= request.getContextPath() %>/promotions" class="close-btn"
                                                 title="Close">
                                                 <i class="fas fa-times" style="font-size:12px;"></i>
                                             </a>
@@ -303,8 +303,8 @@
 
                                         <!-- Card Body -->
                                         <div class="promo-card-body">
-                                            <form action="<%= request.getContextPath() %>/admin/promotions"
-                                                method="post" id="promotionForm" novalidate>
+                                            <form action="<%= request.getContextPath() %>/promotions" method="post"
+                                                id="promotionForm" novalidate>
 
                                                 <input type="hidden" name="action" value="create">
 
@@ -315,9 +315,15 @@
                                                     <div class="section-block">
                                                         <label class="form-label-bold" for="promotionCode">Mã Chiến
                                                             Dịch:</label>
-                                                        <input type="text" class="form-control promo-input"
+                                                        <input type="text"
+                                                            class="form-control promo-input ${not empty error_promotionCode ? 'is-invalid' : ''}"
                                                             id="promotionCode" name="promotionCode"
-                                                            placeholder="VD: TET2026" required>
+                                                            value="${promotion.promotionCode}" placeholder="VD: TET2026"
+                                                            required>
+                                                        <c:if test="${not empty error_promotionCode}">
+                                                            <div class="text-danger small mt-1">${error_promotionCode}
+                                                            </div>
+                                                        </c:if>
                                                         <div class="invalid-feedback">Vui lòng nhập mã chiến dịch.</div>
                                                     </div>
 
@@ -389,11 +395,14 @@
                                                         </label>
                                                         <div class="input-group" style="width: 160px;">
                                                             <input type="number" class="form-control promo-input"
-                                                                name="minOrderValue" placeholder="0" value="0">
+                                                                id="minOrderValue" name="minOrderValue" placeholder="0"
+                                                                value="0">
                                                             <div class="input-group-append">
                                                                 <span class="input-group-text">đ</span>
                                                             </div>
                                                         </div>
+                                                        <small id="minOrderValueError" class="text-danger mt-1"
+                                                            style="display: none;"></small>
                                                     </div>
 
                                                     <!-- Customer Tier -->
@@ -424,13 +433,21 @@
                                                     <div class="rule-row rule-section-dynamic" id="rule-PERCENT">
                                                         <span class="rule-label">Giảm giá:</span>
                                                         <div class="input-group" style="width:160px;">
-                                                            <input type="number" class="form-control promo-input"
-                                                                name="discountPercent" min="1" max="100"
+                                                            <input type="number"
+                                                                class="form-control promo-input ${not empty error_discountPercent ? 'is-invalid' : ''}"
+                                                                id="discountPercent" name="discountPercent" min="0"
+                                                                max="100" value="${promotion.discount.discountValue}"
                                                                 placeholder="VD: 20">
                                                             <div class="input-group-append">
                                                                 <span class="input-group-text">%</span>
                                                             </div>
                                                         </div>
+                                                        <small id="discountPercentError" class="text-danger mt-1"
+                                                            style="display: none;"></small>
+                                                        <c:if test="${not empty error_discountPercent}">
+                                                            <div class="text-danger small mt-1">${error_discountPercent}
+                                                            </div>
+                                                        </c:if>
                                                         <span class="rule-label">giảm</span>
                                                     </div>
 
@@ -438,12 +455,21 @@
                                                     <div class="rule-row rule-section-dynamic" id="rule-FIXED">
                                                         <span class="rule-label">Số tiền giảm:</span>
                                                         <div class="input-group" style="width:180px;">
-                                                            <input type="number" class="form-control promo-input"
-                                                                name="fixedAmount" min="0" placeholder="VD: 50000">
+                                                            <input type="number"
+                                                                class="form-control promo-input ${not empty error_fixedAmount ? 'is-invalid' : ''}"
+                                                                id="fixedAmount" name="fixedAmount" min="0"
+                                                                value="${promotion.discount.discountValue}"
+                                                                placeholder="VD: 50000">
                                                             <div class="input-group-append">
                                                                 <span class="input-group-text">VNĐ</span>
                                                             </div>
                                                         </div>
+                                                        <small id="fixedAmountError" class="text-danger mt-1"
+                                                            style="display: none;"></small>
+                                                        <c:if test="${not empty error_fixedAmount}">
+                                                            <div class="text-danger small mt-1">${error_fixedAmount}
+                                                            </div>
+                                                        </c:if>
                                                     </div>
 
                                                 </div>
@@ -491,7 +517,7 @@
 
                                         <!-- Card Footer (buttons) -->
                                         <div class="promo-card-footer">
-                                            <a href="<%= request.getContextPath() %>/admin/promotions"
+                                            <a href="<%= request.getContextPath() %>/promotions"
                                                 class="btn btn-cancel-promo">Hủy</a>
                                             <button type="submit" form="promotionForm" class="btn btn-save-promo"
                                                 onclick="return validateForm()">LƯU</button>
@@ -566,6 +592,27 @@
                         // Init rule sections based on current type
                         var initialType = $('#promotionType').val();
                         showRuleSection(initialType);
+
+                        // Real-time validation for numeric fields
+                        function validateNumeric(input, errorElement, fieldName) {
+                            const val = input.val();
+                            if (val && !/^\d*\.?\d*$/.test(val)) {
+                                errorElement.text('Vui lòng chỉ nhập số cho ' + fieldName + '.').show();
+                                input.val(val.replace(/[^\d.]/g, ''));
+                            } else {
+                                errorElement.hide();
+                            }
+                        }
+
+                        $('#minOrderValue').on('input', function () {
+                            validateNumeric($(this), $('#minOrderValueError'), 'đơn hàng tối thiểu');
+                        });
+                        $('#discountPercent').on('input', function () {
+                            validateNumeric($(this), $('#discountPercentError'), 'tỷ lệ giảm giá');
+                        });
+                        $('#fixedAmount').on('input', function () {
+                            validateNumeric($(this), $('#fixedAmountError'), 'số tiền giảm');
+                        });
                     });
 
                     /**
@@ -635,7 +682,35 @@
                         }
 
                         if (!valid) {
+                            alert("Vui lòng kiểm tra lại các thông tin nhập vào.");
                             return false;
+                        }
+
+                        // Check values
+                        var type = $('#promotionType').val();
+                        var minOrder = parseFloat($('#minOrderValue').val());
+                        if (isNaN(minOrder) || minOrder < 0) {
+                            alert("Đơn hàng tối thiểu phải là số lớn hơn 0.");
+                            $('#minOrderValue').addClass('is-invalid');
+                            return false;
+                        } else {
+                            $('#minOrderValue').removeClass('is-invalid');
+                        }
+
+                        if (type === 'PERCENT') {
+                            var pct = parseFloat($('#discountPercent').val());
+                            if (isNaN(pct) || pct < 0 || pct > 100) {
+                                alert("Tỉ lệ giảm giá phải là số từ 0 đến 100.");
+                                $('#discountPercent').addClass('is-invalid');
+                                return false;
+                            }
+                        } else if (type === 'FIXED') {
+                            var fixed = parseFloat($('#fixedAmount').val());
+                            if (isNaN(fixed) || fixed < 0) {
+                                alert("Số tiền giảm phải là số lớn hơn 0.");
+                                $('#fixedAmount').addClass('is-invalid');
+                                return false;
+                            }
                         }
 
                         // Re-enable disabled selects before submit so values are sent
