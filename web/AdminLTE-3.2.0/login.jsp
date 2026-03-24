@@ -43,7 +43,7 @@
     <body class="hold-transition login-page">
         <div class="login-box">
             <div class="login-logo" style="color: #ffffff">
-                <a><b>Bookstore</b> Management</a>
+                <a><b>Bookstore</b> Local POS</a>
             </div>
             <!-- /.login-logo -->
             <div class="card">
@@ -96,7 +96,7 @@
                     </form>
 
                     <p class="mb-1">
-                        <a href="forgot-password.html">Quên mật khẩu</a>
+                        <a href="${pageContext.request.contextPath}/forgot-password">Quên mật khẩu</a>
                     </p>
                     <p class="mb-0">
                         <a href="${pageContext.request.contextPath}/register" class="text-center">Đăng ký tài khoản mới</a>
@@ -125,10 +125,19 @@
                                             eye.classList.add("fa-eye-slash");
                                         } else {
                                             input.type = "password";
-                                            eye.classList.remove("fa-eye-slash");
                                             eye.classList.add("fa-eye");
                                         }
                                     }
+
+                                    // Ngăn chặn khoảng trắng trong email
+                                    document.querySelector('input[name="email"]').addEventListener('keydown', function (e) {
+                                        if (e.which === 32)
+                                            e.preventDefault();
+                                    });
+
+                                    document.querySelector('input[name="email"]').addEventListener('input', function (e) {
+                                        this.value = this.value.replace(/\s/g, '');
+                                    });
     </script>
 </html>
 

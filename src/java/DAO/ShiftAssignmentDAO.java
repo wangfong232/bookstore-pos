@@ -388,6 +388,7 @@ public class ShiftAssignmentDAO extends DBContext {
                 + "JOIN Shifts s ON a.ShiftID = s.ShiftID "
                 + "WHERE a.EmployeeID <> ? "
                 + "AND a.WorkDate = ?";
+        
 
         try {
             PreparedStatement ps = getConnection().prepareStatement(sql);

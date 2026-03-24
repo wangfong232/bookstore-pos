@@ -30,6 +30,12 @@
                             <div class="col-sm-6">
                                 <h1><i class="fas fa-clock"></i> Quản lý Chấm công</h1>
                             </div>
+                            <div class="col-sm-6 text-right">
+                                <a href="${pageContext.request.contextPath}/admin/attendance?action=stats"
+                                   class="btn btn-success">
+                                    <i class="fas fa-chart-bar"></i> Xem thống kê tháng
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -79,7 +85,7 @@
                                 <div class="small-box bg-info">
                                     <div class="inner">
                                         <h3>${stats.total}</h3>
-                                        <p>Tổng ca hôm nay</p>
+                                        <p>Tổng nhân viên hôm nay</p>
                                     </div>
                                     <div class="icon">
                                         <i class="fas fa-users"></i>

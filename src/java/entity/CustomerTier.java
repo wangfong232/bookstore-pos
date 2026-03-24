@@ -12,18 +12,16 @@ public class CustomerTier {
 
     private int tierID;
     private String tierName;
-    private double minTotalSpent;
-    private double pointRate;
+    private double minPoint;
     private double discountRate;
 
     public CustomerTier() {
     }
 
-    public CustomerTier(int tierID, String tierName, double minTotalSpent, double pointRate, double discountRate) {
+    public CustomerTier(int tierID, String tierName, double minPoint, double discountRate) {
         this.tierID = tierID;
         this.tierName = tierName;
-        this.minTotalSpent = minTotalSpent;
-        this.pointRate = pointRate;
+        this.minPoint = minPoint;
         this.discountRate = discountRate;
     }
 
@@ -43,20 +41,12 @@ public class CustomerTier {
         this.tierName = tierName;
     }
 
-    public double getMinTotalSpent() {
-        return minTotalSpent;
+    public double getMinPoint() {
+        return minPoint;
     }
 
-    public void setMinTotalSpent(double minTotalSpent) {
-        this.minTotalSpent = minTotalSpent;
-    }
-
-    public double getPointRate() {
-        return pointRate;
-    }
-
-    public void setPointRate(double pointRate) {
-        this.pointRate = pointRate;
+    public void setMinPoint(double minPoint) {
+        this.minPoint = minPoint;
     }
 
     public double getDiscountRate() {

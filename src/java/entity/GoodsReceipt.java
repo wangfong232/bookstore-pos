@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import util.DateUtil;
 
 /**
  *
@@ -30,6 +31,11 @@ public class GoodsReceipt {
     private Integer receivedBy;
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
+
+    //display fields 
+    private String poNumber;
+    private String supplierName;
+    private String receivedByName;
 
     private List<GoodsReceiptDetail> details;
 
@@ -88,6 +94,10 @@ public class GoodsReceipt {
         return receiptDate;
     }
 
+    public String getReceiptDateFormatted() {
+        return DateUtil.format(receiptDate);
+    }
+
     public void setReceiptDate(LocalDateTime receiptDate) {
         this.receiptDate = receiptDate;
     }
@@ -144,8 +154,36 @@ public class GoodsReceipt {
         return completedAt;
     }
 
+    public String getCompletedAtFormatted() {
+        return DateUtil.format(completedAt);
+    }
+
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public String getPoNumber() {
+        return poNumber;
+    }
+
+    public void setPoNumber(String poNumber) {
+        this.poNumber = poNumber;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getReceivedByName() {
+        return receivedByName;
+    }
+
+    public void setReceivedByName(String receivedByName) {
+        this.receivedByName = receivedByName;
     }
 
     public List<GoodsReceiptDetail> getDetails() {

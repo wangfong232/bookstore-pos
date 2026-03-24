@@ -30,7 +30,7 @@ import util.Validation;
  *
  * @author qp
  */
-@WebServlet(name = "PurchaseOrderController", urlPatterns = {"/purchaseorder"})
+@WebServlet(name = "PurchaseOrderController", urlPatterns = {"/admin/purchaseorder"})
 public class PurchaseOrderController extends HttpServlet {
 
     private PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
@@ -82,7 +82,7 @@ public class PurchaseOrderController extends HttpServlet {
         }
 
         int page = 1;
-        int pageSize = 5;
+        int pageSize = 10;
         try {
             String pageParam = request.getParameter("page");
             if (pageParam != null) {
@@ -140,7 +140,7 @@ public class PurchaseOrderController extends HttpServlet {
 
         if (poNumber == null || poNumber.trim().isEmpty()) {
             request.getSession().setAttribute("error", "Mã đơn hàng không hợp lệ.");
-            response.sendRedirect("purchaseorder?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
             return;
         }
 
@@ -148,7 +148,7 @@ public class PurchaseOrderController extends HttpServlet {
 
         if (po == null) {
             request.getSession().setAttribute("error", "Không tìm thấy đơn hàng với mã: " + poNumber);
-            response.sendRedirect("purchaseorder?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
             return;
         }
 
@@ -179,7 +179,7 @@ public class PurchaseOrderController extends HttpServlet {
             request.setAttribute("mode", "edit");
             request.getRequestDispatcher("/AdminLTE-3.2.0/po-form.jsp").forward(request, response);
         } else {
-            response.sendRedirect(request.getContextPath() + "/purchaseorder?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
         }
     }
 
@@ -189,7 +189,7 @@ public class PurchaseOrderController extends HttpServlet {
 
         if (poNumber == null || poNumber.trim().isEmpty()) {
             request.getSession().setAttribute("error", "Mã đơn hàng không hợp lệ.");
-            response.sendRedirect("purchaseorder?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
             return;
         }
 
@@ -197,7 +197,7 @@ public class PurchaseOrderController extends HttpServlet {
 
         if (po == null) {
             request.getSession().setAttribute("error", "Không tìm thấy đơn hàng với mã: " + poNumber);
-            response.sendRedirect("purchaseorder?action=list");
+            response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
             return;
         }
 
@@ -219,18 +219,22 @@ public class PurchaseOrderController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        //check role
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
         }
 
-        String poNumber = request.getParameter("poNumber");
-        String byParam = request.getParameter("by");
-        Integer by = null;
-        if (byParam != null && !byParam.trim().isEmpty()) {
-            by = Integer.valueOf(byParam);
+        if ("approve".equals(action) || "reject".equals(action) || "cancel".equals(action)) {
+            String roleName = (String) request.getSession().getAttribute("roleName");
+            if (!("Manager".equals(roleName) || "Store Manager".equals(roleName)) && !"Admin".equals(roleName)) {
+                request.getSession().setAttribute("error", "Bạn không có quyền thực hiện hành động này.");
+                response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
+                return;
+            }
         }
+
+        String poNumber = request.getParameter("poNumber");
+        Integer by = (Integer) request.getSession().getAttribute("employeeId");
         String reason = request.getParameter("reason");
 
         String msg = "";
@@ -243,24 +247,24 @@ public class PurchaseOrderController extends HttpServlet {
             case "approve":
                 if (poNumber == null || poNumber.trim().isEmpty()) {
                     request.getSession().setAttribute("error", "Mã đơn hàng không hợp lệ.");
-                    response.sendRedirect("purchaseorder?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
                     return;
                 }
                 if (by == null) {
                     request.getSession().setAttribute("error", "Thông tin người duyệt không hợp lệ.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 
                 PurchaseOrder poToApprove = poDAO.getPurchaseOrderByCode(poNumber);
                 if (poToApprove == null) {
                     request.getSession().setAttribute("error", "Không tìm thấy đơn hàng.");
-                    response.sendRedirect("purchaseorder?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
                     return;
                 }
                 if (!poToApprove.canBeApproved()) {
                     request.getSession().setAttribute("error", "Đơn hàng không thể duyệt. Chỉ có thể duyệt đơn đang chờ duyệt.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 
@@ -270,29 +274,29 @@ public class PurchaseOrderController extends HttpServlet {
             case "reject":
                 if (poNumber == null || poNumber.trim().isEmpty()) {
                     request.getSession().setAttribute("error", "Mã đơn hàng không hợp lệ.");
-                    response.sendRedirect("purchaseorder?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
                     return;
                 }
                 if (by == null) {
                     request.getSession().setAttribute("error", "Thông tin người từ chối không hợp lệ.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 if (reason == null || reason.trim().isEmpty()) {
                     request.getSession().setAttribute("error", "Vui lòng nhập lý do từ chối.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 
                 PurchaseOrder poToReject = poDAO.getPurchaseOrderByCode(poNumber);
                 if (poToReject == null) {
                     request.getSession().setAttribute("error", "Không tìm thấy đơn hàng.");
-                    response.sendRedirect("purchaseorder?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
                     return;
                 }
                 if (!poToReject.canBeApproved()) { // Reject cũng chỉ có thể khi status = PENDING_APPROVAL
                     request.getSession().setAttribute("error", "Đơn hàng không thể từ chối. Chỉ có thể từ chối đơn đang chờ duyệt.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 
@@ -302,29 +306,29 @@ public class PurchaseOrderController extends HttpServlet {
             case "cancel":
                 if (poNumber == null || poNumber.trim().isEmpty()) {
                     request.getSession().setAttribute("error", "Mã đơn hàng không hợp lệ.");
-                    response.sendRedirect("purchaseorder?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
                     return;
                 }
                 if (by == null) {
                     request.getSession().setAttribute("error", "Thông tin người hủy không hợp lệ.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 if (reason == null || reason.trim().isEmpty()) {
                     request.getSession().setAttribute("error", "Vui lòng nhập lý do hủy đơn.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 
                 PurchaseOrder poToCancel = poDAO.getPurchaseOrderByCode(poNumber);
                 if (poToCancel == null) {
                     request.getSession().setAttribute("error", "Không tìm thấy đơn hàng.");
-                    response.sendRedirect("purchaseorder?action=list");
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
                     return;
                 }
                 if (!poToCancel.canBeCancelled()) {
                     request.getSession().setAttribute("error", "Đơn hàng không thể hủy. Chỉ có thể hủy đơn đã được duyệt.");
-                    response.sendRedirect("purchaseorder?action=detail&poNumber=" + poNumber);
+                    response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
                 
@@ -462,9 +466,8 @@ public class PurchaseOrderController extends HttpServlet {
                 po.setOrderDate(orderDate);
                 po.setExpectedDate(expectedDate);
                 po.setNotes(notes);
-//                po.setCreatedBy(Integer.valueOf(createdByParam));
-                //chưa kết hợp với user , fake data
-                po.setCreatedBy(1);
+                Integer createdBy = (Integer) request.getSession().getAttribute("employeeId");
+                po.setCreatedBy(createdBy);
 
                 //add items to PO
                 for (int i = 0; i < productIds.length; i++) {
@@ -490,12 +493,12 @@ public class PurchaseOrderController extends HttpServlet {
 
                     if (!PurchaseOrder.STATUS_PENDING_APPROVAL.equals(existingPO.getStatus()) && !PurchaseOrder.STATUS_REJECTED.equals(existingPO.getStatus())) {
                         request.getSession().setAttribute("error", "Không thể chỉnh sửa đơn hàng đã được duyệt hoặc đang nhập hàng!");
-                        response.sendRedirect("purchaseorder?action=edit&poNumber=" + poNumber);
+                        response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=edit&poNumber=" + poNumber);
                         return;
                     }
 
                     po.setId(existingPO.getId());
-                    // Nếu đơn bị từ chối, khi sửa lại phải đổi về trạng thái chờ duyệt
+
                     if (PurchaseOrder.STATUS_REJECTED.equals(existingPO.getStatus())) {
                         po.setStatus(PurchaseOrder.STATUS_PENDING_APPROVAL);
                     } else {
@@ -550,7 +553,7 @@ public class PurchaseOrderController extends HttpServlet {
         }
 
         request.getSession().setAttribute("msg", msg);
-        response.sendRedirect("purchaseorder?action=list");
+        response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=list");
 
     }
 

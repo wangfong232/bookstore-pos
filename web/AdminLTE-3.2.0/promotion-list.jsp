@@ -176,7 +176,7 @@
 
                                 <!-- Filter bar + Create button -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <form action="<%= request.getContextPath() %>/admin/promotions" method="get"
+                                    <form action="<%= request.getContextPath() %>/promotions" method="get"
                                         id="filterForm" class="filter-bar">
                                         <label><i class="fas fa-filter mr-1"></i>Lọc:</label>
 
@@ -209,14 +209,14 @@
 
                                         <!-- Nút reset filter nếu đang có filter -->
                                         <c:if test="${not empty param.status or not empty param.type}">
-                                            <a href="<%= request.getContextPath() %>/admin/promotions"
+                                            <a href="<%= request.getContextPath() %>/promotions"
                                                 class="btn btn-sm btn-outline-secondary" title="Xóa bộ lọc">
                                                 <i class="fas fa-times"></i>
                                             </a>
                                         </c:if>
                                     </form>
 
-                                    <a href="<%= request.getContextPath() %>/admin/promotions?action=create"
+                                    <a href="<%= request.getContextPath() %>/promotions?action=create"
                                         class="btn btn-success btn-sm">
                                         <i class="fas fa-plus mr-1"></i> Tạo Khuyến Mãi
                                     </a>
@@ -332,7 +332,7 @@
 
                                                                 <td class="text-center">
                                                                     <%-- Chỉnh sửa --%>
-                                                                        <a href="<%= request.getContextPath() %>/admin/promotions?action=edit&id=${promo.promotionID}"
+                                                                        <a href="<%= request.getContextPath() %>/promotions?action=edit&id=${promo.promotionID}"
                                                                             class="action-link" title="Chỉnh sửa">
                                                                             <i class="fas fa-edit"></i>
                                                                         </a>
@@ -340,7 +340,7 @@
                                                                         <span class="text-muted mx-1">|</span>
 
                                                                         <%-- Gửi thông báo --%>
-                                                                            <a href="<%= request.getContextPath() %>/admin/promotions?action=notify&id=${promo.promotionID}"
+                                                                            <a href="<%= request.getContextPath() %>/promotions?action=notify&id=${promo.promotionID}"
                                                                                 class="action-link"
                                                                                 title="Gửi Thông Báo">
                                                                                 <i class="fas fa-bell"></i>
@@ -354,7 +354,7 @@
                                                                                     <c:when
                                                                                         test="${promo.status eq 'ACTIVE'}">
                                                                                         <c:url var="toggleOffUrl"
-                                                                                            value="/admin/promotions">
+                                                                                            value="/promotions">
                                                                                             <c:param name="action"
                                                                                                 value="toggle" />
                                                                                             <c:param name="id"
@@ -384,7 +384,7 @@
                                                                                     <c:when
                                                                                         test="${promo.status eq 'INACTIVE'}">
                                                                                         <c:url var="toggleOnUrl"
-                                                                                            value="/admin/promotions">
+                                                                                            value="/promotions">
                                                                                             <c:param name="action"
                                                                                                 value="toggle" />
                                                                                             <c:param name="id"
@@ -434,7 +434,7 @@
                                                                                 test="${not empty param.status or not empty param.type}">
                                                                                 Không có chương trình khuyến mãi nào phù
                                                                                 hợp với bộ lọc đã chọn.<br>
-                                                                                <a href="<%= request.getContextPath() %>/admin/promotions"
+                                                                                <a href="<%= request.getContextPath() %>/promotions"
                                                                                     class="btn btn-sm btn-outline-secondary mt-2">
                                                                                     <i class="fas fa-times mr-1"></i>Xóa
                                                                                     bộ lọc
@@ -442,7 +442,7 @@
                                                                             </c:when>
                                                                             <c:otherwise>
                                                                                 Chưa có chiến dịch khuyến mãi nào.<br>
-                                                                                <a href="<%= request.getContextPath() %>/admin/promotions?action=create"
+                                                                                <a href="<%= request.getContextPath() %>/promotions?action=create"
                                                                                     class="btn btn-sm btn-success mt-2">
                                                                                     <i class="fas fa-plus mr-1"></i>Tạo
                                                                                     Khuyến Mãi

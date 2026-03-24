@@ -8,12 +8,17 @@ import DAO.ProductDAO;
 import DAO.CustomerDAO;
 import DAO.SalesInvoiceDAO;
 import DAO.EmployeeDAO;
+import DAO.CustomerPointDAO;
+import DAO.ComboProductDAO;
 import entity.Customer;
 import entity.CartItem;
 import entity.Category;
 import entity.Product;
 import entity.Employee;
 import util.VnPayConfig;
+import util.PointConfig;
+import util.PromotionService;
+import util.PromotionService.PromotionResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -34,6 +39,11 @@ public class PosController extends HttpServlet {
     private final SalesInvoiceDAO salesInvoiceDAO = new SalesInvoiceDAO();
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
+    private final CustomerPointDAO customerPointDAO = new CustomerPointDAO();
+    private final PromotionService promotionService = new PromotionService();
+    private final ComboProductDAO comboProductDAO = new ComboProductDAO();
+
+    
     // Tạm thời hard-code nhân viên & ca làm để dev POS nhanh
     private static final int DEFAULT_STAFF_ID = 5; // cashiers sample data
     private static final Integer DEFAULT_SHIFT_ID = 1;
@@ -76,7 +86,6 @@ public class PosController extends HttpServlet {
                 clearCart(request, response);
                 break;
             case "checkout":
-                // TODO: implement saving order to database
                 checkout(request, response);
                 break;
             default:
@@ -96,15 +105,18 @@ public class PosController extends HttpServlet {
         // Danh mục từ DB (bảng Categories) - chỉ hiển thị filter nếu có dữ liệu
         List<Category> categories = categoryDAO.getAllActiveCategories();
 
-        // Tính thuế VAT theo loại sách
         double vatAmount = calculateVatAmount(cart, categories);
+
+        PromotionResult promoResult = promotionService.calculatePromotionDiscount(cart);
+        double autoPromoDiscount = promoResult.getTotalDiscount();
 
         request.setAttribute("cart", cart);
         request.setAttribute("totalAmount", totalAmount);
+        request.setAttribute("autoPromoDiscount", autoPromoDiscount);
         request.setAttribute("vatAmount", vatAmount);
         request.setAttribute("categories", categories);
 
-        // Sản phẩm luôn lấy từ DB: lọc theo key (tên/SKU) và categoryId (Categories.CategoryID)
+        // Sản phẩm lấy từ DB: lọc theo key (tên/SKU) và categoryId (Pagination Team's Update)
         String key = request.getParameter("key");
         String categoryIdStr = request.getParameter("categoryId");
         String pageStr = request.getParameter("page");
@@ -112,9 +124,7 @@ public class PosController extends HttpServlet {
         if (categoryIdStr != null && !categoryIdStr.trim().isEmpty()) {
             try {
                 categoryId = Integer.parseInt(categoryIdStr.trim());
-            } catch (NumberFormatException e) {
-                // ignore invalid categoryId
-            }
+            } catch (NumberFormatException e) {}
         }
         int page = 1;
         if (pageStr != null && !pageStr.trim().isEmpty()) {
@@ -124,18 +134,12 @@ public class PosController extends HttpServlet {
                 page = 1;
             }
         }
-        int pageSize = 12; // 4 x 3
+        int pageSize = 12;
         int totalProducts = productDAO.countProductsForPos(key, categoryId);
         int totalPages = (int) Math.ceil(totalProducts / (double) pageSize);
-        if (totalPages <= 0) {
-            totalPages = 1;
-        }
-        if (page < 1) {
-            page = 1;
-        }
-        if (page > totalPages) {
-            page = totalPages;
-        }
+        if (totalPages <= 0) totalPages = 1;
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
 
         List<Product> products = productDAO.getProductsForPos(key, categoryId, page, pageSize);
         request.setAttribute("products", products);
@@ -161,12 +165,7 @@ public class PosController extends HttpServlet {
 
     /**
      * Tính tổng tiền thuế VAT cho giỏ hàng dựa trên loại sách.
-     * Các nhóm sách sau được áp dụng 0% VAT:
-     * - Sách giáo khoa
-     * - Sách chính trị
-     * - Sách pháp luật
-     * - Sách khoa học kỹ thuật
-     * Các loại sách thông thường khác áp dụng 5% VAT.
+     * Các nhóm được áp dụng 0% VAT: giáo khoa, chính trị, pháp luật, khoa học/khoa học kỹ thuật; còn lại 5%.
      */
     private double calculateVatAmount(List<CartItem> cart, List<Category> categories) {
         if (cart == null || cart.isEmpty()) {
@@ -195,23 +194,21 @@ public class PosController extends HttpServlet {
 
     private double getVatRateFromCategoryName(String categoryName) {
         if (categoryName == null) {
-            return 0.05; // mặc định 5% cho sách thông thường
+            return 0.05;
         }
         String name = categoryName.trim().toLowerCase();
-
-        // 0% VAT cho:
-        // - "Sách giáo khoa"
-        // - "Sách khoa học" (coi như sách khoa học kỹ thuật)
         if (name.equals("sách giáo khoa")
                 || name.equals("sach giao khoa")
                 || name.equals("sách khoa học")
-                || name.equals("sach khoa hoc")) {
+                || name.equals("sach khoa hoc")
+                || name.equals("sách chính trị")
+                || name.equals("sach chinh tri")
+                || name.equals("sách pháp luật")
+                || name.equals("sach phap luat")
+                || name.equals("sách khoa học kỹ thuật")
+                || name.equals("sach khoa hoc ky thuat")) {
             return 0.0;
         }
-
-        // Các loại còn lại trong hệ thống hiện tại:
-        // Văn học Việt Nam, Văn học nước ngoài, Sách thiếu nhi,
-        // Sách kỹ năng, Sách kinh tế, Văn phòng phẩm -> 5% VAT
         return 0.05;
     }
 
@@ -230,9 +227,7 @@ public class PosController extends HttpServlet {
         int quantity = 1;
         try {
             quantity = Integer.parseInt(quantityStr);
-            if (quantity <= 0) {
-                quantity = 1;
-            }
+            if (quantity <= 0) quantity = 1;
         } catch (NumberFormatException e) {
             quantity = 1;
         }
@@ -271,9 +266,7 @@ public class PosController extends HttpServlet {
         try {
             int productId = Integer.parseInt(productIdStr);
             int qty = Integer.parseInt(quantityStr);
-            if (qty <= 0) {
-                qty = 1;
-            }
+            if (qty <= 0) qty = 1;
 
             List<CartItem> cart = getCart(session);
             for (CartItem item : cart) {
@@ -286,7 +279,6 @@ public class PosController extends HttpServlet {
         } catch (NumberFormatException e) {
             session.setAttribute("error", "Số lượng không hợp lệ.");
         }
-
         response.sendRedirect("pos");
     }
 
@@ -321,61 +313,19 @@ public class PosController extends HttpServlet {
             response.sendRedirect("pos");
             return;
         }
+        
         String customerInput = request.getParameter("customerId");
         String customerNameInput = request.getParameter("customerName");
         String note = request.getParameter("note");
-        String discountPercentStr = request.getParameter("discountPercent");
+        String manualDiscountPercentStr = request.getParameter("discountPercent");
         String paymentMethod = request.getParameter("paymentMethod");
         String cashReceivedStr = request.getParameter("cashReceived");
 
-        double discountPercent = 0;
-        if (discountPercentStr != null && !discountPercentStr.trim().isEmpty()) {
-            try {
-                discountPercent = Double.parseDouble(discountPercentStr.trim());
-            } catch (NumberFormatException e) {
-                discountPercent = 0;
-            }
-        }
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             paymentMethod = "CASH";
         }
 
-        // Tính tổng tiền phải trả để validate tiền khách đưa (CASH)
-        double totalAmount = cart.stream()
-                .mapToDouble(CartItem::getLineTotal)
-                .sum();
-        if (discountPercent < 0) {
-            discountPercent = 0;
-        }
-        if (discountPercent > 100) {
-            discountPercent = 100;
-        }
-        double discountAmount = totalAmount * discountPercent / 100.0;
-        double vatAmount = calculateVatAmount(cart, categoryDAO.getAllActiveCategories());
-        double finalAmount = totalAmount - discountAmount + vatAmount;
-        if (finalAmount < 0) {
-            finalAmount = 0;
-        }
-
-        if ("CASH".equalsIgnoreCase(paymentMethod)) {
-            double cashReceived = 0;
-            if (cashReceivedStr != null && !cashReceivedStr.trim().isEmpty()) {
-                try {
-                    cashReceived = Double.parseDouble(cashReceivedStr.trim());
-                } catch (NumberFormatException ignored) {
-                    cashReceived = 0;
-                }
-            }
-            if (cashReceived + 0.000001 < finalAmount) {
-                session.setAttribute("error",
-                        "Tiền khách đưa phải lớn hơn hoặc bằng số tiền cần thanh toán ("
-                        + String.format("%,.0f", finalAmount) + " đ).");
-                response.sendRedirect("pos");
-                return;
-            }
-        }
-
-        // Resolve customer: nhập mã KH (KH001...) hoặc số điện thoại; nếu SĐT mới chưa có thì tự tạo khách hàng
+        // 1. Resolve customer: CustomerID hoặc SĐT (SĐT = CustomerID khi tạo mới)
         String resolvedCustomerId = null;
         if (customerInput != null && !customerInput.trim().isEmpty()) {
             String trimmed = customerInput.trim();
@@ -384,20 +334,16 @@ public class PosController extends HttpServlet {
                 customer = customerDAO.getByPhone(trimmed);
             }
             if (customer == null) {
-                // Mã KH/SĐT mới chưa có trong hệ thống -> tự động tạo khách hàng (coi input là SĐT)
                 if (customerNameInput == null || customerNameInput.trim().isEmpty()) {
                     session.setAttribute("error", "Khách hàng mới: vui lòng nhập Tên khách hàng.");
                     response.sendRedirect("pos");
                     return;
                 }
                 Customer newCustomer = new Customer();
-                newCustomer.setCustomerID(customerDAO.getNextCustomerId());
+                newCustomer.setCustomerID(trimmed);
                 newCustomer.setFullName(customerNameInput.trim());
-                newCustomer.setEmail(null);
                 newCustomer.setPhoneNumber(trimmed);
-                newCustomer.setBirthday(java.time.LocalDate.of(1990, 1, 1));
                 newCustomer.setStatus("ACTIVE");
-                newCustomer.setNote(null);
                 customerDAO.insert(newCustomer);
                 resolvedCustomerId = newCustomer.getCustomerID();
             } else {
@@ -405,68 +351,103 @@ public class PosController extends HttpServlet {
             }
         }
 
-        // Resolve staff: nếu DEFAULT_STAFF_ID không tồn tại, chọn 1 nhân viên bất kỳ
+        // 2. Resolve staff
         int staffId = DEFAULT_STAFF_ID;
         Employee staff = employeeDAO.getEmployeeByID(DEFAULT_STAFF_ID);
         if (staff == null) {
             List<Employee> employees = employeeDAO.getEmployees(null, null, null, 1, 1);
-            if (employees.isEmpty()) {
-                session.setAttribute("error", "Không có nhân viên nào trong hệ thống. Vui lòng tạo nhân viên trước khi thanh toán.");
+            if (!employees.isEmpty()) staffId = employees.get(0).getEmployeeId();
+        }
+
+        // 3. Tự động áp dụng promotion (My Logic)
+        PromotionResult promoResult = promotionService.calculatePromotionDiscount(cart);
+        double automaticDiscount = promoResult.getTotalDiscount();
+        
+        // Manual discount (Team's feature)
+        double manualDiscountPercent = 0;
+        try {
+            if (manualDiscountPercentStr != null) manualDiscountPercent = Double.parseDouble(manualDiscountPercentStr);
+        } catch (NumberFormatException e) {}
+        
+        double totalAmountOriginal = cart.stream().mapToDouble(CartItem::getLineTotal).sum();
+        double manualDiscountAmount = totalAmountOriginal * (manualDiscountAmountPercentToAmount(manualDiscountPercent));
+
+        double totalDiscount = automaticDiscount + manualDiscountAmount;
+        if (totalDiscount > totalAmountOriginal) totalDiscount = totalAmountOriginal;
+
+        double vatAmount = calculateVatAmount(cart, categoryDAO.getAllActiveCategories());
+        double finalAmount = totalAmountOriginal - totalDiscount + vatAmount;
+        if (finalAmount < 0) finalAmount = 0;
+
+        // 4. Validate tiền khách đưa (Team's Feature)
+        if ("CASH".equalsIgnoreCase(paymentMethod)) {
+            double cashReceived = 0;
+            try {
+                if (cashReceivedStr != null) cashReceived = Double.parseDouble(cashReceivedStr);
+            } catch (NumberFormatException e) {}
+            if (cashReceived + 0.000001 < finalAmount) {
+                session.setAttribute("error", "Tiền khách đưa phải lớn hơn hoặc bằng " + String.format("%,.0f", finalAmount) + "đ");
                 response.sendRedirect("pos");
                 return;
             }
-            staffId = employees.get(0).getEmployeeId();
         }
 
-        // Nếu chọn thanh toán chuyển khoản thì chuyển sang VNPAY sandbox
+        // 5. Thanh toán Chuyển khoản (VNPAY)
         if ("TRANSFER".equalsIgnoreCase(paymentMethod)) {
-            // Lưu thông tin đơn hàng tạm thời để xử lý sau khi VNPAY callback
             session.setAttribute("pendingCart", new ArrayList<>(cart));
             session.setAttribute("pendingNote", note);
-            session.setAttribute("pendingDiscountPercent", discountPercent);
+            session.setAttribute("pendingPromotionDiscount", totalDiscount);
+            session.setAttribute("pendingPromoName", promoResult.getAppliedPromotionName());
             session.setAttribute("pendingCustomerId", resolvedCustomerId);
+            session.setAttribute("pendingVatAmount", vatAmount);
             session.setAttribute("pendingStaffId", staffId);
             session.setAttribute("pendingShiftId", DEFAULT_SHIFT_ID);
 
-            // Mã tham chiếu cho VNPAY (không trùng lặp trong ngày)
             String txnRef = "POS-" + System.currentTimeMillis();
-            String orderInfo = "Thanh toan don hang POS " + txnRef;
-
-            String paymentUrl = VnPayConfig.createPaymentUrl(
-                    request,
-                    finalAmount,
-                    orderInfo,
-                    txnRef
-            );
-
+            String paymentUrl = VnPayConfig.createPaymentUrl(request, finalAmount, "Thanh toan POS " + txnRef, txnRef);
             response.sendRedirect(paymentUrl);
             return;
         }
 
+        // 6. Lưu hóa đơn (CASH)
         String invoiceCode = salesInvoiceDAO.createInvoice(
-                resolvedCustomerId,
-                cart,
-                staffId,
-                DEFAULT_SHIFT_ID,
-                note,
-                discountPercent,
-                paymentMethod
-        );
+                resolvedCustomerId, cart, staffId, DEFAULT_SHIFT_ID, note, totalDiscount, vatAmount, paymentMethod);
 
         if (invoiceCode == null) {
-            String technical = SalesInvoiceDAO.getLastErrorMessage();
-            if (technical != null && !technical.isEmpty()) {
-                session.setAttribute("error", "Có lỗi xảy ra khi lưu hóa đơn: " + technical);
-            } else {
-                session.setAttribute("error", "Có lỗi xảy ra khi lưu hóa đơn. Vui lòng thử lại.");
-            }
+            session.setAttribute("error", "Lỗi lưu hóa đơn: " + SalesInvoiceDAO.getLastErrorMessage());
             response.sendRedirect("pos");
             return;
         }
 
+        // Deduct combo quantities for combo products in the cart
+        for (CartItem item : cart) {
+            if (item.getProduct().isIsCombo()) {
+                comboProductDAO.decreaseComboQuantity(
+                    item.getProduct().getProductID(), item.getQuantity());
+            }
+        }
+
         session.removeAttribute("cart");
-        session.setAttribute("msg", "Thanh toán thành công. Mã hóa đơn: " + invoiceCode);
+
+        // 7. Tích điểm & Thông báo simplified (My Logic)
+        int pointsAdded = 0;
+        if (resolvedCustomerId != null) {
+            int pricePerPoint = PointConfig.getPricePerPoint(getServletContext());
+            pointsAdded = (int) (totalAmountOriginal / pricePerPoint);
+            customerPointDAO.addPoints(resolvedCustomerId, pointsAdded);
+        }
+
+        StringBuilder msg = new StringBuilder("Thanh toán thành công. Mã: " + invoiceCode);
+
+
+        session.setAttribute("msg", msg.toString());
         response.sendRedirect("pos");
+    }
+
+    private double manualDiscountAmountPercentToAmount(double percent) {
+        if (percent < 0) return 0;
+        if (percent > 100) return 1.0;
+        return percent / 100.0;
     }
 
     @SuppressWarnings("unchecked")
@@ -479,4 +460,3 @@ public class PosController extends HttpServlet {
         return cart;
     }
 }
-

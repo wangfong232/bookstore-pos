@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.ArrayList;
 
-@WebServlet(name = "PromotionController", urlPatterns = { "/admin/promotions" })
+@WebServlet(name = "PromotionController", urlPatterns = { "/promotions" })
 public class PromotionController extends HttpServlet {
 
     private final PromotionDAO promotionDAO = new PromotionDAO();
@@ -39,6 +39,7 @@ public class PromotionController extends HttpServlet {
         switch (action) {
             case "create":
                 request.setAttribute("customerTiers", new CustomerTierDAO().getAll());
+                request.setAttribute("categories", new CategoryDAO().getAllActiveCategories());
                 request.getRequestDispatcher("/AdminLTE-3.2.0/promotion-create.jsp").forward(request, response);
                 break;
             case "edit":
@@ -70,7 +71,7 @@ public class PromotionController extends HttpServlet {
                 handleUpdate(request, response);
                 break;
             default:
-                response.sendRedirect(request.getContextPath() + "/admin/promotions");
+                response.sendRedirect(request.getContextPath() + "/promotions");
         }
     }
 
@@ -94,7 +95,7 @@ public class PromotionController extends HttpServlet {
 
         String idStr = request.getParameter("id");
         if (idStr == null || idStr.isBlank()) {
-            response.sendRedirect(request.getContextPath() + "/admin/promotions");
+            response.sendRedirect(request.getContextPath() + "/promotions");
             return;
         }
 
@@ -114,11 +115,12 @@ public class PromotionController extends HttpServlet {
             promotion.setApplicableCustomerTiers(tierDAO.getByPromotionId(id));
 
             request.setAttribute("customerTiers", new CustomerTierDAO().getAll());
+            request.setAttribute("categories", new CategoryDAO().getAllActiveCategories());
             request.setAttribute("promotion", promotion);
             request.getRequestDispatcher("/AdminLTE-3.2.0/promotion-edit.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/promotions");
+            response.sendRedirect(request.getContextPath() + "/promotions");
         }
     }
 
@@ -137,7 +139,7 @@ public class PromotionController extends HttpServlet {
             }
         }
 
-        String redirectUrl = request.getContextPath() + "/admin/promotions";
+        String redirectUrl = request.getContextPath() + "/promotions";
         String statusFilter = request.getParameter("status");
         String typeFilter = request.getParameter("type");
         if (statusFilter != null || typeFilter != null) {
@@ -152,8 +154,28 @@ public class PromotionController extends HttpServlet {
     }
 
     private void handleCreate(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
+            throws IOException, ServletException {
         Promotion p = buildPromotionFromForm(request);
+
+        // Validation
+        boolean hasError = false;
+        if (promotionDAO.getPromotionByCode(p.getPromotionCode()) != null) {
+            request.setAttribute("error_promotionCode", "Mã chiến dịch đã tồn tại.");
+            hasError = true;
+        }
+
+        if (validatePromotionValues(p, request)) {
+            hasError = true;
+        }
+
+        if (hasError) {
+            request.setAttribute("promotion", p);
+            request.setAttribute("customerTiers", new CustomerTierDAO().getAll());
+            request.setAttribute("categories", new CategoryDAO().getAllActiveCategories());
+            request.getRequestDispatcher("/AdminLTE-3.2.0/promotion-create.jsp").forward(request, response);
+            return;
+        }
+
         int promoId = promotionDAO.insert(p);
 
         if (promoId > 0) {
@@ -191,14 +213,14 @@ public class PromotionController extends HttpServlet {
                 }
             }
         }
-        response.sendRedirect(request.getContextPath() + "/admin/promotions");
+        response.sendRedirect(request.getContextPath() + "/promotions");
     }
 
     private void handleUpdate(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         String idStr = request.getParameter("promotionID");
         if (idStr == null || idStr.isBlank()) {
-            response.sendRedirect(request.getContextPath() + "/admin/promotions");
+            response.sendRedirect(request.getContextPath() + "/promotions");
             return;
         }
 
@@ -206,6 +228,26 @@ public class PromotionController extends HttpServlet {
             int id = Integer.parseInt(idStr);
             Promotion p = buildPromotionFromForm(request);
             p.setPromotionID(id);
+
+            // Validation
+            boolean hasError = false;
+            Promotion existing = promotionDAO.getPromotionByCode(p.getPromotionCode());
+            if (existing != null && existing.getPromotionID() != id) {
+                request.setAttribute("error_promotionCode", "Mã chiến dịch đã tồn tại.");
+                hasError = true;
+            }
+
+            if (validatePromotionValues(p, request)) {
+                hasError = true;
+            }
+
+            if (hasError) {
+                request.setAttribute("promotion", p);
+                request.setAttribute("customerTiers", new CustomerTierDAO().getAll());
+                request.setAttribute("categories", new CategoryDAO().getAllActiveCategories());
+                request.getRequestDispatcher("/AdminLTE-3.2.0/promotion-edit.jsp").forward(request, response);
+                return;
+            }
 
             promotionDAO.update(p);
 
@@ -252,11 +294,28 @@ public class PromotionController extends HttpServlet {
                 }
             }
 
-            response.sendRedirect(request.getContextPath() + "/admin/promotions");
+            response.sendRedirect(request.getContextPath() + "/promotions");
 
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/admin/promotions");
+        } catch (NumberFormatException | ServletException e) {
+            response.sendRedirect(request.getContextPath() + "/promotions");
         }
+    }
+
+    private boolean validatePromotionValues(Promotion p, HttpServletRequest request) {
+        boolean hasError = false;
+        double val = p.getDiscount().getDiscountValue();
+        if ("PERCENT".equals(p.getPromotionType())) {
+            if (val < 0 || val > 100) {
+                request.setAttribute("error_discountPercent", "Tỉ lệ giảm giá phải từ 0 đến 100.");
+                hasError = true;
+            }
+        } else if ("FIXED".equals(p.getPromotionType())) {
+            if (val < 0) {
+                request.setAttribute("error_fixedAmount", "Số tiền giảm không được nhỏ hơn 0.");
+                hasError = true;
+            }
+        }
+        return hasError;
     }
 
     private Promotion buildPromotionFromForm(HttpServletRequest request) {

@@ -28,6 +28,10 @@ public class GoodsReceiptDetail {
 
     private String notes;
 
+    // display fields 
+    private String productName;
+    private Integer quantityOrdered;
+
     public GoodsReceiptDetail() {
         this.oldQty = 0;
         this.oldCost = BigDecimal.ZERO;
@@ -128,6 +132,22 @@ public class GoodsReceiptDetail {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public Integer getQuantityOrdered() {
+        return quantityOrdered;
+    }
+
+    public void setQuantityOrdered(Integer quantityOrdered) {
+        this.quantityOrdered = quantityOrdered;
     }
 
     public void calculateLineTotal() {

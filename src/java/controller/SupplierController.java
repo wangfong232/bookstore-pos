@@ -19,10 +19,10 @@ import util.Validation;
  *
  * @author qp
  */
-@WebServlet(name = "SupplierController", urlPatterns = {"/supplier"})
+@WebServlet(name = "SupplierController", urlPatterns = {"/admin/supplier"})
 public class SupplierController extends HttpServlet {
 
-    private SupplierDAO supDAO = new SupplierDAO();
+    private final SupplierDAO supDAO = new SupplierDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -77,29 +77,17 @@ public class SupplierController extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentPage", page);
 
-        String msg = (String) request.getSession().getAttribute("msg");
-
-        if (msg != null) {
-            request.setAttribute("msg", msg);
-            request.getSession().removeAttribute("msg");
-        }
+        resetSessionMsg(request);
         request.getRequestDispatcher("/AdminLTE-3.2.0/supplier-list.jsp").forward(request, response);
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String code = supDAO.generateNextSupplierCode();
 
-        String err = (String) request.getSession().getAttribute("error");
- 
         Supplier supplier = new Supplier();
-        supplier.setSupplierCode(code); 
+        supplier.setSupplierCode(code);
 
-        if (err != null) {
-            request.setAttribute("error", err);
-            request.getSession().removeAttribute("error");
-       
-        }
-
+        resetSessionMsg(request);
         request.setAttribute("supplier", supplier);
         request.setAttribute("code", code);
         request.setAttribute("mode", "add");
@@ -121,29 +109,44 @@ public class SupplierController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        //validate 
-        //...
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
         }
         String code = request.getParameter("code");
+        String redirectUrl = request.getContextPath() + "/admin/supplier?action=list";
 
         String msg = "";
         boolean success;
+        
         switch (action) {
             case "delete":
+                if (!supDAO.canDeleteSupplier(code)) {
+                    request.getSession().setAttribute("msg", "fail_delete_has_orders");
+                    response.sendRedirect(redirectUrl);
+                    return;
+                }
                 success = supDAO.deleteSupplier(code);
                 msg = success ? "success_delete" : "fail";
                 break;
+
+            case "deactive":
+                if (!supDAO.canLockSupplier(code)) {
+                    int blockingCount = supDAO.getBlockingOrdersCount(code);
+                    request.getSession().setAttribute("msg", "fail_lock_active_orders");
+                    request.getSession().setAttribute("blockingCount", blockingCount);
+                    response.sendRedirect(redirectUrl);
+                    return;
+                }
+                success = supDAO.deactiveSupplier(code);
+                msg = success ? "success_deactive" : "fail";
+                break;
+
             case "active":
                 success = supDAO.activeSupplier(code);
                 msg = success ? "success_active" : "fail";
                 break;
-            case "deactive":
-                success = supDAO.deactiveSupplier(code);
-                msg = success ? "success_deactive" : "fail";
-                break;
+
             case "save":
                 String name = request.getParameter("name");
                 String contactPerson = request.getParameter("contactPerson");
@@ -154,22 +157,17 @@ public class SupplierController extends HttpServlet {
 
                 //validate
                 Validation valid = new Validation();
-                valid.required("Mã nhà cung cấp", name)
-                        .required("Tên NCC", name).minLength("Tên nhà cung cấp", name, 3)
-                        .required("Người liên hệ", contactPerson)
-                        .required("Số điện thoại", name).phone("Số điện thoại", phone)
-                        .email("Email", email);
+                valid.required("Tên NCC", name).minLength("Tên nhà cung cấp", name, 3)
+                     .required("Người liên hệ", contactPerson)
+                     .required("Số điện thoại", phone).phone("Số điện thoại", phone)
+                     .email("Email", email);
 
                 if (!valid.isValid()) {
                     request.setAttribute("supplier", sup);
-
                     request.setAttribute("code", code);
-
                     request.setAttribute("error", valid.getFirstError());
-
                     String mode = supDAO.isCodeExist(code) ? "edit" : "add";
                     request.setAttribute("mode", mode);
-
                     request.getRequestDispatcher("/AdminLTE-3.2.0/supplier-form.jsp").forward(request, response);
                     return;
                 }
@@ -185,6 +183,24 @@ public class SupplierController extends HttpServlet {
         }
 
         request.getSession().setAttribute("msg", msg);
-        response.sendRedirect("supplier?action=list");
+        response.sendRedirect(redirectUrl);
+    }
+
+    private void resetSessionMsg(HttpServletRequest request) {
+        String msg = (String) request.getSession().getAttribute("msg");
+        if (msg != null) {
+            request.setAttribute("msg", msg);
+            request.getSession().removeAttribute("msg");
+        }
+        String err = (String) request.getSession().getAttribute("error");
+        if (err != null) {
+            request.setAttribute("error", err);
+            request.getSession().removeAttribute("error");
+        }
+        Object blockingCount = request.getSession().getAttribute("blockingCount");
+        if (blockingCount != null) {
+            request.setAttribute("blockingCount", blockingCount);
+            request.getSession().removeAttribute("blockingCount");
+        }
     }
 }

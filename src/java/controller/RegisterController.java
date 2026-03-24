@@ -53,12 +53,27 @@ public class RegisterController extends HttpServlet {
 
         // Validation
         if (fullName == null || fullName.trim().isEmpty()) {
-            request.setAttribute("error", "Full name is required");
+            request.setAttribute("error", "Họ và tên là bắt buộc");
             doGet(request, response);
             return;
         }
+
+        // Regex for Vietnamese name: letters and spaces only, no special characters
+        String nameRegex = "^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵýỷỹ\\s]+$";
+        if (!fullName.matches(nameRegex)) {
+            request.setAttribute("error", "Họ và tên không được chứa ký tự đặc biệt hoặc số");
+            doGet(request, response);
+            return;
+        }
+
         if (email == null || email.trim().isEmpty()) {
-            request.setAttribute("error", "Email is required");
+            request.setAttribute("error", "Email là bắt buộc");
+            doGet(request, response);
+            return;
+        }
+
+        if (email.contains(" ")) {
+            request.setAttribute("error", "Email không được chứa khoảng trắng");
             doGet(request, response);
             return;
         }

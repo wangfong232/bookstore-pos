@@ -239,6 +239,31 @@ public class ShiftSwapDAO extends DBContext {
     }
 
     /**
+     * Kiểm tra xem có đơn đổi ca trùng lặp đang chờ duyệt hay không.
+     * Trùng lặp = cùng Ca đi, cùng Ca đến, cùng Lý do và đang PENDING.
+     */
+    public boolean hasDuplicatePendingRequest(int fromAssignID, int toAssignID, String reason) {
+        String sql = "SELECT COUNT(*) FROM ShiftSwapRequests "
+                + "WHERE FromAssignmentID = ? AND ToAssignmentID = ? "
+                + "AND Reason = ? AND Status = 'PENDING'";
+        
+        try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, fromAssignID);
+            ps.setInt(2, toAssignID);
+            ps.setString(3, reason != null ? reason.trim() : "");
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Lấy danh sách lịch sử đơn đổi ca của một nhân viên cụ thể.
      * @param employeeID ID của nhân viên cần xem lịch sử.
      * @return Danh sách các đơn đổi ca do nhân viên này tạo.
@@ -282,6 +307,27 @@ public class ShiftSwapDAO extends DBContext {
 
         return list;
     }
+
+    //Tự động reject đơn đổi ca quá h
+    public int rejectExpiredPendingRequests() {
+    String sql =
+        "UPDATE r " +
+        "SET Status='REJECTED', ApprovedAt=GETDATE() " +
+        "FROM ShiftSwapRequests r " +
+        "JOIN EmployeeShiftAssignments a1 ON r.FromAssignmentID = a1.AssignmentID " +
+        "JOIN EmployeeShiftAssignments a2 ON r.ToAssignmentID = a2.AssignmentID " +
+        "WHERE r.Status = 'PENDING' " +
+        "AND (a1.WorkDate < CAST(GETDATE() AS DATE) " +
+        "     OR a2.WorkDate < CAST(GETDATE() AS DATE))";
+    try (Connection conn = getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        return ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return 0;
+}
+
 
     /** Lấy swap request trong cùng một transaction connection */
     public ShiftSwapRequest getRequestByIdWithConn(int requestID, Connection conn) throws Exception {

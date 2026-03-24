@@ -1,4 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<script>
+    (function () {
+        if (localStorage.getItem('adminlte_sidebar') === 'collapsed') {
+            document.body.classList.add('sidebar-collapse');
+        }
+    })();
+</script>
+
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <!-- Left navbar links -->
@@ -38,3 +46,17 @@
         </li>
     </ul>
 </nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var btn = document.querySelector('[data-widget="pushmenu"]');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                setTimeout(function () {
+                    localStorage.setItem('adminlte_sidebar',
+                            document.body.classList.contains('sidebar-collapse') ? 'collapsed' : 'open');
+                }, 350);
+            });
+        }
+    });
+</script>

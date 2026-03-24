@@ -51,11 +51,21 @@
                             </div>
                         </c:if>
 
-                        <!-- ERROR -->
                         <c:if test="${param.error == 'true'}">
                             <div class="alert alert-danger alert-dismissible fade show">
                                 <i class="fas fa-exclamation-circle"></i>
                                 Có lỗi xảy ra. Vui lòng thử lại.
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                        </c:if>
+
+                        <!-- DUPLICATE ERROR -->
+                        <c:if test="${param.error == 'duplicate'}">
+                            <div class="alert alert-warning alert-dismissible fade show">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Đơn đổi ca với nội dung này đang chờ xử lý. Vui lòng không gửi trùng lặp.
                                 <button type="button" class="close" data-dismiss="alert">
                                     <span>&times;</span>
                                 </button>

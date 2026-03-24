@@ -1,15 +1,8 @@
 package entity;
 
-
-import java.lang.*;
-import java.util.*;
-import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-/*
-*
-*
-*/
+
 public class Customer {
 
     private String customerID;
@@ -20,15 +13,21 @@ public class Customer {
     private LocalDateTime registerDate;
     private String status;
     private String note;
+    private int points;
+    private String tierName;
 
     public Customer() {
     }
 
-    public Customer(String customerID, String fullName, String email, String phoneNumber, LocalDate birthday, LocalDateTime registerDate, String status, String note) {
+    /**
+     * CustomerID thường dùng làm SĐT; phoneNumber đồng bộ để hiển thị/tra cứu.
+     */
+    public Customer(String customerID, String fullName, String email, LocalDate birthday,
+            LocalDateTime registerDate, String status, String note) {
         this.customerID = customerID;
         this.fullName = fullName;
         this.email = email;
-        this.phoneNumber = phoneNumber;
+        this.phoneNumber = customerID;
         this.birthday = birthday;
         this.registerDate = registerDate;
         this.status = status;
@@ -43,8 +42,12 @@ public class Customer {
         this.customerID = customerID;
     }
 
-    public String getFullName() {
+    public String getCustomerName() {
         return fullName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.fullName = customerName;
     }
 
     public void setFullName(String fullName) {
@@ -65,6 +68,11 @@ public class Customer {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    /** Alias cho getPhoneNumber (tương thích code cũ). */
+    public String getPhone() {
+        return phoneNumber;
     }
 
     public LocalDate getBirthday() {
@@ -98,6 +106,20 @@ public class Customer {
     public void setNote(String note) {
         this.note = note;
     }
-    
-    
+
+    public int getPoints() {
+        return points;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+    }
+
+    public String getTierName() {
+        return tierName;
+    }
+
+    public void setTierName(String tierName) {
+        this.tierName = tierName;
+    }
 }

@@ -103,6 +103,14 @@ public class StaffSwapController extends HttpServlet {
 
             String reason = request.getParameter("reason");
 
+            ShiftSwapDAO dao = new ShiftSwapDAO();
+            
+            // Duplicate check
+            if (dao.hasDuplicatePendingRequest(fromAssignmentID, toAssignmentID, reason)) {
+                response.sendRedirect("swap?error=duplicate");
+                return;
+            }
+
             ShiftAssignmentDAO assignDAO = new ShiftAssignmentDAO();
 
             EmployeeShiftAssignment toAssignment = assignDAO.getById(toAssignmentID);
@@ -122,7 +130,6 @@ public class StaffSwapController extends HttpServlet {
             swap.setReason(reason);
             swap.setStatus("PENDING");
 
-            ShiftSwapDAO dao = new ShiftSwapDAO();
             dao.insertSwapRequest(swap);
 
             response.sendRedirect("swap?success=true");

@@ -4,7 +4,6 @@
 package DAO;
 
 import entity.CartItem;
-import entity.Product;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,13 +26,21 @@ public class SalesInvoiceDAO extends DBContext {
         lastErrorMessage = message;
     }
 
-    public String createInvoice(String customerId,
-                                List<CartItem> cart,
-                                int staffId,
-                                Integer shiftId,
-                                String note,
-                                double discountPercent,
-                                String paymentMethod) {
+    /**
+     * Tạo hóa đơn bán hàng và chi tiết từ giỏ hàng.
+     *
+     * @param customerId     mã khách hàng (có thể null / rỗng)
+     * @param cart           danh sách CartItem
+     * @param staffId        ID nhân viên thu ngân
+     * @param shiftId        ID ca làm (có thể null)
+     * @param note           ghi chú hóa đơn (có thể null)
+     * @param discountAmount số tiền giảm giá (promotion + giảm tay, đã tính sẵn)
+     * @param vatAmount      số tiền VAT (đã tính sẵn)
+     * @param paymentMethod  CASH, TRANSFER hoặc VNPAY
+     * @return mã hóa đơn (InvoiceCode) nếu thành công, null nếu thất bại
+     */
+    public String createInvoice(String customerId, List<CartItem> cart, int staffId, Integer shiftId,
+                                String note, double discountAmount, double vatAmount, String paymentMethod) {
         setLastErrorMessage(null);
 
         if (cart == null || cart.isEmpty()) {
@@ -49,16 +56,9 @@ public class SalesInvoiceDAO extends DBContext {
         double totalAmount = cart.stream()
                 .mapToDouble(CartItem::getLineTotal)
                 .sum();
-
-        if (discountPercent < 0) {
-            discountPercent = 0;
-        }
-        if (discountPercent > 100) {
-            discountPercent = 100;
-        }
-
-        double discountAmount = totalAmount * discountPercent / 100.0;
-        double vatAmount = calculateVatAmount(cart);
+        if (discountAmount < 0) discountAmount = 0;
+        if (discountAmount > totalAmount) discountAmount = totalAmount;
+        if (vatAmount < 0) vatAmount = 0;
         double finalAmount = totalAmount - discountAmount + vatAmount;
 
         String insertInvoiceSql = """
@@ -233,89 +233,6 @@ public class SalesInvoiceDAO extends DBContext {
                 }
             }
         }
-    }
-
-    private double calculateVatAmount(List<CartItem> cart) {
-        if (cart == null || cart.isEmpty()) {
-            return 0;
-        }
-
-        List<Integer> categoryIds = new ArrayList<>();
-        for (CartItem item : cart) {
-            Product p = item.getProduct();
-            if (p == null) {
-                continue;
-            }
-            int catId = p.getCategoryID();
-            if (!categoryIds.contains(catId)) {
-                categoryIds.add(catId);
-            }
-        }
-
-        Map<Integer, String> categoryNames = fetchCategoryNames(categoryIds);
-
-        double vat = 0;
-        for (CartItem item : cart) {
-            Product p = item.getProduct();
-            if (p == null) {
-                continue;
-            }
-            String categoryName = categoryNames.get(p.getCategoryID());
-            double rate = getVatRateFromCategoryName(categoryName);
-            vat += item.getLineTotal() * rate;
-        }
-        return vat;
-    }
-
-    private Map<Integer, String> fetchCategoryNames(List<Integer> categoryIds) {
-        Map<Integer, String> map = new HashMap<>();
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            return map;
-        }
-
-        StringBuilder placeholders = new StringBuilder();
-        for (int i = 0; i < categoryIds.size(); i++) {
-            if (i > 0) placeholders.append(",");
-            placeholders.append("?");
-        }
-
-        String sql = "SELECT CategoryID, CategoryName FROM Categories WHERE CategoryID IN (" + placeholders + ")";
-
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            int idx = 1;
-            for (Integer id : categoryIds) {
-                ps.setInt(idx++, id);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    map.put(rs.getInt("CategoryID"), rs.getString("CategoryName"));
-                }
-            }
-        } catch (SQLException ignored) {
-        }
-
-        return map;
-    }
-
-    private double getVatRateFromCategoryName(String categoryName) {
-        if (categoryName == null) {
-            return 0.05;
-        }
-        String name = categoryName.trim().toLowerCase();
-        if (name.equals("sách giáo khoa")
-                || name.equals("sach giao khoa")
-                || name.equals("sách khoa học")
-                || name.equals("sach khoa hoc")
-                || name.equals("sách chính trị")
-                || name.equals("sach chinh tri")
-                || name.equals("sách pháp luật")
-                || name.equals("sach phap luat")
-                || name.equals("sách khoa học kỹ thuật")
-                || name.equals("sach khoa hoc ky thuat")) {
-            return 0.0;
-        }
-        return 0.05;
     }
 
     public List<Map<String, Object>> searchInvoices(java.sql.Date fromDate,
