@@ -134,7 +134,7 @@ public class PosController extends HttpServlet {
                 page = 1;
             }
         }
-        int pageSize = 12;
+        int pageSize = 10;
         int totalProducts = productDAO.countProductsForPos(key, categoryId);
         int totalPages = (int) Math.ceil(totalProducts / (double) pageSize);
         if (totalPages <= 0) totalPages = 1;
