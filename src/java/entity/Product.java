@@ -1,5 +1,5 @@
 /*
- * Product entity for POS module
+ * Product entity for POS module and Product Management
  */
 package entity;
 
@@ -65,6 +65,7 @@ public class Product {
         this.id = id;
     }
 
+    // POS compatibility
     public int getProductID() {
         return id;
     }
@@ -185,6 +186,7 @@ public class Product {
     public void setCompareAtPrice(Double compareAtPrice) {
         this.compareAtPrice = compareAtPrice;
     }
+
     public int getStock() {
         return stock;
     }
@@ -193,19 +195,20 @@ public class Product {
         this.stock = stock;
     }
 
-    public int getReservedStock() {
-        return reservedStock;
-    }
-
-    public void setReservedStock(int reservedStock) {
-        this.reservedStock = reservedStock;
-    }
     public int getReorderLevel() {
         return reorderLevel;
     }
 
     public void setReorderLevel(int reorderLevel) {
         this.reorderLevel = reorderLevel;
+    }
+
+    public int getReservedStock() {
+        return reservedStock;
+    }
+
+    public void setReservedStock(int reservedStock) {
+        this.reservedStock = reservedStock;
     }
 
     public Date getLastLowStockAlertAt() {
@@ -240,17 +243,14 @@ public class Product {
         this.updatedDate = updatedDate;
     }
 
-  
     public int getAvailableStock() {
         return stock - reservedStock;
     }
 
-  
     public boolean isLowStock() {
         return getAvailableStock() <= reorderLevel;
     }
 
-   
     public boolean isOutOfStock() {
         return getAvailableStock() <= 0;
     }
@@ -260,24 +260,20 @@ public class Product {
         return sellingPrice - costPrice;
     }
 
-   
     public double getProfitMargin() {
         if (costPrice == null || sellingPrice == 0) return 0;
         return ((sellingPrice - costPrice) / sellingPrice) * 100;
     }
 
-  
     public boolean isOnSale() {
         return compareAtPrice != null && compareAtPrice > sellingPrice;
     }
 
- 
     public double getDiscountPercentage() {
         if (!isOnSale()) return 0;
         return ((compareAtPrice - sellingPrice) / compareAtPrice) * 100;
     }
 
-   
     public boolean reserveStock(int quantity) {
         if (getAvailableStock() >= quantity) {
             this.reservedStock += quantity;
@@ -286,12 +282,10 @@ public class Product {
         return false;
     }
 
-    
     public void releaseStock(int quantity) {
         this.reservedStock = Math.max(0, this.reservedStock - quantity);
     }
 
-    
     public boolean deductStock(int quantity) {
         if (this.stock >= quantity) {
             this.stock -= quantity;
@@ -300,7 +294,6 @@ public class Product {
         }
         return false;
     }
-
 
     public void addStock(int quantity) {
         this.stock += quantity;
@@ -319,6 +312,7 @@ public class Product {
                 '}';
     }
 
+    // POS naming compatibility
     public boolean isIsActive() {
         return isActive;
     }

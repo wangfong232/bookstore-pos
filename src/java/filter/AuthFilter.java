@@ -12,7 +12,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/admin/*", "/dashboard"})
+@WebFilter(urlPatterns = {
+        "/admin/*",
+        "/dashboard",
+        "/sales-invoices",
+        "/report/*",
+        "/customers",
+        "/customer-tiers",
+        "/promotions",
+        "/products"
+})
 public class AuthFilter implements Filter {
 
     @Override
