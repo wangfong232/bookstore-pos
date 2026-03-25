@@ -4,7 +4,6 @@
 package DAO;
 
 import entity.CartItem;
-import entity.Product;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,13 +34,15 @@ public class SalesInvoiceDAO extends DBContext {
      * @param staffId        ID nhân viên thu ngân
      * @param shiftId        ID ca làm (có thể null)
      * @param note           ghi chú hóa đơn (có thể null)
-     * @param discountAmount số tiền giảm giá (đã tính sẵn từ promotion)
-     * @param paymentMethod  CASH hoặc TRANSFER
+     * @param discountAmount số tiền giảm giá (promotion + giảm tay, đã tính sẵn)
+     * @param vatAmount      số tiền VAT (đã tính sẵn)
+     * @param paymentMethod  CASH, TRANSFER hoặc VNPAY
      * @return mã hóa đơn (InvoiceCode) nếu thành công, null nếu thất bại
      */
     public String createInvoice(String customerId, List<CartItem> cart, int staffId, Integer shiftId,
                                 String note, double discountAmount, double vatAmount, String paymentMethod) {
         setLastErrorMessage(null);
+
         if (cart == null || cart.isEmpty()) {
             setLastErrorMessage("Giỏ hàng trống.");
             return null;
@@ -107,12 +108,12 @@ public class SalesInvoiceDAO extends DBContext {
             if (customerId != null && !customerId.trim().isEmpty()) {
                 invoiceStm.setString(3, customerId.trim());
             } else {
-                invoiceStm.setNull(3, java.sql.Types.NVARCHAR);
+                invoiceStm.setNull(3, Types.NVARCHAR);
             }
             if (shiftId != null) {
                 invoiceStm.setInt(4, shiftId);
             } else {
-                invoiceStm.setNull(4, java.sql.Types.INTEGER);
+                invoiceStm.setNull(4, Types.INTEGER);
             }
             invoiceStm.setDouble(5, totalAmount);
             invoiceStm.setDouble(6, discountAmount);
@@ -132,7 +133,6 @@ public class SalesInvoiceDAO extends DBContext {
             if (rs.next()) {
                 invoiceId = rs.getLong(1);
             } else {
-                // Fallback: một số driver SQL Server không trả về generated keys
                 try (PreparedStatement findIdStm = conn.prepareStatement(
                         "SELECT TOP 1 InvoiceID FROM SalesInvoice WHERE InvoiceCode = ?")) {
                     findIdStm.setString(1, invoiceCode);
@@ -188,8 +188,7 @@ public class SalesInvoiceDAO extends DBContext {
             if (conn != null) {
                 try {
                     conn.rollback();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             setLastErrorMessage(ex.getMessage());
@@ -199,127 +198,41 @@ public class SalesInvoiceDAO extends DBContext {
             if (rs != null) {
                 try {
                     rs.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (invoiceStm != null) {
                 try {
                     invoiceStm.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (detailStm != null) {
                 try {
                     detailStm.close();
-                } catch (SQLException e) {
-                    // ignore
+                } catch (SQLException ignored) {
                 }
             }
             if (paymentStm != null) {
                 try {
                     paymentStm.close();
-                } catch (SQLException e) {
+                } catch (SQLException ignored) {
                 }
             }
             if (stockStm != null) {
                 try {
                     stockStm.close();
-                } catch (SQLException e) {
+                } catch (SQLException ignored) {
                 }
             }
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException e) {
+                } catch (SQLException ignored) {
                 }
             }
         }
-    }
-
-    public double calculateVatAmount(List<CartItem> cart) {
-        if (cart == null || cart.isEmpty()) {
-            return 0;
-        }
-
-        List<Integer> categoryIds = new ArrayList<>();
-        for (CartItem item : cart) {
-            Product p = item.getProduct();
-            if (p == null) {
-                continue;
-            }
-            int catId = p.getCategoryID();
-            if (!categoryIds.contains(catId)) {
-                categoryIds.add(catId);
-            }
-        }
-
-        Map<Integer, String> categoryNames = fetchCategoryNames(categoryIds);
-
-        double vat = 0;
-        for (CartItem item : cart) {
-            Product p = item.getProduct();
-            if (p == null) {
-                continue;
-            }
-            String categoryName = categoryNames.get(p.getCategoryID());
-            double rate = getVatRateFromCategoryName(categoryName);
-            vat += item.getLineTotal() * rate;
-        }
-        return vat;
-    }
-
-    private Map<Integer, String> fetchCategoryNames(List<Integer> categoryIds) {
-        Map<Integer, String> map = new HashMap<>();
-        if (categoryIds == null || categoryIds.isEmpty()) {
-            return map;
-        }
-
-        StringBuilder placeholders = new StringBuilder();
-        for (int i = 0; i < categoryIds.size(); i++) {
-            if (i > 0) placeholders.append(",");
-            placeholders.append("?");
-        }
-
-        String sql = "SELECT CategoryID, CategoryName FROM Categories WHERE CategoryID IN (" + placeholders + ")";
-
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            int idx = 1;
-            for (Integer id : categoryIds) {
-                ps.setInt(idx++, id);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    map.put(rs.getInt("CategoryID"), rs.getString("CategoryName"));
-                }
-            }
-        } catch (SQLException ignored) {
-        }
-
-        return map;
-    }
-
-    public double getVatRateFromCategoryName(String categoryName) {
-        if (categoryName == null) {
-            return 0.05;
-        }
-        String name = categoryName.trim().toLowerCase();
-        if (name.equals("sách giáo khoa")
-                || name.equals("sach giao khoa")
-                || name.equals("sách khoa học")
-                || name.equals("sach khoa hoc")
-                || name.equals("sách chính trị")
-                || name.equals("sach chinh tri")
-                || name.equals("sách pháp luật")
-                || name.equals("sach phap luat")
-                || name.equals("sách khoa học kỹ thuật")
-                || name.equals("sach khoa hoc ky thuat")) {
-            return 0.0;
-        }
-        return 0.05;
     }
 
     public List<Map<String, Object>> searchInvoices(java.sql.Date fromDate,
@@ -332,7 +245,8 @@ public class SalesInvoiceDAO extends DBContext {
         }
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT TOP ").append(limit).append("""
+        sql.append("SELECT TOP ").append(limit).append(" ");
+        sql.append("""
                 si.InvoiceID,
                 si.InvoiceCode,
                 si.TotalAmount,

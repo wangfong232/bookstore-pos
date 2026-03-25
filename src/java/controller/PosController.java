@@ -105,10 +105,8 @@ public class PosController extends HttpServlet {
         // Danh mục từ DB (bảng Categories) - chỉ hiển thị filter nếu có dữ liệu
         List<Category> categories = categoryDAO.getAllActiveCategories();
 
-        // Tính thuế VAT theo loại sách (Team's Update)
         double vatAmount = calculateVatAmount(cart, categories);
 
-        // Tính khuyến mãi tự động (My Logic)
         PromotionResult promoResult = promotionService.calculatePromotionDiscount(cart);
         double autoPromoDiscount = promoResult.getTotalDiscount();
 
@@ -136,7 +134,7 @@ public class PosController extends HttpServlet {
                 page = 1;
             }
         }
-        int pageSize = 12; 
+        int pageSize = 10;
         int totalProducts = productDAO.countProductsForPos(key, categoryId);
         int totalPages = (int) Math.ceil(totalProducts / (double) pageSize);
         if (totalPages <= 0) totalPages = 1;
@@ -165,8 +163,14 @@ public class PosController extends HttpServlet {
         request.getRequestDispatcher("/AdminLTE-3.2.0/pos.jsp").forward(request, response);
     }
 
+    /**
+     * Tính tổng tiền thuế VAT cho giỏ hàng dựa trên loại sách.
+     * Các nhóm được áp dụng 0% VAT: giáo khoa, chính trị, pháp luật, khoa học/khoa học kỹ thuật; còn lại 5%.
+     */
     private double calculateVatAmount(List<CartItem> cart, List<Category> categories) {
-        if (cart == null || cart.isEmpty()) return 0;
+        if (cart == null || cart.isEmpty()) {
+            return 0;
+        }
         Map<Integer, Category> categoryMap = new HashMap<>();
         if (categories != null) {
             for (Category c : categories) {
@@ -176,7 +180,9 @@ public class PosController extends HttpServlet {
         double vat = 0;
         for (CartItem item : cart) {
             Product p = item.getProduct();
-            if (p == null) continue;
+            if (p == null) {
+                continue;
+            }
             int catId = p.getCategoryID();
             Category cat = categoryMap.get(catId);
             String name = cat != null ? cat.getCategoryName() : null;
@@ -187,10 +193,20 @@ public class PosController extends HttpServlet {
     }
 
     private double getVatRateFromCategoryName(String categoryName) {
-        if (categoryName == null) return 0.05; 
+        if (categoryName == null) {
+            return 0.05;
+        }
         String name = categoryName.trim().toLowerCase();
-        if (name.equals("sách giáo khoa") || name.equals("sach giao khoa")
-                || name.equals("sách khoa học") || name.equals("sach khoa hoc")) {
+        if (name.equals("sách giáo khoa")
+                || name.equals("sach giao khoa")
+                || name.equals("sách khoa học")
+                || name.equals("sach khoa hoc")
+                || name.equals("sách chính trị")
+                || name.equals("sach chinh tri")
+                || name.equals("sách pháp luật")
+                || name.equals("sach phap luat")
+                || name.equals("sách khoa học kỹ thuật")
+                || name.equals("sach khoa hoc ky thuat")) {
             return 0.0;
         }
         return 0.05;
@@ -309,23 +325,22 @@ public class PosController extends HttpServlet {
             paymentMethod = "CASH";
         }
 
-        // 1. Resolve customer: nhập mã KH (KH001...) hoặc SĐT (Team's Update)
+        // 1. Resolve customer: CustomerID hoặc SĐT (SĐT = CustomerID khi tạo mới)
         String resolvedCustomerId = null;
         if (customerInput != null && !customerInput.trim().isEmpty()) {
             String trimmed = customerInput.trim();
             Customer customer = customerDAO.getById(trimmed);
             if (customer == null) {
-                customer = customerDAO.getByPhone(trimmed); // New support for phone
+                customer = customerDAO.getByPhone(trimmed);
             }
             if (customer == null) {
-                // Tự động tạo khách hàng mới
                 if (customerNameInput == null || customerNameInput.trim().isEmpty()) {
                     session.setAttribute("error", "Khách hàng mới: vui lòng nhập Tên khách hàng.");
                     response.sendRedirect("pos");
                     return;
                 }
                 Customer newCustomer = new Customer();
-                newCustomer.setCustomerID(trimmed); // Use phone as ID
+                newCustomer.setCustomerID(trimmed);
                 newCustomer.setFullName(customerNameInput.trim());
                 newCustomer.setPhoneNumber(trimmed);
                 newCustomer.setStatus("ACTIVE");

@@ -1,36 +1,33 @@
 package entity;
 
-import java.lang.*;
-import java.util.*;
-import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/*
-*
-*
-*/
 public class Customer {
 
     private String customerID;
     private String fullName;
     private String email;
+    private String phoneNumber;
     private LocalDate birthday;
     private LocalDateTime registerDate;
     private String status;
     private String note;
     private int points;
     private String tierName;
-    private String phoneNumber;
 
     public Customer() {
     }
 
+    /**
+     * CustomerID thường dùng làm SĐT; phoneNumber đồng bộ để hiển thị/tra cứu.
+     */
     public Customer(String customerID, String fullName, String email, LocalDate birthday,
             LocalDateTime registerDate, String status, String note) {
         this.customerID = customerID;
         this.fullName = fullName;
         this.email = email;
+        this.phoneNumber = customerID;
         this.birthday = birthday;
         this.registerDate = registerDate;
         this.status = status;
@@ -53,12 +50,29 @@ public class Customer {
         this.fullName = customerName;
     }
 
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    /** Alias cho getPhoneNumber (tương thích code cũ). */
+    public String getPhone() {
+        return phoneNumber;
     }
 
     public LocalDate getBirthday() {
@@ -107,21 +121,5 @@ public class Customer {
 
     public void setTierName(String tierName) {
         this.tierName = tierName;
-    }
-
-    public String getPhone() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
     }
 }

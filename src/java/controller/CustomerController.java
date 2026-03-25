@@ -93,6 +93,7 @@ public class CustomerController extends HttpServlet {
 
         Customer c = new Customer();
         c.setCustomerID(phone); // Phone as ID
+        c.setPhoneNumber(phone);
         c.setCustomerName(name);
         c.setEmail(email);
         if (birthdayStr != null && !birthdayStr.isEmpty()) {

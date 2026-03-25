@@ -226,7 +226,7 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/sales-invoices" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Danh sách hóa đơn</p>
                                 </a>
@@ -327,7 +327,7 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/report/revenue" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Doanh thu</p>
                                 </a>

@@ -4,7 +4,6 @@ import entity.Customer;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.*;
 
 /*
 *
@@ -21,18 +20,27 @@ public class CustomerDAO extends DBContext {
     // CREATE
     public void insert(Customer c) {
         String sql = """
-                    INSERT INTO Customers(CustomerID, FullName, Email, Birthday, Status, Note)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO Customers(CustomerID, FullName, Email, PhoneNumber, Birthday, Status, Note)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection con = getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, c.getCustomerID()); // This is the phone number now
+            ps.setString(1, c.getCustomerID());
             ps.setString(2, c.getCustomerName());
             ps.setString(3, c.getEmail());
-            ps.setDate(4, c.getBirthday() != null ? Date.valueOf(c.getBirthday()) : null);
-            ps.setString(5, c.getStatus());
-            ps.setString(6, c.getNote());
+            String phone = c.getPhoneNumber();
+            if (phone == null || phone.isBlank()) {
+                phone = c.getCustomerID();
+            }
+            ps.setString(4, phone);
+            if (c.getBirthday() != null) {
+                ps.setDate(5, Date.valueOf(c.getBirthday()));
+            } else {
+                ps.setNull(5, java.sql.Types.DATE);
+            }
+            ps.setString(6, c.getStatus());
+            ps.setString(7, c.getNote());
             ps.executeUpdate();
 
             // Also insert default points
@@ -85,9 +93,29 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
-    // READ by Phone (Phone is ID)
+    /** Tra cứu theo SĐT: khớp CustomerID hoặc cột PhoneNumber. */
     public Customer getByPhone(String phone) {
-        return getById(phone);
+        if (phone == null || phone.isBlank()) {
+            return null;
+        }
+        String sql = """
+                    SELECT c.*, p.TotalPoints
+                    FROM Customers c
+                    LEFT JOIN CustomerPoints p ON c.CustomerID = p.CustomerID
+                    WHERE c.CustomerID = ? OR c.PhoneNumber = ?
+                """;
+        try (Connection con = getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, phone.trim());
+            ps.setString(2, phone.trim());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return map(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // READ ALL
@@ -139,7 +167,7 @@ public class CustomerDAO extends DBContext {
     public void update(Customer c) {
         String sql = """
                     UPDATE Customers
-                    SET FullName=?, Email=?, Birthday=?, Status=?, Note=?
+                    SET FullName=?, Email=?, PhoneNumber=?, Birthday=?, Status=?, Note=?
                     WHERE CustomerID=?
                 """;
         try (Connection con = getConnection();
@@ -147,10 +175,19 @@ public class CustomerDAO extends DBContext {
 
             ps.setString(1, c.getCustomerName());
             ps.setString(2, c.getEmail());
-            ps.setDate(3, c.getBirthday() != null ? Date.valueOf(c.getBirthday()) : null);
-            ps.setString(4, c.getStatus());
-            ps.setString(5, c.getNote());
-            ps.setString(6, c.getCustomerID());
+            String phone = c.getPhoneNumber();
+            if (phone == null || phone.isBlank()) {
+                phone = c.getCustomerID();
+            }
+            ps.setString(3, phone);
+            if (c.getBirthday() != null) {
+                ps.setDate(4, Date.valueOf(c.getBirthday()));
+            } else {
+                ps.setNull(4, java.sql.Types.DATE);
+            }
+            ps.setString(5, c.getStatus());
+            ps.setString(6, c.getNote());
+            ps.setString(7, c.getCustomerID());
             ps.executeUpdate();
 
         } catch (SQLException e) {
@@ -189,20 +226,22 @@ public class CustomerDAO extends DBContext {
         c.setCustomerID(rs.getString("CustomerID"));
         c.setCustomerName(rs.getString("FullName"));
         c.setEmail(rs.getString("Email"));
-
         Date birthday = rs.getDate("Birthday");
         if (birthday != null) {
             c.setBirthday(birthday.toLocalDate());
         }
-
         Timestamp regDate = rs.getTimestamp("RegisterDate");
         if (regDate != null) {
             c.setRegisterDate(regDate.toLocalDateTime());
         }
-
         c.setStatus(rs.getString("Status"));
         c.setNote(rs.getString("Note"));
-        c.setPhoneNumber(rs.getString("CustomerID"));
+        String phoneCol = rs.getString("PhoneNumber");
+        if (phoneCol != null && !phoneCol.isBlank()) {
+            c.setPhoneNumber(phoneCol);
+        } else {
+            c.setPhoneNumber(rs.getString("CustomerID"));
+        }
 
         // Handle Points from JOIN
         try {

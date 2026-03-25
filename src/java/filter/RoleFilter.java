@@ -50,7 +50,8 @@ import java.util.*;
  * Nếu không có quyền → redirect về /dashboard?error=unauthorized
  */
 @WebFilter(urlPatterns = {"/admin/*", "/staff/*", "/supplier", "/purchaseorder",
-                          "/pos", "/customer-tiers", "/promotions"})
+                          "/pos", "/customer-tiers", "/promotions",
+                          "/sales-invoices", "/report/*", "/customers", "/products"})
 public class RoleFilter implements Filter {
 
     /**
@@ -85,6 +86,10 @@ public class RoleFilter implements Filter {
         // ── Khuyến mãi – Manager, Store Manager, Saler ──
         ROLE_MAP.put("/admin/promotions", roleSet(1, 2, 5));
 
+        // ── Hóa đơn & báo cáo (URL không có /admin/) ──
+        ROLE_MAP.put("/sales-invoices", roleSet(1, 2));
+        ROLE_MAP.put("/report/", roleSet(1, 2));
+
         // ── Ca làm việc – Tất cả roles ──
         ROLE_MAP.put("/admin/shift-management", roleSet(1, 2, 3, 5));
 
@@ -97,11 +102,15 @@ public class RoleFilter implements Filter {
         // ── POS – Store Manager + Staff + Saler ──
         ROLE_MAP.put("/pos", roleSet(2, 3, 5));
 
+        // ── Khách hàng & cửa hàng public (Staff/Saler) ──
+        ROLE_MAP.put("/customers", roleSet(1, 2, 5));
+        ROLE_MAP.put("/products", roleSet(1, 2, 3, 5));
+
         // ── Trang không có prefix /admin/ nhưng cần phân quyền ──
         ROLE_MAP.put("/supplier", roleSet(1, 2));
         ROLE_MAP.put("/purchaseorder", roleSet(1, 2));
-        ROLE_MAP.put("/customer-tiers", roleSet(1, 2));
-        ROLE_MAP.put("/promotions", roleSet(1, 2));
+        ROLE_MAP.put("/customer-tiers", roleSet(1, 2, 5));
+        ROLE_MAP.put("/promotions", roleSet(1, 2, 5));
     }
 
     @Override

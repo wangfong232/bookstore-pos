@@ -886,7 +886,6 @@
                         src="${pageContext.request.contextPath}/AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
                     <script src="${pageContext.request.contextPath}/AdminLTE-3.2.0/dist/js/adminlte.min.js"></script>
 
-                    <!-- Hidden values for calculation -->
                     <input type="hidden" id="raw-subtotal" value="${totalAmount}">
                     <input type="hidden" id="raw-auto-discount" value="${autoPromoDiscount}">
                     <input type="hidden" id="raw-vat" value="${vatAmount}">
@@ -927,7 +926,28 @@
 
                         $(document).ready(function () {
                             $('#pos-discount, #pos-cash').on('input change', updateSummary);
-                            $('#sku').focus();
+                            updateSummary();
+
+                            function focusSKU() {
+                                var $sku = $('#sku');
+                                if ($sku.length) {
+                                    $sku.focus();
+                                    $sku.select();
+                                }
+                            }
+                            focusSKU();
+                            $(document).on('click', '.pos-product-card', function () {
+                                setTimeout(focusSKU, 50);
+                            });
+                            $(document).on('submit', 'form', function () {
+                                var action = $(this).find('input[name="action"]').val();
+                                if (action === 'addItem') {
+                                    setTimeout(focusSKU, 100);
+                                }
+                            });
+                            $(document).on('change', 'input[name="quantity"]', function () {
+                                $(this).closest('form').submit();
+                            });
 
                             $('#pos-sidebar-toggle').on('click', function () {
                                 $('body').toggleClass('pos-sidebar-open');
