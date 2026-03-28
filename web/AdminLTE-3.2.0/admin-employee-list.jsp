@@ -51,6 +51,36 @@
                             </div>
                         </c:if>
 
+                        <c:if test="${param.success == 'update'}">
+                            <div class="alert alert-success alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                Cập nhật nhân viên thành công!
+                            </div>
+                        </c:if>
+
+                        <c:if test="${param.success == 'delete'}">
+                            <div class="alert alert-success alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                Xóa nhân viên thành công!
+                            </div>
+                        </c:if>
+
+                        <c:if test="${param.error == 'delete'}">
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <strong>Không thể xóa nhân viên!</strong> Nhân viên này đã có dữ liệu lịch sử (hóa đơn, đổi ca, v.v.). 
+                                <br>Vui lòng sử dụng tính năng <strong>Chặn/Ngưng hoạt động</strong> (biểu tượng <i class="fas fa-ban text-warning"></i>) thay vì xóa.
+                            </div>
+                        </c:if>
+
+                        <c:if test="${param.success == 'toggle'}">
+                            <div class="alert alert-info alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                Thay đổi trạng thái nhân viên thành công!
+                            </div>
+                        </c:if>
+
                         <!-- SEARCH + FILTER -->
                         <div class="card card-outline card-primary">
                             <div class="card-body">
