@@ -27,6 +27,10 @@ public class SupplierController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (denyIfSaler(request, response)) {
+            return;
+        }
+
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "list";
@@ -108,7 +112,9 @@ public class SupplierController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-
+        if (denyIfSaler(request, response)) {
+            return;
+        }
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
@@ -172,16 +178,16 @@ public class SupplierController extends HttpServlet {
                         .email("Email", email);
 
                 boolean isUpdate = supDAO.isCodeExist(code);
-                 if (isUpdate) {
-                        if (supDAO.isNameExistsExcept(name, code)) {
+                if (isUpdate) {
+                    if (supDAO.isNameExistsExcept(name, code)) {
                         valid.addError("Tên nhà cung cấp '" + name + "' đã tồn tại.");
                     }
-                 } else {
+                } else {
                     if (supDAO.isNameExists(name)) {
                         valid.addError("Tên nhà cung cấp '" + name + "' đã tồn tại.");
                     }
                 }
-                 
+
                 if (!valid.isValid()) {
                     request.setAttribute("supplier", sup);
                     request.setAttribute("code", code);
@@ -234,4 +240,16 @@ public class SupplierController extends HttpServlet {
         }
         return true;
     }
+
+    private boolean denyIfSaler(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String role = (String) request.getSession().getAttribute("roleName");
+        if ("Saler".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied_saler");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return true;
+        }
+        return false;
+    }
+
 }

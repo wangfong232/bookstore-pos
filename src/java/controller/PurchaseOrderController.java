@@ -41,6 +41,10 @@ public class PurchaseOrderController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (denyIfSaler(request, response)) {
+            return;
+        }
+
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "list";
@@ -165,13 +169,13 @@ public class PurchaseOrderController extends HttpServlet {
 
             List<Supplier> supList = supDAO.getAllActiveSuppliers();
             request.setAttribute("supList", supList);
-            
+
             request.setAttribute("po", po);
             request.setAttribute("poNumber", po.getPoNumber());
             request.setAttribute("orderDate", po.getOrderDate());
             request.setAttribute("expectedDate", po.getExpectedDate());
             request.setAttribute("notes", po.getNotes());
-        
+
             List<PurchaseOrderItem> items = itemDAO.getItemsByPOId(po.getId());
 
             request.setAttribute("orderItems", items);
@@ -218,7 +222,9 @@ public class PurchaseOrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        if (denyIfSaler(request, response)) {
+            return;
+        }
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
@@ -255,7 +261,7 @@ public class PurchaseOrderController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
-                
+
                 PurchaseOrder poToApprove = poDAO.getPurchaseOrderByCode(poNumber);
                 if (poToApprove == null) {
                     request.getSession().setAttribute("error", "Không tìm thấy đơn hàng.");
@@ -267,7 +273,7 @@ public class PurchaseOrderController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
-                
+
                 success = poDAO.approvePO(poNumber, by);
                 msg = success ? "success_approve" : "fail";
                 break;
@@ -287,7 +293,7 @@ public class PurchaseOrderController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
-                
+
                 PurchaseOrder poToReject = poDAO.getPurchaseOrderByCode(poNumber);
                 if (poToReject == null) {
                     request.getSession().setAttribute("error", "Không tìm thấy đơn hàng.");
@@ -299,7 +305,7 @@ public class PurchaseOrderController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
-                
+
                 success = poDAO.rejectPO(poNumber, by, reason);
                 msg = success ? "success_reject" : "fail";
                 break;
@@ -319,7 +325,7 @@ public class PurchaseOrderController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
-                
+
                 PurchaseOrder poToCancel = poDAO.getPurchaseOrderByCode(poNumber);
                 if (poToCancel == null) {
                     request.getSession().setAttribute("error", "Không tìm thấy đơn hàng.");
@@ -331,7 +337,7 @@ public class PurchaseOrderController extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/admin/purchaseorder?action=detail&poNumber=" + poNumber);
                     return;
                 }
-                
+
                 success = poDAO.cancelPO(poNumber, by, reason);
                 msg = success ? "success_cancel" : "fail";
                 break;
@@ -370,12 +376,12 @@ public class PurchaseOrderController extends HttpServlet {
                         if (discountValues[i] != null && !discountValues[i].trim().isEmpty()) {
                             try {
                                 BigDecimal discountVal = new BigDecimal(discountValues[i]);
-                                
+
                                 if (discountVal.compareTo(BigDecimal.ZERO) < 0) {
                                     valid.addError("Giảm giá không được nhỏ hơn 0");
                                     break;
                                 }
-                                
+
                                 String discountType = (i < discountTypes.length) ? discountTypes[i] : "AMOUNT";
                                 if ("PERCENT".equals(discountType) && discountVal.compareTo(new BigDecimal("100")) > 0) {
                                     valid.addError("Giảm giá theo phần trăm không được vượt quá 100%");
@@ -388,7 +394,7 @@ public class PurchaseOrderController extends HttpServlet {
                         }
                     }
                 }
-                
+
                 if (!valid.isValid()) {
                     List<Product> productList = productDAO.getAllActiveProducts();
                     request.setAttribute("productList", productList);
@@ -506,7 +512,7 @@ public class PurchaseOrderController extends HttpServlet {
                     }
 
                     result = poDAO.updateOrderWithItems(po);
-                   if (!result) {
+                    if (!result) {
                         List<Product> productList = productDAO.getAllActiveProducts();
                         request.setAttribute("productList", productList);
 
@@ -584,5 +590,16 @@ public class PurchaseOrderController extends HttpServlet {
         } catch (Exception e) {
         }
         return null;
+    }
+
+    private boolean denyIfSaler(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String role = (String) request.getSession().getAttribute("roleName");
+        if ("Saler".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied_saler");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return true;
+        }
+        return false;
     }
 }

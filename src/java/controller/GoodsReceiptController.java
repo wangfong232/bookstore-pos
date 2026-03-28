@@ -32,6 +32,9 @@ public class GoodsReceiptController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (denyIfSaler(request, response)) {
+            return;
+        }
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "list";
@@ -60,6 +63,9 @@ public class GoodsReceiptController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        if (denyIfSaler(request, response)) {
+            return;
+        }
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
@@ -459,5 +465,16 @@ public class GoodsReceiptController extends HttpServlet {
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
+    }
+
+    private boolean denyIfSaler(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String role = (String) request.getSession().getAttribute("roleName");
+        if ("Saler".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied_saler");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return true;
+        }
+        return false;
     }
 }

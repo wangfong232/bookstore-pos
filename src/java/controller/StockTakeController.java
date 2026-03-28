@@ -36,7 +36,9 @@ public class StockTakeController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        if (denyIfSaler(request, response)) {
+            return;
+        }
         String action = request.getParameter("action");
         if (action == null || action.isBlank()) {
             action = "list";
@@ -64,6 +66,10 @@ public class StockTakeController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (denyIfSaler(request, response)) {
+            return;
+        }
+        
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
@@ -491,5 +497,16 @@ public class StockTakeController extends HttpServlet {
             return false;
         }
         return true;
+    }
+
+    private boolean denyIfSaler(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String role = (String) request.getSession().getAttribute("roleName");
+        if ("Saler".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied_saler");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return true;
+        }
+        return false;
     }
 }

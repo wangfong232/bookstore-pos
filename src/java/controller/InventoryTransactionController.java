@@ -17,11 +17,16 @@ import java.util.List;
 
 @WebServlet(name = "InventoryTransactionController", urlPatterns = {"/admin/inventorytransaction"})
 public class InventoryTransactionController extends HttpServlet {
+
     private final InventoryTransactionDAO itDAO = new InventoryTransactionDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (denyIfSaler(request, response)) {
+            return;
+        }
+
         String action = request.getParameter("action");
         if (action == null || action.isBlank()) {
             action = "list";
@@ -35,12 +40,13 @@ public class InventoryTransactionController extends HttpServlet {
                 showList(request, response);
         }
     }
+
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String keyword     = request.getParameter("key");
-        String txType      = request.getParameter("txType");
-        LocalDate from     = parseLocalDate(request.getParameter("from"));
-        LocalDate to       = parseLocalDate(request.getParameter("to"));
+        String keyword = request.getParameter("key");
+        String txType = request.getParameter("txType");
+        LocalDate from = parseLocalDate(request.getParameter("from"));
+        LocalDate to = parseLocalDate(request.getParameter("to"));
 
         int page = parseIntSafe(request.getParameter("page"));
         if (page <= 0) {
@@ -48,7 +54,7 @@ public class InventoryTransactionController extends HttpServlet {
         }
         int pageSize = 20;
 
-        int total      = itDAO.count(keyword, txType, null, from, to);
+        int total = itDAO.count(keyword, txType, null, from, to);
         int totalPages = Math.max(1, (int) Math.ceil((double) total / pageSize));
         if (page > totalPages) {
             page = totalPages;
@@ -82,7 +88,7 @@ public class InventoryTransactionController extends HttpServlet {
                 return ctx + "/admin/goodsreceipt?action=view&receiptNumber=" + refCode;
 //            case InventoryTransaction.REF_SALE:
 //                return ctx + "/pos?action=view&number=" + refCode;
-            default: 
+            default:
                 return "";
         }
     }
@@ -111,5 +117,15 @@ public class InventoryTransactionController extends HttpServlet {
         } catch (Exception ignored) {
         }
         return 0;
+    }
+
+    private boolean denyIfSaler(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String role = (String) request.getSession().getAttribute("roleName");
+        if ("Saler".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied_saler");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return true;
+        }
+        return false;
     }
 }

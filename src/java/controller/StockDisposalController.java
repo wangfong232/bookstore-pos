@@ -33,6 +33,10 @@ public class StockDisposalController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (denyIfSaler(request, response)) {
+            return;
+        }
+
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "list";
@@ -57,6 +61,11 @@ public class StockDisposalController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        if (denyIfSaler(request, response)) {
+            return;
+        }
+
         String action = request.getParameter("action");
         if (action == null) {
             action = "";
@@ -341,5 +350,16 @@ public class StockDisposalController extends HttpServlet {
     private boolean isManagerOrAdmin(HttpServletRequest request) {
         String role = (String) request.getSession().getAttribute("roleName");
         return "Manager".equals(role) || "Store Manager".equals(role) || "Admin".equals(role);
+    }
+
+    private boolean denyIfSaler(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        String role = (String) request.getSession().getAttribute("roleName");
+        if ("Saler".equals(role)) {
+            request.getSession().setAttribute("msg", "access_denied_saler");
+            response.sendRedirect(request.getContextPath() + "/dashboard");
+            return true;
+        }
+        return false;
     }
 }

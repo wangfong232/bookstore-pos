@@ -12,12 +12,12 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <style>
     .nav-sidebar .nav-treeview {
-        padding-left: 5px !important; 
+        padding-left: 5px !important;
     }
 
     .nav-sidebar .nav-link > .nav-icon {
-        margin-left: -3px; 
-        width: 1.2rem;    
+        margin-left: -3px;
+        width: 1.2rem;
     }
 
     .nav-sidebar .nav-link p {
@@ -152,57 +152,59 @@
                 </c:if>
 
                 <%-- ===== QUẢN LÝ KHO – Tất cả roles ===== --%>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-warehouse"></i>
-                        <p>
-                            Quản lý kho
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/purchaseorder" class="nav-link">
-                                <i class="fas fa-file-import nav-icon"></i>
-                                <p>Nhập hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/goodsreceipt" class="nav-link">
-                                <i class="fas fa-truck-loading nav-icon"></i>
-                                <p>Nhận hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/stocktake" class="nav-link">
-                                <i class="fas fa-tasks nav-icon"></i>
-                                <p>Kiểm kho</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/stockdisposal" class="nav-link">
-                                <i class="fas fa-trash-alt nav-icon"></i>
-                                <p>Xuất hủy</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/inventorytransaction" class="nav-link">
-                                <i class="fas fa-history nav-icon"></i>
-                                <p>Lịch sử giao dịch</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/admin/supplier" class="nav-link">
-                                <i class="fas fa-truck nav-icon"></i>
-                                <p>Nhà cung cấp</p>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <%-- ===== ĐƠN MUA HÀNG – Manager & Store Manager ===== --%>
-                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
+                <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2 || sessionScope.roleId == 3}">
                     <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-warehouse"></i>
+                            <p>
+                                Quản lý kho
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/purchaseorder" class="nav-link">
+                                    <i class="fas fa-file-import nav-icon"></i>
+                                    <p>Nhập hàng</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/goodsreceipt" class="nav-link">
+                                    <i class="fas fa-truck-loading nav-icon"></i>
+                                    <p>Nhận hàng</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/stocktake" class="nav-link">
+                                    <i class="fas fa-tasks nav-icon"></i>
+                                    <p>Kiểm kho</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/stockdisposal" class="nav-link">
+                                    <i class="fas fa-trash-alt nav-icon"></i>
+                                    <p>Xuất hủy</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/inventorytransaction" class="nav-link">
+                                    <i class="fas fa-history nav-icon"></i>
+                                    <p>Lịch sử giao dịch</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="${pageContext.request.contextPath}/admin/supplier" class="nav-link">
+                                    <i class="fas fa-truck nav-icon"></i>
+                                    <p>Nhà cung cấp</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </c:if>
+           
+                    <%-- ===== ĐƠN MUA HÀNG – Manager & Store Manager ===== --%>
+               <%-- <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}"> --%>
+<!--                    <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-shopping-cart"></i>
                             <p>
@@ -224,8 +226,8 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
-                </c:if>
+                    </li>-->
+               <%-- </c:if>--%>
 
                 <%-- ===== HÓA ĐƠN BÁN HÀNG – Manager & Store Manager ===== --%>
                 <c:if test="${sessionScope.roleId == 1 || sessionScope.roleId == 2}">
@@ -239,7 +241,7 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                            <a href="${pageContext.request.contextPath}/sales-invoices" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/sales-invoices" class="nav-link">
                                     <i class="far fa-dot-circle nav-icon"></i>
                                     <p>Danh sách hóa đơn</p>
                                 </a>
@@ -329,48 +331,36 @@
 
 
 
-                    <%-- Báo cáo --%>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-chart-line"></i>
-                            <p>
-                                Báo cáo
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
+                <%-- Báo cáo --%>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-chart-line"></i>
+                        <p>
+                            Báo cáo
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
                             <a href="${pageContext.request.contextPath}/report/revenue" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Doanh thu</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Tồn kho</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="far fa-dot-circle nav-icon"></i>
-                                    <p>Sản phẩm bán chạy</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                                <i class="far fa-dot-circle nav-icon"></i>
+                                <p>Doanh thu</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
 
-                    <%-- Cài đặt hệ thống --%>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-cog"></i>
-                            <p>Cài đặt hệ thống</p>
-                        </a>
-                    </li>
-                
+                <%-- Cài đặt hệ thống --%>
+<!--                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-cog"></i>
+                        <p>Cài đặt hệ thống</p>
+                    </a>
+                </li>-->
+
 
                 <%-- ===== THÔNG BÁO – Tất cả roles ===== --%>
-                <li class="nav-item">
+<!--                <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-bell"></i>
                         <p>
@@ -378,7 +368,7 @@
                             <span class="right badge badge-warning">5</span>
                         </p>
                     </a>
-                </li>
+                </li>-->
 
                 <%-- ===== HỒ SƠ CÁ NHÂN – Tất cả roles ===== --%>
                 <li class="nav-item">
