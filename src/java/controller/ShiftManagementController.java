@@ -56,22 +56,6 @@ public class ShiftManagementController extends HttpServlet {
             status = "ACTIVE";
         }
 
-//        int page = 1;
-//        int pageSize = 5;
-//
-//        if (request.getParameter("page") != null) {
-//            page = Integer.parseInt(request.getParameter("page"));
-//        }
-//
-//        List<Employee> employees
-//                = empDAO.getEmployees(search, null, status, page, pageSize);
-//
-//        int total = empDAO.getTotalEmployees(search, null, status);
-//        int totalPage = (int) Math.ceil(total * 1.0 / pageSize);
-//
-//        request.setAttribute("employees", employees);
-//        request.setAttribute("totalPages", totalPage);
-//        request.setAttribute("currentPage", page);
         //View calendar
         request.setAttribute("viewMode", viewMode);
 
