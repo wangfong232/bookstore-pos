@@ -30,10 +30,10 @@ public class StaffSwapController extends HttpServlet {
         String ajax = request.getParameter("ajax");
 
         if (date != null && !date.isEmpty()) {
-            List<EmployeeShiftAssignment> myAssignments =
-                    assignDAO.getAssignmentsByEmployeeAndDate(fromEmployeeID, date);
-            List<EmployeeShiftAssignment> otherAssignments =
-                    assignDAO.getAssignmentsByDateExceptEmployee(fromEmployeeID, date);
+            List<EmployeeShiftAssignment> myAssignments = assignDAO.getAssignmentsByEmployeeAndDate(fromEmployeeID,
+                    date);
+            List<EmployeeShiftAssignment> otherAssignments = assignDAO
+                    .getAssignmentsByDateExceptEmployee(fromEmployeeID, date);
 
             if ("true".equals(ajax)) {
                 // JSON response cho AJAX call
@@ -42,25 +42,27 @@ public class StaffSwapController extends HttpServlet {
                 sb.append("{\"my\":[");
                 for (int i = 0; i < myAssignments.size(); i++) {
                     EmployeeShiftAssignment a = myAssignments.get(i);
-                    if (i > 0) sb.append(",");
+                    if (i > 0)
+                        sb.append(",");
                     sb.append("{")
-                      .append("\"id\":").append(a.getAssignmentID()).append(",")
-                      .append("\"shiftName\":\"").append(escapeJson(a.getShiftName())).append("\",")
-                      .append("\"workDate\":\"").append(a.getWorkDate()).append("\",")
-                      .append("\"employeeId\":").append(a.getEmployeeId())
-                      .append("}");
+                            .append("\"id\":").append(a.getAssignmentID()).append(",")
+                            .append("\"shiftName\":\"").append(escapeJson(a.getShiftName())).append("\",")
+                            .append("\"workDate\":\"").append(a.getWorkDate()).append("\",")
+                            .append("\"employeeId\":").append(a.getEmployeeId())
+                            .append("}");
                 }
                 sb.append("],\"other\":[");
                 for (int i = 0; i < otherAssignments.size(); i++) {
                     EmployeeShiftAssignment a = otherAssignments.get(i);
-                    if (i > 0) sb.append(",");
+                    if (i > 0)
+                        sb.append(",");
                     sb.append("{")
-                      .append("\"id\":").append(a.getAssignmentID()).append(",")
-                      .append("\"shiftName\":\"").append(escapeJson(a.getShiftName())).append("\",")
-                      .append("\"workDate\":\"").append(a.getWorkDate()).append("\",")
-                      .append("\"employeeId\":").append(a.getEmployeeId()).append(",")
-                      .append("\"fullName\":\"").append(escapeJson(a.getFullName())).append("\"")
-                      .append("}");
+                            .append("\"id\":").append(a.getAssignmentID()).append(",")
+                            .append("\"shiftName\":\"").append(escapeJson(a.getShiftName())).append("\",")
+                            .append("\"workDate\":\"").append(a.getWorkDate()).append("\",")
+                            .append("\"employeeId\":").append(a.getEmployeeId()).append(",")
+                            .append("\"fullName\":\"").append(escapeJson(a.getFullName())).append("\"")
+                            .append("}");
                 }
                 sb.append("]}");
                 response.getWriter().write(sb.toString());
@@ -70,11 +72,10 @@ public class StaffSwapController extends HttpServlet {
             request.setAttribute("myAssignments", myAssignments);
             request.setAttribute("otherAssignments", otherAssignments);
         } else {
-            // Không có date → load tất cả assignments của nhân viên và tất cả của người khác
-            List<EmployeeShiftAssignment> myAssignments =
-                    assignDAO.getAllAssignmentsByEmployee(fromEmployeeID);
-            List<EmployeeShiftAssignment> otherAssignments =
-                    assignDAO.getAllAssignmentsExceptEmployee(fromEmployeeID);
+            // Không có date → load tất cả assignments của nhân viên và tất cả của người
+            // khác
+            List<EmployeeShiftAssignment> myAssignments = assignDAO.getAllAssignmentsByEmployee(fromEmployeeID);
+            List<EmployeeShiftAssignment> otherAssignments = assignDAO.getAllAssignmentsExceptEmployee(fromEmployeeID);
             request.setAttribute("myAssignments", myAssignments);
             request.setAttribute("otherAssignments", otherAssignments);
         }
@@ -96,15 +97,13 @@ public class StaffSwapController extends HttpServlet {
         try {
             int fromEmployeeID = (Integer) session.getAttribute("employeeId");
 
-            int fromAssignmentID =
-                    Integer.parseInt(request.getParameter("fromAssignmentID"));
-            int toAssignmentID =
-                    Integer.parseInt(request.getParameter("toAssignmentID"));
+            int fromAssignmentID = Integer.parseInt(request.getParameter("fromAssignmentID"));
+            int toAssignmentID = Integer.parseInt(request.getParameter("toAssignmentID"));
 
             String reason = request.getParameter("reason");
 
             ShiftSwapDAO dao = new ShiftSwapDAO();
-            
+
             // Duplicate check
             if (dao.hasDuplicatePendingRequest(fromAssignmentID, toAssignmentID, reason)) {
                 response.sendRedirect("swap?error=duplicate");
@@ -141,7 +140,8 @@ public class StaffSwapController extends HttpServlet {
     }
 
     private String escapeJson(String s) {
-        if (s == null) return "";
+        if (s == null)
+            return "";
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

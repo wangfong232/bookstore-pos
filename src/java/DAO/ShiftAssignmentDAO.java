@@ -383,9 +383,11 @@ public class ShiftAssignmentDAO extends DBContext {
 
         String sql = "SELECT a.AssignmentID, a.EmployeeID, a.ShiftID, "
                 + "a.WorkDate, a.Status, "
+                + "e.FullName, "
                 + "s.ShiftName, s.StartTime, s.EndTime "
                 + "FROM EmployeeShiftAssignments a "
                 + "JOIN Shifts s ON a.ShiftID = s.ShiftID "
+                + "JOIN Employees e ON a.EmployeeID = e.EmployeeID "
                 + "WHERE a.EmployeeID <> ? "
                 + "AND a.WorkDate = ?";
         
@@ -408,6 +410,7 @@ public class ShiftAssignmentDAO extends DBContext {
                 a.setWorkDate(rs.getDate("WorkDate"));
                 a.setStatus(rs.getString("Status"));
 
+                a.setFullName(rs.getString("FullName"));
                 a.setShiftName(rs.getString("ShiftName"));
                 a.setStartTime(rs.getString("StartTime"));
                 a.setEndTime(rs.getString("EndTime"));

@@ -9,9 +9,10 @@ public class ShiftSwapDAO extends DBContext {
 
     /**
      * Gửi yêu cầu đổi ca làm việc (dành cho nhân viên).
-     * @param empID ID của nhân viên tạo đơn.
+     * 
+     * @param empID        ID của nhân viên tạo đơn.
      * @param assignmentID ID của ca làm việc muốn đổi đi.
-     * @param reason Lý do muốn đổi ca.
+     * @param reason       Lý do muốn đổi ca.
      */
     public void requestSwap(int empID, int assignmentID, String reason) {
         String sql = "INSERT INTO ShiftSwapRequests "
@@ -31,9 +32,10 @@ public class ShiftSwapDAO extends DBContext {
 
     /**
      * Duyệt đơn đổi ca (Manager). Cập nhật trạng thái thành APPROVED.
+     * 
      * @param requestID ID của đơn đổi ca.
      * @param managerID ID của quản lý thực hiện duyệt đơn.
-     * @param conn Connection (dùng trong transaction ngoại vi).
+     * @param conn      Connection (dùng trong transaction ngoại vi).
      * @throws Exception nếu có lỗi DB.
      */
     public void approveSwap(int requestID, int managerID, Connection conn)
@@ -52,6 +54,7 @@ public class ShiftSwapDAO extends DBContext {
     /**
      * Lấy danh sách tất cả các đơn đổi ca đang ở trạng thái PENDING.
      * Thường dùng cho trang duyệt đơn của Manager.
+     * 
      * @return Danh sách các yêu cầu đổi ca đang chờ duyệt.
      */
     public List<ShiftSwapRequest> getPendingRequests() {
@@ -104,6 +107,7 @@ public class ShiftSwapDAO extends DBContext {
     /**
      * Từ chối đơn đổi ca (Manager). Cập nhật trạng thái thành REJECTED.
      * Mở connection mới cục bộ.
+     * 
      * @param requestID ID của đơn đổi ca.
      * @param managerID ID của quản lý thực hiện từ chối.
      */
@@ -129,9 +133,10 @@ public class ShiftSwapDAO extends DBContext {
     /**
      * Từ chối đơn đổi ca (Manager). Cập nhật trạng thái thành REJECTED.
      * Dùng connection được cung cấp để tham gia vào transaction lớn hơn.
+     * 
      * @param requestID ID của đơn đổi ca.
      * @param managerID ID của quản lý thực hiện từ chối.
-     * @param conn Connection (dùng trong transaction ngoại vi).
+     * @param conn      Connection (dùng trong transaction ngoại vi).
      * @throws Exception nếu có lỗi DB.
      */
     public void rejectSwap(int requestID, int managerID, Connection conn)
@@ -150,6 +155,7 @@ public class ShiftSwapDAO extends DBContext {
     /**
      * Lấy địa chỉ email của nhân viên tạo đơn đổi ca.
      * Thường dùng để gửi email thông báo sau khi đơn được duyệt hoặc từ chối.
+     * 
      * @param requestID ID của đơn đổi ca.
      * @return Địa chỉ email của người tạo đơn.
      */
@@ -178,8 +184,10 @@ public class ShiftSwapDAO extends DBContext {
 
     /**
      * Lấy thông tin chi tiết của một đơn đổi ca dựa trên ID.
+     * 
      * @param requestID ID của đơn đổi ca cần lấy.
-     * @return Đối tượng ShiftSwapRequest chứa thông tin đơn đổi ca, hoặc null nếu không tìm thấy.
+     * @return Đối tượng ShiftSwapRequest chứa thông tin đơn đổi ca, hoặc null nếu
+     *         không tìm thấy.
      */
     public ShiftSwapRequest getRequestById(int requestID) {
 
@@ -213,6 +221,7 @@ public class ShiftSwapDAO extends DBContext {
     /**
      * Tạo một đơn đổi ca mới (insert vào database).
      * Trạng thái mặc định thường là PENDING.
+     * 
      * @param swap Đối tượng phân tích chứa toàn bộ thông tin đơn đổi ca.
      */
     public void insertSwapRequest(ShiftSwapRequest swap) {
@@ -246,12 +255,12 @@ public class ShiftSwapDAO extends DBContext {
         String sql = "SELECT COUNT(*) FROM ShiftSwapRequests "
                 + "WHERE FromAssignmentID = ? AND ToAssignmentID = ? "
                 + "AND Reason = ? AND Status = 'PENDING'";
-        
+
         try (Connection conn = getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, fromAssignID);
             ps.setInt(2, toAssignID);
             ps.setString(3, reason != null ? reason.trim() : "");
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -265,6 +274,7 @@ public class ShiftSwapDAO extends DBContext {
 
     /**
      * Lấy danh sách lịch sử đơn đổi ca của một nhân viên cụ thể.
+     * 
      * @param employeeID ID của nhân viên cần xem lịch sử.
      * @return Danh sách các đơn đổi ca do nhân viên này tạo.
      */
@@ -308,26 +318,24 @@ public class ShiftSwapDAO extends DBContext {
         return list;
     }
 
-    //Tự động reject đơn đổi ca quá h
+    // Tự động reject đơn đổi ca quá h
     public int rejectExpiredPendingRequests() {
-    String sql =
-        "UPDATE r " +
-        "SET Status='REJECTED', ApprovedAt=GETDATE() " +
-        "FROM ShiftSwapRequests r " +
-        "JOIN EmployeeShiftAssignments a1 ON r.FromAssignmentID = a1.AssignmentID " +
-        "JOIN EmployeeShiftAssignments a2 ON r.ToAssignmentID = a2.AssignmentID " +
-        "WHERE r.Status = 'PENDING' " +
-        "AND (a1.WorkDate < CAST(GETDATE() AS DATE) " +
-        "     OR a2.WorkDate < CAST(GETDATE() AS DATE))";
-    try (Connection conn = getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        return ps.executeUpdate();
-    } catch (Exception e) {
-        e.printStackTrace();
+        String sql = "UPDATE r " +
+                "SET Status='REJECTED', ApprovedAt=GETDATE() " +
+                "FROM ShiftSwapRequests r " +
+                "JOIN EmployeeShiftAssignments a1 ON r.FromAssignmentID = a1.AssignmentID " +
+                "JOIN EmployeeShiftAssignments a2 ON r.ToAssignmentID = a2.AssignmentID " +
+                "WHERE r.Status = 'PENDING' " +
+                "AND (a1.WorkDate < CAST(GETDATE() AS DATE) " +
+                "     OR a2.WorkDate < CAST(GETDATE() AS DATE))";
+        try (Connection conn = getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            return ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
-    return 0;
-}
-
 
     /** Lấy swap request trong cùng một transaction connection */
     public ShiftSwapRequest getRequestByIdWithConn(int requestID, Connection conn) throws Exception {
@@ -380,5 +388,3 @@ public class ShiftSwapDAO extends DBContext {
         ps.executeUpdate();
     }
 }
-
-
