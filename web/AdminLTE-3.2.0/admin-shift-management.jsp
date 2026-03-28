@@ -503,7 +503,10 @@
 
                                 </div>
 
-                                <div class="modal-footer">
+                                <div class="modal-footer d-flex justify-content-between">
+                                    <div id="selectionCounter" class="text-muted">
+                                        Đã chọn: <span id="checkedCount">0</span>/8
+                                    </div>
                                     <button type="button"
                                             class="btn btn-primary"
                                             onclick="selectEmployee()">
@@ -532,6 +535,11 @@
                     alert("Vui lòng chọn ít nhất 1 nhân viên");
                     return;
                 }
+                
+                if (checked.length > 8) {
+                    alert("Không được chọn quá 8 nhân viên cho một ca làm việc!");
+                    return;
+                }
 
                 let ids = [];
                 let names = [];
@@ -550,6 +558,32 @@
 
                 $('#employeeModal').modal('hide');
             }
+
+            // Update counter in real-time
+            document.addEventListener('change', function(e) {
+                if (e.target && e.target.name === 'empCheckbox') {
+                    let checkedCount = document.querySelectorAll('input[name="empCheckbox"]:checked').length;
+                    let counterSpan = document.getElementById('checkedCount');
+                    if (counterSpan) {
+                        counterSpan.textContent = checkedCount;
+                        if (checkedCount > 8) {
+                            counterSpan.classList.add('text-danger', 'font-weight-bold');
+                        } else {
+                            counterSpan.classList.remove('text-danger', 'font-weight-bold');
+                        }
+                    }
+                }
+            });
+            
+            // Search employee logic (existing but adding for completeness if needed, though user didn't ask)
+            document.getElementById('searchEmployee').addEventListener('keyup', function() {
+                let value = this.value.toLowerCase();
+                let rows = document.querySelectorAll('#employeeTable tr');
+                rows.forEach(row => {
+                    let text = row.innerText.toLowerCase();
+                    row.style.display = text.indexOf(value) > -1 ? '' : 'none';
+                });
+            });
         </script>
 
 

@@ -26,7 +26,12 @@
 
                 <section class="content-header">
                     <div class="container-fluid">
-                        <h1><i class="fas fa-exchange-alt"></i> Duyệt Đơn Đổi Ca</h1>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1><i class="fas fa-exchange-alt"></i> Duyệt Đơn Đổi Ca</h1>
+                            <a href="${pageContext.request.contextPath}/admin/shift-management" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Quay lại Phân ca
+                            </a>
+                        </div>
                     </div>
                 </section>
 

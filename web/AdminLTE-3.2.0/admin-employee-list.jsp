@@ -33,7 +33,7 @@
                             <div class="col-sm-6 text-right">
                                 <a href="${pageContext.request.contextPath}/admin/employees?action=add"
                                    class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Thêm Nhân viên
+                                    <i class="fas fa-plus"></i> Chỉnh sửa thông tin cá nhân
                                 </a>
                             </div>
                         </div>
