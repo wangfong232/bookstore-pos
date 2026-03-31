@@ -107,8 +107,14 @@ Built with **AdminLTE 3**, the system utilizes a **Dashboard-centric** design. T
     
 
 ---
-## 📸 System Gallery
+| 📊 Stock Disposal | 📝 PO Approval Workflow |
+|:---:|:---:|
+| ![Stock Disposal](./screenshot/SD_View_AfterApprove.png) | ![PO Approval](./screenshot/PO_Detail_Manager.png) |
 
+| 📉 Stock Take Wizard | 📜 Transaction Ledger |
+|:---:|:---:|
+| ![Stock Take](./screenshot/ST_View_Manager.png) | ![History](./screenshot/TransactionLog.png) |
+| *Color-coded variance tracking* | *Immutable audit trail* |
 ---
 
 _Developed by Team SE1972_G2 - FPT University @ 2026_
